@@ -24,6 +24,7 @@ class CharacterState:
     pending_messages: list = field(default_factory=list)
     pending_thoughts: list = field(default_factory=list)
     relationships: dict = field(default_factory=dict)
+    collab_context: str = ""  # injected by engine, visible in prompts
 
 
 class Character:

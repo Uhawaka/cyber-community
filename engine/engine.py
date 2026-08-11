@@ -21,6 +21,7 @@ from engine.day_rhythm import get_phase, get_phase_activity
 from engine.observation import get_observation_queries
 from engine.production import ProductionPipeline
 from engine.memory import Memory, Episode
+from engine.collaboration import CollaborationBoard, JointProject
 
 
 class SimulationEngine:
@@ -115,6 +116,9 @@ class SimulationEngine:
         # Production pipeline
         prod_path = output_dir / "production.json"
         self.production = ProductionPipeline(str(prod_path), llm)
+
+        # Collaboration — characters discover shared interests organically
+        self.collab = CollaborationBoard()
 
         # Search dedup cache — avoid redundant arXiv calls
         self._search_history: dict[str, set] = {}  # day → {queries done}
@@ -499,6 +503,10 @@ class SimulationEngine:
             valence=valence,
             importance=0.5 + (0.1 if len(dialogue) > 600 else 0),
             tags=[topic[:30]])
+
+        # ── Collaboration: detect shared interests after deep dialogue ──
+        if len(dialogue) > 400:
+            self._check_collaboration(initiator.name, target.name, topic, dialogue)
 
     # ─── gathering_step ───────────────────────────────────────
 
@@ -1301,6 +1309,11 @@ class SimulationEngine:
         if social_ctx:
             char._memory_context = "## 社区中的你\n" + social_ctx + "\n\n" + char._memory_context
 
+        # Inject collaboration context
+        self._inject_collab_context(char_name)
+        if hasattr(char.state, 'collab_context') and char.state.collab_context:
+            char._memory_context = char.state.collab_context + "\n\n" + char._memory_context
+
     # ─── Deep Think Trigger ────────────────────────────────────
 
     def _record_memory(self, char_name: str, ep_type: str, summary: str, 
@@ -1428,3 +1441,86 @@ class SimulationEngine:
             "understanding": thought.understanding,
             "confidence": thought.confidence,
         })
+
+        # ── Collaboration: deep insights may reveal shared interests ──
+        self._check_solo_to_collab(char_name, thought)
+
+    # ─── Collaboration Detection ──────────────────────────────
+
+    def _check_collaboration(self, a: str, b: str, topic: str, dialogue: str):
+        """After a meaningful collision, check if characters should collaborate."""
+        char_a = self.characters.get(a)
+        char_b = self.characters.get(b)
+        if not char_a or not char_b:
+            return
+
+        focus_a = char_a.state.current_focus or ""
+        focus_b = char_b.state.current_focus or ""
+
+        # Already collaborating?
+        for p in self.collab.get_active():
+            if a in p.participants and b in p.participants:
+                # They're already working together — advance the project
+                if p.topic[:30] in topic or topic[:30] in p.topic:
+                    p.advance(random.uniform(0.02, 0.05))
+                    p.last_worked_day = self.day
+                return
+
+        # Check topic overlap
+        if not self.collab.detect_overlap(focus_a, focus_b):
+            return
+
+        # Deep enough dialogue + overlapping interests → propose collaboration
+        if len(dialogue) > 600:
+            # Higher chance if dialogue is substantive
+            if random.random() < 0.4:
+                project_topic = topic if len(topic) > 10 else f"{focus_a[:30]} × {focus_b[:30]}"
+                project = self.collab.create(
+                    project_topic, a, [a, b], self.day
+                )
+                self._log(f"\n  🤝 {a} 和 {b} 发现共同兴趣，发起协作: {project_topic[:50]}")
+                self.event_log.append({
+                    "time": self.clock, "type": "collaboration_start",
+                    "participants": [a, b], "topic": project_topic,
+                })
+                # Boost mood
+                char_a.state.mood = "excited"
+                char_b.state.mood = "curious"
+
+    def _check_solo_to_collab(self, char_name: str, thought):
+        """After deep think, character may notice others' work relates to theirs."""
+        char = self.characters.get(char_name)
+        if not char:
+            return
+        
+        my_topic = char.state.current_focus or ""
+        candidates = self.collab.find_collaboration_candidates(
+            char_name, my_topic, self.characters
+        )
+        
+        if candidates and random.random() < 0.25:
+            other = random.choice(candidates)
+            # They notice the connection
+            char.state.pending_thoughts.append(
+                f"我注意到{other}的研究可能和我的工作有关——也许该找ta聊聊"
+            )
+            if hasattr(char, '_verbose') or random.random() < 0.3:
+                pass  # The pending_thoughts will surface in future context
+
+    def _inject_collab_context(self, char_name: str):
+        """Inject collaboration info into character's system prompt context."""
+        char = self.characters.get(char_name)
+        if not char:
+            return
+        ctx_parts = []
+        
+        my_projects = self.collab.get_my_projects(char_name)
+        if my_projects:
+            ctx_parts.append(my_projects)
+        
+        community = self.collab.get_community_context()
+        if community:
+            ctx_parts.append(community)
+        
+        if ctx_parts:
+            char.state.collab_context = "\n\n".join(ctx_parts)
