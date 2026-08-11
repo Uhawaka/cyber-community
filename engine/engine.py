@@ -735,36 +735,38 @@ class SimulationEngine:
                 self._log(f"  🔭 {char.name} 观察人类世界 (dry_run — 跳过)")
             return
 
-        # Get relevant queries
+        # Get relevant queries (now returns (type, query) tuples)
         queries = get_observation_queries(char.research, char.config.get("domain", ""))
         if not queries:
-            queries = ["mathematics recent"]
+            queries = [("arxiv", "mathematics recent")]
 
         # Dedup: skip queries already done today
         day_key = str(self.day)
         done_today = self._search_history.setdefault(day_key, set())
-        fresh_queries = [q for q in queries if q not in done_today]
+        fresh_queries = [(t, q) for t, q in queries if q not in done_today]
         if not fresh_queries:
             if verbose:
                 self._log(f"  🔭 {char.name} 今日搜索已完成")
-            # Still reschedule
             next_t = self.clock + random.uniform(8, 16)
             self.queue.push(Event(time=next_t, type="observe_world", actor=char.name))
             return
 
-        query = random.choice(fresh_queries)
+        query_type, query = random.choice(fresh_queries)
         done_today.add(query)
 
         if verbose:
-            self._log(f"  🔭 {char.name} 观察人类世界: {query}")
+            icon = "🌐" if query_type == "web" else "📡"
+            self._log(f"  {icon} {char.name} 观察人类世界: {query}")
 
-        # Try arxiv search
+        # Try search (arxiv or web)
         try:
             if self.tool_registry:
-                result = self.tool_registry.execute("search_arxiv", char.name,
+                tool_name = "search_web" if query_type == "web" else "search_arxiv"
+                result = self.tool_registry.execute(tool_name, char.name,
                     {"query": query, "topic": query})
                 if result.success:
-                    self.production.record_observation("arxiv", result.output[:500], char.name)
+                    source = "web" if query_type == "web" else "arxiv"
+                    self.production.record_observation(source, result.output[:500], char.name)
                     
                     # Mission evaluation — did this help the character's goal?
                     mission = self.missions.process_observation(char.name, result.output)
@@ -1078,6 +1080,7 @@ class SimulationEngine:
             weights["tool_run_code"] = 0.03
             weights["tool_write_paper"] = 0.03
             weights["tool_search_arxiv"] = 0.04
+            weights["tool_search_web"] = 0.04
 
         e = char.state.energy
         if e < 20:
@@ -1102,6 +1105,7 @@ class SimulationEngine:
             "tool_run_code": "run_code",
             "tool_write_paper": "write_paper", 
             "tool_search_arxiv": "search_arxiv",
+            "tool_search_web": "search_web",
         }
         if choice in tool_map:
             tool_name = tool_map[choice]

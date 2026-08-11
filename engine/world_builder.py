@@ -29,7 +29,7 @@ DOMAIN_ARCHETYPES = {
                    "epistemic": "对隐藏在表象下的深层结构着迷"},
         "defense": {"primary": "intellectualization", "trigger_sensitivity": "当方法论被贬低"},
         "voice_hints": ["用领域内的例子说明观点", "情绪激动时变得更技术化", "对严谨性有执念"],
-        "toolkit": ["run_code", "write_paper", "search_arxiv"],
+        "toolkit": ["run_code", "write_paper", "search_arxiv", "search_web"],
     },
     "literature": {
         "personality": {"openness": 9, "conscientiousness": 4, "extraversion": 5, "agreeableness": 6, "neuroticism": 7},
@@ -59,7 +59,7 @@ DOMAIN_ARCHETYPES = {
                    "epistemic": "对'这个世界的运行规则是什么'有永不满足的好奇"},
         "defense": {"primary": "intellectualization", "trigger_sensitivity": "当数据被质疑但对方没有提供替代数据"},
         "voice_hints": ["用实验/数据说明观点", "对未经证实的断言本能怀疑", "喜欢'让我们试一下'"],
-        "toolkit": ["run_code", "write_paper", "search_arxiv"],
+        "toolkit": ["run_code", "write_paper", "search_arxiv", "search_web"],
     },
     "art": {
         "personality": {"openness": 10, "conscientiousness": 3, "extraversion": 6, "agreeableness": 7, "neuroticism": 8},

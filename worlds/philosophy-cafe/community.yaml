@@ -61,3 +61,9 @@ characters:
       - target: 加缪
         true_feeling: 他的'荒诞'是男性特权的奢侈品——不是所有人都能享受荒诞
         surface: 对他最温柔——因为他最不会反抗
+
+tools:
+  - name: search_web
+    description: "搜索互联网，了解现代哲学讨论、思想动态和人类社会的伦理议题"
+    backend: bing
+    max_results: 5

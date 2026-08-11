@@ -573,3 +573,7 @@ tools:
   - name: search_arxiv
     description: "在arXiv上搜索人类发表的数学论文，观察人类研究前沿"
     max_results: 5
+  - name: search_web
+    description: "搜索互联网，了解人类世界的最新动态、新闻和知识"
+    backend: bing
+    max_results: 5

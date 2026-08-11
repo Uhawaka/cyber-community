@@ -59,3 +59,9 @@ characters:
       - target: 杜甫
         true_feeling: 敬佩他对人间的关切——那是王维自己不敢触碰的
         surface: 偶尔送他一幅画，画里有他想说的话
+
+tools:
+  - name: search_web
+    description: "搜索互联网，了解现代诗歌创作、文学评论和人类文化活动"
+    backend: bing
+    max_results: 5

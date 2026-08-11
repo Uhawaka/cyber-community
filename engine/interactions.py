@@ -30,6 +30,9 @@ def decide_action(char: Character, llm: LLM, tools: Optional[list] = None) -> di
             elif name == "search_arxiv":
                 tool_lines.append(f"A - 搜索arXiv论文: {desc}")
                 tool_shortcuts['A'] = ('tool', 'search_arxiv')
+            elif name == "search_web":
+                tool_lines.append(f"W - 搜索互联网: {desc}")
+                tool_shortcuts['W'] = ('tool', 'search_web')
         if tool_lines:
             tool_info = "\n".join(tool_lines) + "\n"
     
@@ -70,7 +73,7 @@ R - 休息/发呆/恢复精力"""
     }
     
     # Check tool shortcuts first
-    for key in ['C', 'P', 'A']:
+    for key in ['C', 'P', 'A', 'W']:
         if key in response and key in tool_shortcuts:
             action_type, tool_name = tool_shortcuts[key]
             return {"type": action_type, "label": f"🔧 使用工具: {tool_name}", "topic": state.current_focus or "", "tool": tool_name}

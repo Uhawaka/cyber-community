@@ -76,3 +76,9 @@ characters:
       - target: Lyra
         true_feeling: 觉得她的语言学分析可以作为特征工程的输入
         surface: 会问她要标注数据——她通常拒绝
+
+tools:
+  - name: search_web
+    description: "搜索互联网，观察人类社会的各类活动和信息"
+    backend: bing
+    max_results: 5

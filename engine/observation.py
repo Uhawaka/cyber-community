@@ -34,23 +34,36 @@ OBSERVATION_SOURCES = [
 
 
 def get_observation_queries(char_research: dict, char_domain: str) -> list:
-    """Generate search queries based on what a character is working on."""
+    """Generate search queries based on what a character is working on.
+    Returns list of (query_type, query) tuples — 'arxiv' or 'web'."""
     queries = []
     project = char_research.get("project", "")
-    stuck = char_research.get("stuck_point", "")
     
+    # arXiv queries (academic)
     if "质数" in project or "prime" in project.lower():
-        queries.append("prime number distribution gaps")
+        queries.append(("arxiv", "prime number distribution gaps"))
     if "筛法" in project or "sieve" in project.lower():
-        queries.append("sieve method recent advances")
+        queries.append(("arxiv", "sieve method recent advances"))
     if "湍流" in project or "Navier" in project:
-        queries.append("Navier-Stokes regularity statistical")
+        queries.append(("arxiv", "Navier-Stokes regularity statistical"))
     if "范畴" in char_domain or "category" in char_domain.lower():
-        queries.append("applied category theory recent")
-    if "zeta" in project.lower() or "黎曼" in project:
-        queries.append("Riemann zeta function zeros distribution")
+        queries.append(("arxiv", "applied category theory recent"))
+    
+    # Web queries (broader: news, forums, Wikipedia)
+    if "质数" in project or "prime" in project.lower():
+        queries.append(("web", "质数 最新进展 数学"))
+    if "金融" in project or "quant" in project.lower() or "trading" in project.lower():
+        queries.append(("web", "量化交易 最新动态"))
+    if "湍流" in project or "physics" in char_domain.lower():
+        queries.append(("web", "流体力学 最新研究"))
+    if "文学" in char_domain or "诗" in project:
+        queries.append(("web", "现代诗歌 创作趋势"))
+    
+    # Default web query for general awareness
+    if char_domain:
+        queries.append(("web", f"{char_domain} 最新动态"))
     
     if not queries:
-        queries.append(char_domain.replace("_", " "))
+        queries.append(("arxiv", char_domain.replace("_", " ")))
     
-    return queries[:3]  # max 3 queries
+    return queries[:6]  # max 6 queries (mix of arxiv + web)

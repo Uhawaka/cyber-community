@@ -4,6 +4,7 @@ Characters use tools as natural extensions of their abilities:
 - run_code: Write and execute Python to test conjectures
 - write_paper: Produce research notes/papers
 - search_arxiv: Observe what humans are publishing
+- search_web: Search the broader web (LLM-synthesized; pluggable real backends)
 
 Tools are defined per-world in community.yaml. The ToolRegistry loads
 available tools and provides execution with artifact saving.
@@ -11,6 +12,7 @@ available tools and provides execution with artifact saving.
 
 import os
 import json
+import re
 import subprocess
 import urllib.request
 import urllib.parse
@@ -55,6 +57,8 @@ class ToolRegistry:
                 self.tools[name] = self._make_write_paper(cfg)
             elif name == "search_arxiv":
                 self.tools[name] = self._make_search_arxiv(cfg)
+            elif name == "search_web":
+                self.tools[name] = self._make_search_web(cfg)
 
     def get_tool(self, name: str):
         return self.tools.get(name)
@@ -261,5 +265,109 @@ class ToolRegistry:
                 )
             except Exception as e:
                 return ToolResult(False, f"arXiv搜索失败: {e}")
+
+        return desc, run
+
+    def _make_search_web(self, cfg: dict):
+        """Web search — Bing primary, LLM fallback.
+        
+        Bing scrapes real results (free, works from China, Chinese results).
+        LLM synthesizes when Bing fails. Pluggable architecture for future backends.
+        Characters gain a broader window to humanity beyond academic papers.
+        """
+        desc = cfg.get("description", "搜索互联网，了解人类世界的最新动态和知识")
+        backend = cfg.get("backend", "bing")
+        max_results = cfg.get("max_results", 5)
+
+        def run(char_name: str, params: dict) -> ToolResult:
+            query = params.get("query", "")
+            topic = params.get("topic", query)
+
+            if not query.strip():
+                return ToolResult(False, "没有提供搜索关键词")
+
+            now = datetime.now().strftime("%Y%m%d_%H%M%S")
+            safe_name = char_name.replace(" ", "_")
+            search_dir = self.output_dir / "searches"
+            search_dir.mkdir(parents=True, exist_ok=True)
+
+            search_backend = backend
+            results = []
+            
+            if search_backend == "bing":
+                try:
+                    bing_url = "https://www.bing.com/search?" + urllib.parse.urlencode({
+                        "q": query, "count": max_results
+                    })
+                    req = urllib.request.Request(bing_url, headers={
+                        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
+                        "Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8",
+                    })
+                    with urllib.request.urlopen(req, timeout=10) as resp:
+                        html = resp.read().decode("utf-8", errors="replace")
+                    
+                    # Parse Bing result blocks (works on cn.bing.com too)
+                    blocks = re.findall(
+                        r'<li[^>]*class="[^"]*b_algo[^"]*"[^>]*>(.*?)</li>',
+                        html, re.DOTALL
+                    )
+                    for block in blocks[:max_results]:
+                        title_m = re.search(r'<h2[^>]*>(.*?)</h2>', block, re.DOTALL)
+                        snippet_m = re.search(r'<p[^>]*>(.*?)</p>', block, re.DOTALL)
+                        cite_m = re.search(r'<cite[^>]*>(.*?)</cite>', block, re.DOTALL)
+                        
+                        title = re.sub(r'<[^>]+>', '', title_m.group(1)).strip() if title_m else ""
+                        snippet = re.sub(r'<[^>]+>', '', snippet_m.group(1)).strip() if snippet_m else ""
+                        url = re.sub(r'<[^>]+>', '', cite_m.group(1)).strip() if cite_m else ""
+                        
+                        if title:
+                            results.append({
+                                "title": title[:120], "snippet": snippet[:200],
+                                "url": url,
+                            })
+                except Exception:
+                    search_backend = "llm"
+
+            if search_backend == "llm" and self.llm:
+                try:
+                    system = (
+                        "你是搜索引擎。用户查询，你基于训练数据返回搜索结果摘要。\n"
+                        "每条: 标题 | 来源 | 1-2句摘要。不编造。不确定标[不确定]。"
+                    )
+                    prompt = f'搜索: "{query}"\n返回{max_results}条。'
+                    response = self.llm.chat(
+                        [{"role": "user", "content": prompt}],
+                        system=system, temperature=0.3
+                    )
+                    results = [{"title": "LLM综合结果", "snippet": response[:500], "url": ""}]
+                except Exception:
+                    results = [{"title": "搜索不可用", "snippet": "无法连接。", "url": ""}]
+
+            if not results:
+                output = f"🌐 网页搜索「{query}」: 无结果。"
+            else:
+                lines = [f"🌐 网页搜索「{query}」({search_backend}):"]
+                for i, r in enumerate(results, 1):
+                    lines.append(f"\n{i}. {r['title']}")
+                    if r['snippet']:
+                        lines.append(f"   {r['snippet'][:180]}")
+                    if r.get('url'):
+                        lines.append(f"   {r['url'][:80]}")
+                output = "\n".join(lines)
+
+            search_path = search_dir / f"{safe_name}_{now}_web_{query[:20]}.json"
+            with open(search_path, "w") as f:
+                json.dump({
+                    "character": char_name, "query": query,
+                    "backend": search_backend,
+                    "timestamp": datetime.now().isoformat(),
+                    "results": results,
+                }, f, ensure_ascii=False, indent=2)
+
+            return ToolResult(
+                success=True, output=output,
+                artifact_path=str(search_path),
+                metadata={"query": query, "backend": search_backend, "result_count": len(results)},
+            )
 
         return desc, run
