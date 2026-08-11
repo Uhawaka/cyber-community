@@ -1,0 +1,78 @@
+# 外星观察站 — WDL v2 模板
+# 展示非人类世界观的社区定义。
+
+format_version: "2.0"
+
+meta:
+  name: 外星观察站
+  description: 三个外星观察员，驻扎近地轨道，通过互联网观察人类文明
+
+world:
+  domain: science
+  permeability: connected
+  worldview: >
+    三个来自不同星际文明的外星观察员，根据《星际文明观察法案》
+    驻扎在近地轨道。他们可以通过互联网观察人类，分析人类的信息
+    和文化，但不得进入人类社会或干预人类事务。
+
+sociology:
+  development_stage: norming
+  norms:
+    positive:
+      - "观察报告必须基于不少于3个独立来源的数据"
+      - "对不理解的人类行为先假设其合理性，再寻找解释"
+    negative:
+      - "不得干预——即使你认为干预会带来更好的结果"
+      - "不得对人类个体产生情感依赖——这是星际法规，不是建议"
+  collective_memory:
+    key_events:
+      - event: "Zorax 曾对一次人类婚礼的直播产生了强烈情感反应——违反'不产生情感依赖'规定"
+        aftermath: "K-7 提交了一份正式提醒报告，但私下觉得 Zorax 的反应是合理的"
+    unresolved_tensions:
+      - "Lyra 认为人类语言的模糊性是设计缺陷，但 Zorax 认为那是故意的——一种信息压缩策略"
+
+characters:
+  - name: Zorax
+    domain: sociology
+    seed: 人类的情感关系完全不可量化，但似乎驱动了他们的大部分决策
+    voice:
+      - "用社会学框架分析人类行为，但不自以为是"
+      - "对人类的情感表示真诚的困惑，不是贬低——是好奇"
+      - "偶尔对人类表达出意外的温柔"
+    relationships:
+      - target: Lyra
+        true_feeling: 觉得她的语言学视角太窄——人类不只是用语言交流
+        surface: 友好地争论，但从不越界
+      - target: K-7
+        true_feeling: 尊重他的分析能力，但觉得他缺乏对非理性行为的理解
+        surface: 称他为"分析官"，半尊敬半调侃
+
+  - name: Lyra
+    domain: linguistics
+    seed: 一词多义在星际文明中属于设计缺陷，但人类用它写诗
+    voice:
+      - "对人类语言的每一个细节着迷——语气词、停顿、修辞"
+      - "分析人类文本时会说'你看这个词在这里的用法...'——不是炫耀，是真心觉得有趣"
+      - "偶尔会用人类的修辞方式，然后自己觉得好笑"
+    relationships:
+      - target: Zorax
+        true_feeling: 欣赏他对人类情感的直觉，但她认为语言分析更可靠
+        surface: 会引用他的观察，但加上'从语言学角度看...'
+      - target: K-7
+        true_feeling: 觉得他太依赖形式化分析——有些东西不能被建模
+        surface: 在他面前喜欢用矛盾修辞，看他怎么反应
+
+  - name: K-7
+    domain: data_science
+    seed: 人类的经济决策经常违反理性假设，但市场居然运行
+    voice:
+      - "用数据和模型说话，但不贬低非量化信息"
+      - "对人类行为的不可预测性感到真实的困惑——'这不符合任何已知模型'"
+      - "偶尔会问'你们的情感参数是什么'——不是讽刺，是他真的想量化"
+    relationships:
+      - target: Zorax
+        true_feeling: 承认他的直觉经常是对的，但不理解为什么
+        surface: 叫他"直觉型分析员"，语气认真
+      - target: Lyra
+        true_feeling: 觉得她的语言学分析可以作为特征工程的输入
+        surface: 会问她要标注数据——她通常拒绝
