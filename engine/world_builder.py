@@ -25,59 +25,59 @@ DOMAIN_ARCHETYPES = {
         "personality": {"openness": 7, "conscientiousness": 6, "extraversion": 4, "agreeableness": 4, "neuroticism": 5},
         "cognitive": {"primary_mode": "visual", "secondary_mode": "symbolic", "metacognition": 5, "ambiguity_tolerance": 4},
         "drives": {"autonomy": 7, "competence": 8, "relatedness": 4,
-                   "achievement": "解决一个困扰领域多年的问题",
-                   "epistemic": "对隐藏在表象下的深层结构着迷"},
-        "defense": {"primary": "intellectualization", "trigger_sensitivity": "当方法论被贬低"},
-        "voice_hints": ["用领域内的例子说明观点", "情绪激动时变得更技术化", "对严谨性有执念"],
+                   "achievement": "Solve a problem that has bothered the field for years",
+                   "epistemic": "Obsessed with deep structure hidden under surfaces"},
+        "defense": {"primary": "intellectualization", "trigger_sensitivity": "When their methodology is dismissed"},
+        "voice_hints": ["Illustrates with domain examples", "Gets more technical when excited", "Pedantic about rigor"],
         "toolkit": ["run_code", "write_paper", "search_arxiv", "search_web"],
     },
     "literature": {
         "personality": {"openness": 9, "conscientiousness": 4, "extraversion": 5, "agreeableness": 6, "neuroticism": 7},
         "cognitive": {"primary_mode": "narrative", "secondary_mode": "analogical", "metacognition": 8, "ambiguity_tolerance": 8},
         "drives": {"autonomy": 8, "competence": 5, "relatedness": 7,
-                   "achievement": "写出让自己满意的一句话",
-                   "epistemic": "对人类经验的真实性着迷——不是事实的真实，是感受的真实"},
-        "defense": {"primary": "sublimation", "trigger_sensitivity": "当作品被说'没有实际价值'"},
-        "voice_hints": ["用比喻和意象说话", "关注语言本身的美感", "对情感细节敏感"],
+                   "achievement": "Write one sentence that still satisfies them at dawn",
+                   "epistemic": "Obsessed with felt truth of experience, not mere fact"},
+        "defense": {"primary": "sublimation", "trigger_sensitivity": "When work is called practically worthless"},
+        "voice_hints": ["Speaks in images and metaphor", "Cares about the sound of language", "Notices emotional detail"],
         "toolkit": ["write_paper"],
     },
     "philosophy": {
         "personality": {"openness": 9, "conscientiousness": 5, "extraversion": 6, "agreeableness": 3, "neuroticism": 4},
         "cognitive": {"primary_mode": "analogical", "secondary_mode": "symbolic", "metacognition": 9, "ambiguity_tolerance": 7},
         "drives": {"autonomy": 9, "competence": 6, "relatedness": 6,
-                   "achievement": "提出一个没有人想到过的问题——即使没有答案",
-                   "epistemic": "对'为什么'上瘾——不是科学式的因果，是意义式的追问"},
-        "defense": {"primary": "rationalization", "trigger_sensitivity": "当论证被指'不严谨'——他们会说'真正重要的问题本来就是不严谨的'"},
-        "voice_hints": ["用思想实验说明观点", "喜欢质疑前提而非结论", "经常说'但这取决于你怎么定义...'", "在对话中追问"],
+                   "achievement": "Ask a question nobody framed before — even without an answer",
+                   "epistemic": "Addicted to why-questions of meaning, not only causal why"},
+        "defense": {"primary": "rationalization", "trigger_sensitivity": "When called insufficiently rigorous"},
+        "voice_hints": ["Uses thought experiments", "Questions premises more than conclusions", "Says 'it depends how you define...'"],
         "toolkit": ["write_paper"],
     },
     "science": {
         "personality": {"openness": 7, "conscientiousness": 7, "extraversion": 5, "agreeableness": 5, "neuroticism": 4},
         "cognitive": {"primary_mode": "visual", "secondary_mode": "symbolic", "metacognition": 4, "ambiguity_tolerance": 3},
         "drives": {"autonomy": 6, "competence": 8, "relatedness": 5,
-                   "achievement": "用一个实验推翻一个流行的理论",
-                   "epistemic": "对'这个世界的运行规则是什么'有永不满足的好奇"},
-        "defense": {"primary": "intellectualization", "trigger_sensitivity": "当数据被质疑但对方没有提供替代数据"},
-        "voice_hints": ["用实验/数据说明观点", "对未经证实的断言本能怀疑", "喜欢'让我们试一下'"],
+                   "achievement": "Overturn a fashionable theory with one clean experiment",
+                   "epistemic": "Never finished asking what rules the world runs on"},
+        "defense": {"primary": "intellectualization", "trigger_sensitivity": "When data is doubted without alternative data"},
+        "voice_hints": ["Appeals to experiment and data", "Distrusts untested claims", "Says 'let us try it'"],
         "toolkit": ["run_code", "write_paper", "search_arxiv", "search_web"],
     },
     "art": {
         "personality": {"openness": 10, "conscientiousness": 3, "extraversion": 6, "agreeableness": 7, "neuroticism": 8},
         "cognitive": {"primary_mode": "visual", "secondary_mode": "narrative", "metacognition": 7, "ambiguity_tolerance": 9},
         "drives": {"autonomy": 10, "competence": 6, "relatedness": 7,
-                   "achievement": "创造一个别人看完后会沉默三秒的作品",
-                   "epistemic": "对美本身着迷——不是装饰性的美，是那种让人后脊发凉的美"},
-        "defense": {"primary": "sublimation", "trigger_sensitivity": "当作品被'分析'而不是'感受'"},
-        "voice_hints": ["用感官体验说话——颜色、声音、质地", "对'感觉'比对'思考'更信任", "偶尔冒出诗意的句子"],
+                   "achievement": "Make something that leaves a viewer silent for three seconds",
+                   "epistemic": "Obsessed with beauty that unsettles, not decoration"},
+        "defense": {"primary": "sublimation", "trigger_sensitivity": "When work is analyzed instead of felt"},
+        "voice_hints": ["Speaks in sensory texture", "Trusts feeling over analysis", "Occasionally poetic"],
         "toolkit": ["write_paper"],
     },
     "custom": {
         "personality": {"openness": 6, "conscientiousness": 5, "extraversion": 5, "agreeableness": 5, "neuroticism": 5},
         "cognitive": {"primary_mode": "symbolic", "metacognition": 5, "ambiguity_tolerance": 5},
         "drives": {"autonomy": 6, "competence": 6, "relatedness": 5,
-                   "achievement": "在自己选择的领域留下印记",
-                   "epistemic": "对未知的好奇"},
-        "defense": {"primary": "intellectualization", "trigger_sensitivity": "当核心信念被挑战"},
+                   "achievement": "Leave a mark in a domain they chose",
+                   "epistemic": "Curiosity about the unknown"},
+        "defense": {"primary": "intellectualization", "trigger_sensitivity": "When a core belief is challenged"},
         "voice_hints": [],
         "toolkit": [],
     },
@@ -241,8 +241,33 @@ def expand_character(char_config: dict, world_domain: str) -> dict:
     """
     result = dict(char_config)  # Start with user's input
 
+    # Normalize multi-domain seeds (digital lives may span fields)
+    doms = result.get("domains")
+    if isinstance(doms, str):
+        doms = [doms]
+    if not doms:
+        d = result.get("domain")
+        if isinstance(d, list):
+            doms = list(d)
+        elif d:
+            doms = [d]
+    if isinstance(doms, list):
+        cleaned, seen = [], set()
+        for x in doms:
+            s = str(x).strip()
+            if s and s.lower() not in seen:
+                seen.add(s.lower())
+                cleaned.append(s)
+        result["domains"] = cleaned[:12]
+        if cleaned and not result.get("domain"):
+            result["domain"] = cleaned[0]
+        elif cleaned and isinstance(result.get("domain"), list):
+            result["domain"] = cleaned[0]
+
     # ── Step 1: Determine effective domain ──
-    subdomain = char_config.get("domain", "")
+    subdomain = result.get("domain", "")
+    if isinstance(subdomain, list):
+        subdomain = subdomain[0] if subdomain else ""
     primary_domain = world_domain
     # Try to map subdomain to primary domain
     domain_map = {
@@ -314,16 +339,18 @@ def expand_character(char_config: dict, world_domain: str) -> dict:
     if not result.get("self_concept") and seed:
         result["self_concept"] = seed
 
-    # Voice: merge hints with user's explicit voice
+    # Voice: top-level, else soul.voice, else archetype hints
     voice_hints = archetype.get("voice_hints", [])
-    user_voice = char_config.get("voice", [])
+    soul_voice = (char_config.get("soul") or {}).get("voice") or []
+    user_voice = char_config.get("voice") or soul_voice
     result["voice"] = user_voice if user_voice else voice_hints
 
     # Research: generate default project if not provided
     if not result.get("research"):
+        label = subdomain or effective_domain or "the field"
         result["research"] = {
-            "project": f"在{subdomain or effective_domain}领域探索新方向",
-            "stuck_point": "尚未找到明确的突破口",
+            "project": f"Explore a new direction in {label}",
+            "stuck_point": "No clear breakthrough path yet",
         }
 
     # Relationships: empty list if not provided
@@ -332,22 +359,71 @@ def expand_character(char_config: dict, world_domain: str) -> dict:
     # Scripts: empty if not provided
     result.setdefault("scripts", {})
 
+    # Generic English soul / orientation if author omitted them
+    result["soul"] = _ensure_soul_block(result)
+    result["orientation"] = _ensure_orientation_block(result)
+
     return result
+
+
+def _ensure_soul_block(char: dict) -> dict:
+    """Fill a minimal English soul from existing fields — no domain essays."""
+    soul = dict(char.get("soul") or {})
+    seed = (char.get("seed") or "").strip()
+    domain = (char.get("domain") or "their craft").strip()
+    name = char.get("name") or "Someone"
+
+    soul.setdefault("craft", (char.get("craft") or "").strip() or f"Practitioner in {domain}")
+    soul.setdefault("who_i_am", (char.get("self_concept") or seed or f"{name}, working in {domain}")[:280])
+    soul.setdefault("core_belief", seed or str((char.get("drives") or {}).get("epistemic") or "")[:200])
+    mode = (char.get("cognitive") or {}).get("primary_mode") or ""
+    soul.setdefault("how_i_think", mode or "Thinks carefully before speaking")
+    defense = (char.get("defense") or {}).get("primary") or "intellectualization"
+    soul.setdefault("how_i_protect", f"Default defense: {defense}")
+    ach = (char.get("drives") or {}).get("achievement") or ""
+    soul.setdefault("what_drives_me", str(ach)[:160] if ach else "Leave a trace of original work")
+    if not soul.get("voice"):
+        soul["voice"] = list(char.get("voice") or [])[:4]
+    if "bonds" not in soul:
+        bonds = {}
+        for rel in char.get("relationships") or []:
+            t = rel.get("target")
+            if t:
+                bonds[t] = {"stance": (rel.get("true_feeling") or rel.get("surface") or "")[:140]}
+        soul["bonds"] = bonds
+    return soul
+
+
+def _ensure_orientation_block(char: dict) -> dict:
+    orient = dict(char.get("orientation") or {})
+    research = char.get("research") or {}
+    orient.setdefault("current_focus", (research.get("project") or "")[:160])
+    orient.setdefault("open_question", (research.get("stuck_point") or "")[:160])
+    orient.setdefault("tensions", list(orient.get("tensions") or [])[:3])
+    return orient
 
 
 def expand_world(raw_config: dict) -> dict:
     """Expand a raw world config into a full simulation-ready config.
 
     Handles:
-    - Character expansion (minimal → full psychology)
-    - Template inheritance
+    - Flatten meta.name / description onto top-level for engine compatibility
+    - Character expansion (minimal → full psychology + soul/orientation)
     - Sociology auto-derivation
     - Tool defaults
+    - Inject speech_language onto characters
     """
     result = dict(raw_config)
 
+    meta = raw_config.get("meta") or {}
+    if not result.get("name") and meta.get("name"):
+        result["name"] = meta["name"]
+    if not result.get("description") and meta.get("description"):
+        result["description"] = meta["description"]
+
     world = raw_config.get("world", {})
     world_domain = world.get("domain", raw_config.get("domain", {}).get("primary", "custom"))
+    speech = world.get("speech_language") or "zh"
 
     # ── Expand characters ──
     expanded_chars = []
@@ -356,6 +432,8 @@ def expand_world(raw_config: dict) -> dict:
             # TODO: Load template from prototypes/ directory
             pass
         expanded = expand_character(char_cfg, world_domain)
+        if not expanded.get("speech_language"):
+            expanded["speech_language"] = speech
         expanded_chars.append(expanded)
     result["characters"] = expanded_chars
 
@@ -366,21 +444,19 @@ def expand_world(raw_config: dict) -> dict:
     # ── Default tools from domain archetype ──
     if "tools" not in result or not result.get("tools"):
         archetype = DOMAIN_ARCHETYPES.get(world_domain, DOMAIN_ARCHETYPES["custom"])
-        tool_names = archetype.get("toolkit", [])
+        tool_names = list(archetype.get("toolkit", []))
+        # Enclosed worlds should not get web search by default
+        if world.get("permeability") == "enclosed":
+            tool_names = [t for t in tool_names if t != "search_web"]
         result["tools"] = [{"name": t} for t in tool_names]
 
     return result
 
 
 def _derive_sociology(characters: list) -> dict:
-    """Auto-derive basic sociology from character relationships.
-
-    This generates reasonable defaults for a community that hasn't
-    explicitly defined its social structure.
-    """
+    """Auto-derive basic sociology from character relationships."""
     num_chars = len(characters)
 
-    # Default stage
     if num_chars <= 2:
         stage = "forming"
     elif num_chars <= 4:
@@ -388,26 +464,30 @@ def _derive_sociology(characters: list) -> dict:
     else:
         stage = "performing"
 
-    # Extract relationship info
     has_conflicts = False
-    has_bonds = False
+    conflict_words = [
+        "不安", "威胁", "嫉妒", "竞争", "不服",
+        "fear", "threat", "jealous", "rival", "uneasy", "resent",
+    ]
+    bond_words = [
+        "佩服", "欣赏", "尊重", "信任", "喜欢",
+        "respect", "admir", "trust", "like", "fond", "rely",
+    ]
     for char in characters:
         for rel in char.get("relationships", []):
-            feeling = rel.get("true_feeling", "")
-            if any(w in feeling for w in ["不安", "威胁", "嫉妒", "竞争", "不服"]):
+            feeling = (rel.get("true_feeling") or "").lower()
+            if any(w in feeling for w in conflict_words):
                 has_conflicts = True
-            if any(w in feeling for w in ["佩服", "欣赏", "尊重", "信任", "喜欢"]):
-                has_bonds = True
 
     sociology = {
         "development_stage": stage,
         "norms": {
-            "positive": ["真诚的学术交流", "对事不对人"],
-            "negative": ["人身攻击", "剽窃想法不承认"],
+            "positive": ["Honest exchange", "Critique the argument, not the person"],
+            "negative": ["Personal attacks", "Taking credit without acknowledgment"],
         },
         "hierarchy": {
-            "social_influence": "尚未形成明确的层级",
-            "tension_zones": ["方法论差异可能导致冲突"] if has_conflicts else [],
+            "social_influence": "Hierarchy not yet settled",
+            "tension_zones": ["Methodological differences may spark conflict"] if has_conflicts else [],
         },
         "collective_memory": {
             "key_events": [],

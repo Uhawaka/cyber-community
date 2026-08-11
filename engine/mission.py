@@ -1,12 +1,10 @@
 """Observation Missions — goals with consequences.
 
-Characters observe humanity not randomly, but to answer specific questions.
-Success → reward (energy, excitement, social recognition)
-Failure → frustration, strategy change
-Progress → visible, drives behavior
-
-This simple feedback loop is what makes behavior feel "alive."
+Missions are built from a character's living domains + current focus,
+not a hardcoded mathematics/prime template table.
 """
+
+from __future__ import annotations
 
 import random
 from dataclasses import dataclass, field
@@ -15,22 +13,20 @@ from typing import Optional
 
 @dataclass
 class Mission:
-    """A specific question the character is trying to answer about humanity."""
+    """A specific question the character is trying to answer about the literature / world."""
 
     id: str
-    question: str                        # what they want to know
-    domain: str                          # what field
-    progress: float = 0.0                # 0.0 — 1.0
+    question: str
+    domain: str
+    progress: float = 0.0
     attempts: int = 0
-    findings: list = field(default_factory=list)   # what they've discovered
-    status: str = "active"               # active | completed | abandoned
+    findings: list = field(default_factory=list)
+    status: str = "active"  # active | completed | abandoned
 
     def record_finding(self, content: str, relevance: float):
-        """Record something found that's relevant to the mission."""
         self.findings.append({"content": content[:200], "relevance": relevance})
         self.progress = min(1.0, self.progress + relevance * 0.3)
         self.attempts += 1
-
         if self.progress >= 0.8:
             self.status = "completed"
 
@@ -41,67 +37,119 @@ class Mission:
         return f"「{self.question[:50]}」进度 {self.progress:.0%}"
 
 
-# ═══════════════════════════════════════════════════════════════
-# Mission Templates — domain-specific observation goals
-# ═══════════════════════════════════════════════════════════════
-
+# Optional domain-keyed extras (English terms OK inside Chinese questions)
 MISSION_TEMPLATES = {
     "computational_finance": [
-        "人类最近在蒙特卡洛方法上有什么突破？有没有新的方差缩减技术？",
-        "人类在做高频交易时用什么统计方法来处理市场微观结构噪声？",
-        "深度学习在期权定价上真的比传统数值方法好吗？证据是什么？",
-        "人类有没有发现新的波动率模型可以更好地拟合肥尾？",
+        "人类最近在 Monte Carlo 方差缩减上有什么可检验的新结果？",
+        "高频交易微观结构噪声，文献里现在常用哪些统计处理方法？",
+        "Deep learning 期权定价相对经典数值方法，有没有扎实对比？",
     ],
     "stochastic_control": [
-        "人类在最优停时问题上有什么新进展？反射BSDE的数值方法有什么突破？",
-        "人类在随机控制中怎么处理模型不确定性？有没有新的鲁棒方法？",
-        "深度学习求解高维PDE的进展如何？Deep BSDE方法现在能做到什么程度？",
+        "最优停时 / reflected BSDE 的数值方法，最近有什么突破？",
+        "随机控制里处理 model uncertainty 的鲁棒方法有哪些新进展？",
     ],
     "statistical_finance": [
-        "人类在金融时间序列的长程相关性上有什么新发现？",
-        "人类有没有找到波动率聚集的根本原因——是微观结构还是宏观信息流？",
-        "统计力学方法在金融风险管理中有什么新应用？",
-    ],
-    "mathematics": [
-        "人类在随机矩阵理论上有什么新结果？有没有新的普适性类被发现了？",
-        "人类对黎曼ζ函数零点的数值计算推进到了什么高度？",
-        "人类有没有发现新的筛法可以处理短区间的质数分布？",
+        "金融时间序列长程相关，最近有什么新的实证或理论？",
+        "波动率聚集：微观结构解释 vs 宏观信息流，文献怎么站队？",
     ],
 }
 
 
-def assign_mission(char_domain: str, existing_missions: list = None) -> Mission:
-    """Assign a new observation mission based on character's domain."""
-    templates = MISSION_TEMPLATES.get(char_domain, MISSION_TEMPLATES.get("mathematics", []))
-    if not templates:
-        return None
+def _char_domains(char) -> list[str]:
+    cfg = getattr(char, "config", {}) or {}
+    domains = cfg.get("domains") or []
+    if isinstance(domains, str):
+        domains = [domains]
+    if not domains and cfg.get("domain"):
+        domains = [cfg.get("domain")]
+    return [str(d) for d in domains if d]
 
-    # Avoid duplicates
+
+def _char_focus(char) -> str:
+    cfg = getattr(char, "config", {}) or {}
+    research = cfg.get("research") or getattr(char, "research", None) or {}
+    orient = cfg.get("orientation") or {}
+    state_focus = ""
+    if hasattr(char, "state") and getattr(char.state, "current_focus", None):
+        state_focus = char.state.current_focus or ""
+    return (
+        state_focus
+        or orient.get("current_focus")
+        or research.get("project")
+        or research.get("stuck_point")
+        or ""
+    ).strip()
+
+
+def _generic_questions(domains: list[str], focus: str) -> list[str]:
+    label = focus or (domains[0].replace("_", " ") if domains else "my current program")
+    dom_bits = ", ".join(d.replace("_", " ") for d in domains[:3]) or label
+    return [
+        f"关于「{label}」，人类文献里最近有什么可检验的新进展（paper / survey）？",
+        f"在 {dom_bits} 方向，有没有新的 journal / arXiv 结果能修正我现有假设？",
+        f"哪些作者或课题组最近在推进与「{label}」相邻的问题？他们用了什么方法？",
+        f"有没有反例、数值证据或负结果，动摇我对「{label}」的默认图景？",
+    ]
+
+
+def assign_mission(
+    char_domain: str = "",
+    existing_missions: list = None,
+    domains: list = None,
+    focus: str = "",
+    char=None,
+) -> Optional[Mission]:
+    """Assign a new observation mission from domains/focus (character-aware)."""
+    if char is not None:
+        domains = _char_domains(char)
+        focus = _char_focus(char)
+        if not char_domain and domains:
+            char_domain = domains[0]
+
+    domains = list(domains or [])
+    if not domains and char_domain:
+        domains = [char_domain]
+
+    templates: list[str] = []
+    for d in domains:
+        templates.extend(MISSION_TEMPLATES.get(d, []))
+    # world-level coarse keys
+    if char_domain in MISSION_TEMPLATES:
+        templates.extend(MISSION_TEMPLATES[char_domain])
+    templates.extend(_generic_questions(domains, focus))
+
+    # Dedupe preserve order
+    seen, uniq = set(), []
+    for t in templates:
+        if t not in seen:
+            seen.add(t)
+            uniq.append(t)
+
     existing_questions = [m.question for m in (existing_missions or [])]
-    available = [t for t in templates if t not in existing_questions]
-    if not available:
-        available = templates
-
+    available = [t for t in uniq if t not in existing_questions] or uniq
     question = random.choice(available)
     mission_id = f"mission_{hash(question) % 10000:04d}"
-
-    return Mission(id=mission_id, question=question, domain=char_domain)
+    domain_label = char_domain or (domains[0] if domains else "general")
+    return Mission(id=mission_id, question=question, domain=domain_label)
 
 
 def evaluate_observation(observation: str, mission: Mission) -> float:
-    """How relevant is this observation to the mission? 0-1.
-
-    Simple keyword-based relevance for now — could use LLM for better matching.
-    """
+    """Keyword relevance 0–1 (lightweight; LLM matching can replace later)."""
     if not observation or not mission:
         return 0.0
 
     keywords = mission.question.lower().split()
-    # Remove stop words
-    stop = {"的", "了", "是", "在", "有", "什么", "怎么", "吗", "呢", "？", "？", "人类", "有没有"}
+    stop = {
+        "的", "了", "是", "在", "有", "什么", "怎么", "吗", "呢", "？", "?",
+        "人类", "有没有", "关于", "最近", "哪些", "他们", "我", "对",
+        "a", "an", "the", "and", "or", "of", "in", "to", "for",
+    }
     keywords = [w for w in keywords if w not in stop and len(w) > 1]
+    if not keywords:
+        return 0.15
 
-    matches = sum(1 for w in keywords if w in observation.lower())
+    obs = observation.lower()
+    matches = sum(1 for w in keywords if w in obs)
     if matches == 0:
         return 0.0
     return min(1.0, matches / max(len(keywords) * 0.3, 1))
@@ -111,29 +159,28 @@ class MissionBoard:
     """Manages all characters' observation missions."""
 
     def __init__(self, characters: dict):
-        self.missions: dict[str, list[Mission]] = {}  # char_name → active missions
+        self.characters = characters
+        self.missions: dict[str, list[Mission]] = {}
         self.completed: dict[str, list[Mission]] = {}
 
-        # Assign initial missions
         for name, char in characters.items():
-            domain = char.config.get("domain", "mathematics")
-            mission = assign_mission(domain)
+            mission = assign_mission(char=char)
             if mission:
                 self.missions[name] = [mission]
 
     def get_active(self, char_name: str) -> Optional[Mission]:
-        """Get the character's current active mission."""
         missions = self.missions.get(char_name, [])
         active = [m for m in missions if m.status == "active"]
         return active[0] if active else None
 
+    def _assign_for(self, char_name: str) -> Optional[Mission]:
+        char = self.characters.get(char_name)
+        return assign_mission(char=char, existing_missions=self.missions.get(char_name, []))
+
     def process_observation(self, char_name: str, observation: str):
-        """Process an observation against the character's active mission."""
         mission = self.get_active(char_name)
         if mission is None:
-            # Assign a new one
-            char_domain = "mathematics"
-            mission = assign_mission(char_domain, self.missions.get(char_name, []))
+            mission = self._assign_for(char_name)
             if mission:
                 self.missions.setdefault(char_name, []).append(mission)
 
@@ -143,29 +190,21 @@ class MissionBoard:
         relevance = evaluate_observation(observation, mission)
         if relevance > 0:
             mission.record_finding(observation, relevance)
-
             if mission.is_complete():
-                # Move to completed
                 self.missions[char_name].remove(mission)
                 self.completed.setdefault(char_name, []).append(mission)
-                # Assign new mission
-                domain = "mathematics"
-                new_mission = assign_mission(domain, self.missions.get(char_name, []))
+                new_mission = self._assign_for(char_name)
                 if new_mission:
                     self.missions[char_name].append(new_mission)
-
         return mission
 
     def get_context(self, char_name: str) -> str:
-        """Mission context for system prompt injection."""
         mission = self.get_active(char_name)
         if mission is None:
             return ""
-
-        lines = [f"## 你在追踪的问题", mission.summary()]
+        lines = ["## 你在追踪的问题", mission.summary()]
         if mission.findings:
-            recent = mission.findings[-2:]
             lines.append("最近的发现:")
-            for f in recent:
+            for f in mission.findings[-2:]:
                 lines.append(f"  · {f['content'][:80]}")
         return "\n".join(lines)

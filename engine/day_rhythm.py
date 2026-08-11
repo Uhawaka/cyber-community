@@ -88,12 +88,19 @@ def get_phase(hour: float) -> DayPhase:
         return DayPhase.NIGHT
 
 
-def get_phase_activity(phase: DayPhase, character_routines: list = None) -> dict:
+def get_phase_activity(
+    phase: DayPhase,
+    character_routines: list = None,
+    weight_bias: dict = None,
+) -> dict:
     """Get a weighted-random activity appropriate for this day phase.
 
-    Character routines can override the default weights.
+    Character routines / psychology bias can override the default weights.
     """
-    activities = PHASE_ACTIVITIES.get(phase, [{"type": "rest", "weight": 1.0}])
+    # Copy so we never mutate the module-level PHASE_ACTIVITIES templates
+    activities = [
+        dict(a) for a in PHASE_ACTIVITIES.get(phase, [{"type": "rest", "weight": 1.0}])
+    ]
 
     # Apply routine overrides
     if character_routines:
@@ -103,6 +110,13 @@ def get_phase_activity(phase: DayPhase, character_routines: list = None) -> dict
                     act_type = act["type"]
                     if act_type in routine.bias:
                         act["weight"] *= routine.bias[act_type]
+
+    # Mild psychology / drive bias (OCEAN + drives)
+    if weight_bias:
+        for act in activities:
+            mult = weight_bias.get(act["type"], 1.0)
+            # also allow biasing the mapped tool/social umbrella keys
+            act["weight"] *= max(0.55, min(1.65, mult))
 
     choices = [a["type"] for a in activities]
     weights = [a["weight"] for a in activities]

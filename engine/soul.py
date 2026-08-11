@@ -1,175 +1,718 @@
-"""Memory system: Soul files + daily archive + fuzzy compression."""
+"""Soul v2 — personality anchor, not a research scrapbook.
+
+Schema only. All identity content comes from world YAML.
+World-agnostic: no domain dictionaries, no topic heuristics.
+"""
+
+from __future__ import annotations
 
 import json
 import os
-import yaml
+import re
 from datetime import datetime
 from typing import Optional
 
+import yaml
+
+
+SOUL_VERSION = "2.0"
+
+# Log / tool lines — format filters only (not research topics)
+_JUNK_MOMENT = re.compile(
+    r"(使用\w+获得发现|代码运行|论文已保存|stdout|找到\s*\d+\s*篇|dry_run|ToolResult|"
+    r"run_code|write_paper|search_arxiv|search_web)",
+    re.I,
+)
+
+_MODE_DESC = {
+    "visual": "Thinks in shapes, densities, and geometric pictures before symbols",
+    "symbolic": "Thinks in symbols and formulas; precision over rhetoric",
+    "analogical": "Thinks by cross-domain analogy; hunts for isomorphism",
+    "narrative": "Thinks in stories and turning points",
+    "computational": "Thinks by computing examples first, then believing",
+}
+
+_DEFENSE_DESC = {
+    "intellectualization": "Under challenge, pulls the talk back to verifiable technical detail",
+    "rationalization": "Under challenge, first defends the existing method as reasonable",
+    "humor": "Defuses tension with light self-mockery, then returns to the point",
+    "displacement": "When threatened, steers toward territory where they feel safer",
+    "sublimation": "Channels friction into creative or formal work",
+}
+
+
+def empty_soul(name: str = "") -> dict:
+    return {
+        "soul_version": SOUL_VERSION,
+        "name": name,
+        "identity": {
+            "craft": "",
+            "who_i_am": "",
+            "core_belief": "",
+            "how_i_think": "",
+            "how_i_protect": "",
+            "what_drives_me": "",
+            "voice": [],
+            # Intellectual territories: seeds from YAML; grows as life opens new fields
+            "seed_domains": [],
+            "domains": [],
+        },
+        "bonds": {},
+        "orientation": {
+            "current_focus": "",
+            "open_question": "",
+            "tensions": [],
+            "recently_opened": [],  # domains newly opened (short log)
+        },
+        "reflections": [],
+        "milestones": [],
+        "meta": {
+            "seeded_from": "",
+            "created_at": "",
+            "last_calibrated_day": 0,
+        },
+        "recent_murmurs": [],
+    }
+
+
+def _first_sentence(text: str, max_len: int = 160) -> str:
+    text = " ".join((text or "").split())
+    if not text:
+        return ""
+    for sep in ("。", "！", "？", ".", "!", "?"):
+        if sep in text:
+            text = text.split(sep)[0] + (sep if sep in "。！？" else "")
+            break
+    return text[:max_len].strip()
+
+
+def _identity_blurb(text: str, max_len: int = 280) -> str:
+    text = " ".join((text or "").split())
+    if not text:
+        return ""
+    parts: list[str] = []
+    rest = text
+    for _ in range(2):
+        cut = -1
+        sep_used = ""
+        for sep in (".", "!", "?", "。", "！", "？"):
+            i = rest.find(sep)
+            if i != -1 and (cut == -1 or i < cut):
+                cut, sep_used = i, sep
+        if cut == -1:
+            parts.append(rest)
+            break
+        parts.append(rest[: cut + len(sep_used)])
+        rest = rest[cut + len(sep_used) :].strip()
+        if not rest:
+            break
+    return "".join(parts).strip()[:max_len]
+
+
+def _clip(text: str, n: int) -> str:
+    return " ".join((text or "").split())[:n].strip()
+
+
+_DOMAIN_CUT = re.compile(r"\s*[—–―]\s*|\s+--\s+|\s*\(|（")
+_DOMAIN_META = re.compile(
+    r"(only if| lasting |if a |when |若持续|暂不|则记录|only when)",
+    re.I,
+)
+_DOMAIN_SENTENCEY = re.compile(
+    r"\b(if|only|when|unless|should|must|because)\b",
+    re.I,
+)
+_REFLECTION_NUM = re.compile(r"^(\d+[\.\)]\s*)+")
+_REFLECTION_BOILER = re.compile(
+    r"^(?:我的)?核心洞见是?[：:]\s*|"
+    r"^My core insight is[:：]?\s*|"
+    r"^The core insight is[:：]?\s*",
+    re.I,
+)
+
+
+def _normalize_domain(raw: str) -> str | None:
+    """Turn LLM/domain deltas into a short english slug, or reject."""
+    text = " ".join(str(raw or "").split()).strip()
+    if not text:
+        return None
+    text = _DOMAIN_CUT.split(text, maxsplit=1)[0].strip()
+    if not text or _DOMAIN_META.search(text):
+        return None
+    if re.search(r"[\u4e00-\u9fff]", text):
+        return None
+    # Phrase → snake_case; keep existing snake/slash forms
+    slug = text.lower().replace("/", "_").replace("-", "_")
+    slug = re.sub(r"[\s]+", "_", slug)
+    slug = re.sub(r"[^a-z0-9_+]", "", slug)
+    slug = re.sub(r"_+", "_", slug).strip("_")
+    if len(slug) < 3 or len(slug) > 40:
+        return None
+    words = [w for w in slug.replace("+", "_").split("_") if w]
+    if len(words) >= 6 and _DOMAIN_SENTENCEY.search(" ".join(words)):
+        return None
+    return slug
+
+
+def _clean_reflection(statement: str) -> str:
+    """Strip numbering / insight boilerplate / markdown bold before clipping."""
+    text = " ".join(str(statement or "").split()).strip()
+    if not text:
+        return ""
+    text = text.replace("**", "")
+    for _ in range(3):
+        nxt = _REFLECTION_NUM.sub("", text).strip()
+        nxt = _REFLECTION_BOILER.sub("", nxt).strip()
+        if nxt == text:
+            break
+        text = nxt
+    return _first_sentence(text, 140)
+
+
+def normalize_domains(config: dict) -> list[str]:
+    """Collect seed domains from domains[] / domain / soul.domains."""
+    raw: list = []
+    if isinstance(config.get("domains"), list):
+        raw.extend(config["domains"])
+    elif isinstance(config.get("domains"), str) and config["domains"].strip():
+        raw.append(config["domains"].strip())
+    soul_dom = (config.get("soul") or {}).get("domains") or (config.get("soul") or {}).get("seed_domains")
+    if isinstance(soul_dom, list):
+        raw.extend(soul_dom)
+    d = config.get("domain")
+    if isinstance(d, list):
+        raw.extend(d)
+    elif isinstance(d, str) and d.strip():
+        raw.append(d.strip())
+    out: list[str] = []
+    seen = set()
+    for item in raw:
+        s = _normalize_domain(str(item)) or str(item).strip()
+        # Seeds from YAML may already be clean snake_case; keep if normalize fails
+        # only when original looks like a short domain token
+        if not s:
+            continue
+        key = s.lower()
+        if key in seen:
+            continue
+        seen.add(key)
+        out.append(s)
+    return out[:12]
+
 
 class SoulFile:
-    """A character's essence — personality anchor that evolves slowly."""
+    """A character's personality anchor — evolves slowly."""
 
     def __init__(self, path: str):
         self.path = path
-        self.data = {}
-        os.makedirs(os.path.dirname(path), exist_ok=True)
+        self.data: dict = {}
+        os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
         self._load_or_init()
 
     def _load_or_init(self):
         if os.path.exists(self.path):
             with open(self.path) as f:
-                self.data = yaml.safe_load(f) or {}
+                raw = yaml.safe_load(f) or {}
+            self.data = self._migrate(raw)
         else:
-            self.data = {
-                "name": "",
-                "essence": {
-                    "core_belief": "",
-                    "intellectual_style": "",
-                    "emotional_pattern": "",
-                },
-                "relationships_deep": {},
-                "knowledge_evolved": {
-                    "gained": [],
-                    "questions": [],
-                    "abandoned": [],
-                },
-                "witnessed_moments": [],
-                "projects": {},   # project_goal -> {progress, breakthroughs}
-                "idle_thoughts": [],  # recent inner monologue
+            self.data = empty_soul()
+            self.data["meta"]["created_at"] = datetime.now().isoformat()
+
+    def _migrate(self, raw: dict) -> dict:
+        if raw.get("soul_version") == SOUL_VERSION and "identity" in raw:
+            base = empty_soul(raw.get("name", ""))
+            base.update({k: raw.get(k, base.get(k)) for k in base})
+            base["identity"] = {**empty_soul()["identity"], **(raw.get("identity") or {})}
+            base["orientation"] = {
+                **empty_soul()["orientation"],
+                **(raw.get("orientation") or {}),
             }
+            base["meta"] = {**empty_soul()["meta"], **(raw.get("meta") or {})}
+            return base
 
-    def init_from_config(self, name: str, config: dict):
-        """Initialize soul from character config. Preserves existing soul data."""
+        out = empty_soul(raw.get("name", ""))
+        essence = raw.get("essence") or {}
+        out["identity"]["core_belief"] = essence.get("core_belief") or ""
+        out["identity"]["how_i_think"] = essence.get("intellectual_style") or ""
+        out["identity"]["who_i_am"] = essence.get("emotional_pattern") or ""
+
+        for u in (raw.get("understanding") or [])[-3:]:
+            insight = _first_sentence(u.get("insight", ""), 120)
+            if insight:
+                out["reflections"].append({
+                    "day": u.get("day", 0),
+                    "about": "work",
+                    "statement": insight,
+                    "confidence": float(u.get("confidence") or 0.5),
+                })
+
+        for m in (raw.get("witnessed_moments") or [])[-5:]:
+            content = m.get("content", "") if isinstance(m, dict) else str(m)
+            if content and not _JUNK_MOMENT.search(content):
+                out["milestones"].append({
+                    "day": 0,
+                    "moment": _first_sentence(content, 80),
+                })
+
+        for name, rel in (raw.get("relationships_deep") or {}).items():
+            if isinstance(rel, dict) and rel.get("bond"):
+                out["bonds"][name] = {
+                    "stance": rel.get("bond", "")[:120],
+                    "history": list(rel.get("history") or [])[-5:],
+                }
+
+        questions = (raw.get("knowledge_evolved") or {}).get("questions") or []
+        if questions:
+            out["orientation"]["open_question"] = _first_sentence(str(questions[-1]), 120)
+
+        out["meta"]["created_at"] = datetime.now().isoformat()
+        out["meta"]["migrated_from"] = "v1"
+        return out
+
+    def init_from_config(self, name: str, config: dict, world_name: str = ""):
+        """Seed from character YAML. Prefer explicit soul:/orientation:; else field fallbacks.
+
+        identity.*  = who they are (stable)
+        orientation.* = what occupies them now (mutable)
+        Never copy research.project / obsession into core_belief.
+        """
         self.data["name"] = name
-        seed = config.get("seed", "")
-        
-        # Only set core_belief if it's empty (first init); don't overwrite evolved souls
-        if seed and not self.data.get("essence", {}).get("core_belief", ""):
-            self.data.setdefault("essence", {})["core_belief"] = seed
+        self.data["soul_version"] = SOUL_VERSION
+        ident = self.data.setdefault("identity", empty_soul()["identity"])
+        for k, v in empty_soul()["identity"].items():
+            ident.setdefault(k, v if not isinstance(v, list) else list(v))
+
+        soul_cfg = config.get("soul") or {}
+        orient_cfg = config.get("orientation") or {}
+
+        def fill(key: str, value: str):
+            value = (value or "").strip()
+            if value and not (ident.get(key) or "").strip():
+                ident[key] = value
+
+        fill("craft", soul_cfg.get("craft") or config.get("craft") or "")
+        fill("who_i_am", soul_cfg.get("who_i_am") or "")
+        fill("core_belief", soul_cfg.get("core_belief") or "")
+        fill("how_i_think", soul_cfg.get("how_i_think") or "")
+        fill("how_i_protect", soul_cfg.get("how_i_protect") or "")
+        fill("what_drives_me", soul_cfg.get("what_drives_me") or "")
+        if soul_cfg.get("voice") and not ident.get("voice"):
+            ident["voice"] = [str(v)[:100] for v in soul_cfg["voice"][:4]]
+
+        # Domain landscape: seeds from YAML; living domains start as seeds
+        seeds = normalize_domains(config)
+        if soul_cfg.get("seed_domains"):
+            seeds = normalize_domains({"domains": soul_cfg["seed_domains"]}) or seeds
+        if seeds and not ident.get("seed_domains"):
+            ident["seed_domains"] = list(seeds)
+        if seeds and not ident.get("domains"):
+            ident["domains"] = list(seeds)
+        elif ident.get("seed_domains") and not ident.get("domains"):
+            ident["domains"] = list(ident["seed_domains"])
+
+        bonds = self.data.setdefault("bonds", {})
+        for target, rel in (soul_cfg.get("bonds") or {}).items():
+            if target in bonds:
+                continue
+            if isinstance(rel, dict):
+                stance = (rel.get("stance") or "").strip()
+                hist = list(rel.get("history") or [])[-5:]
+            else:
+                stance = str(rel).strip()
+                hist = []
+            if stance:
+                bonds[target] = {"stance": stance[:140], "history": hist}
+
+        if not (ident.get("who_i_am") or "").strip():
+            fill("who_i_am", _identity_blurb(config.get("self_concept") or "", 280))
+
+        if not (ident.get("core_belief") or "").strip():
+            seed = (config.get("seed") or "").strip()
+            drives = config.get("drives") or {}
+            epistemic = drives.get("epistemic") or drives.get("epistemic_motive") or ""
+            if isinstance(epistemic, (int, float)):
+                epistemic = ""
+            else:
+                epistemic = str(epistemic).strip()
+            mental_models = config.get("mental_models") or []
+            mm0 = str(mental_models[0]).strip() if mental_models else ""
+            belief = seed or epistemic or mm0
+            if not belief and config.get("self_concept"):
+                belief = _first_sentence(config["self_concept"], 120)
+            fill("core_belief", belief)
+
+        if not (ident.get("craft") or "").strip():
+            role = (config.get("community_role") or "").strip()
+            doms = ident.get("domains") or normalize_domains(config)
+            label = ", ".join(doms[:3]) if doms else (config.get("domain") or "")
+            fill("craft", role or (f"Practitioner spanning {label}" if label else ""))
+
+        if not (ident.get("how_i_think") or "").strip():
+            mode = (config.get("cognitive") or {}).get("primary_mode") or ""
+            fill("how_i_think", _MODE_DESC.get(mode, mode))
+
+        if not (ident.get("how_i_protect") or "").strip():
+            defense = config.get("defense") or {}
+            dtext = _DEFENSE_DESC.get(defense.get("primary") or "", "")
+            trigger = (defense.get("trigger_sensitivity") or "").strip()
+            if dtext and trigger:
+                fill("how_i_protect", f"{dtext}; especially when: {_clip(trigger, 80)}")
+            elif dtext:
+                fill("how_i_protect", dtext)
+
+        if not (ident.get("what_drives_me") or "").strip():
+            jtbd = config.get("jtbd") or {}
+            drives = config.get("drives") or {}
+            bits = []
+            if isinstance(jtbd.get("emotional"), str) and jtbd["emotional"].strip():
+                bits.append(_clip(jtbd["emotional"], 90))
+            ach = drives.get("achievement")
+            if isinstance(ach, str) and ach.strip():
+                bits.append(_clip(ach, 90))
+            if bits:
+                fill("what_drives_me", "; ".join(bits[:2]))
+
+        if not ident.get("voice"):
+            voice = config.get("voice") or []
+            if voice:
+                ident["voice"] = [str(v)[:100] for v in voice[:4]]
+
+        for rel in config.get("relationships") or []:
+            target = rel.get("target")
+            if not target or target in bonds:
+                continue
+            stance = (rel.get("true_feeling") or rel.get("surface") or "").strip()
+            if stance:
+                bonds[target] = {"stance": stance[:140], "history": []}
+
+        orient = self.data.setdefault("orientation", empty_soul()["orientation"])
+        research = config.get("research") or {}
+
+        if orient_cfg.get("current_focus") and not orient.get("current_focus"):
+            orient["current_focus"] = _clip(orient_cfg["current_focus"], 160)
+        if orient_cfg.get("open_question") and not orient.get("open_question"):
+            orient["open_question"] = _clip(orient_cfg["open_question"], 160)
+        if orient_cfg.get("tensions") and not orient.get("tensions"):
+            orient["tensions"] = [str(x)[:80] for x in orient_cfg["tensions"][:3]]
+        orient.setdefault("recently_opened", [])
+
+        if not orient.get("current_focus"):
+            orient["current_focus"] = _clip(
+                research.get("project") or research.get("obsession") or "", 160
+            )
+        if not orient.get("open_question"):
+            orient["open_question"] = _clip(research.get("stuck_point") or "", 160)
+
+        meta = self.data.setdefault("meta", empty_soul()["meta"])
+        if not meta.get("created_at"):
+            meta["created_at"] = datetime.now().isoformat()
+        if world_name:
+            meta["seeded_from"] = world_name
 
         self.save()
 
-    def add_witnessed_moment(self, moment: str):
-        """Add a user-witnessed moment that will never be compressed away."""
-        entry = {
-            "time": datetime.now().isoformat(),
-            "content": moment,
-        }
-        self.data.setdefault("witnessed_moments", []).append(entry)
-        self.save()
-
-    def add_knowledge(self, category: str, item: str):
-        """Add gained knowledge, open question, or abandoned idea."""
-        key = {
-            "gained": "gained",
-            "question": "questions",
-            "abandoned": "abandoned",
-        }.get(category, category)
-        self.data.setdefault("knowledge_evolved", {})
-        self.data["knowledge_evolved"].setdefault(key, []).append(item)
-        self.save()
-
-    def update_relationship(self, target_name: str, bond: str, history_note: str = ""):
-        """Update relationship with another character."""
-        rels = self.data.setdefault("relationships_deep", {})
-        if target_name not in rels:
-            rels[target_name] = {"bond": bond, "history": []}
-        else:
-            rels[target_name]["bond"] = bond
+    def update_bond(self, target: str, stance: str = "", history_note: str = "", day: int = 0):
+        if not target:
+            return
+        bonds = self.data.setdefault("bonds", {})
+        entry = bonds.setdefault(target, {"stance": "", "history": []})
+        if stance:
+            entry["stance"] = stance[:140]
         if history_note:
-            rels[target_name].setdefault("history", []).append(history_note)
+            note = history_note[:100]
+            if day:
+                note = f"Day{day}: {note}"
+            entry.setdefault("history", []).append(note)
+            entry["history"] = entry["history"][-5:]
         self.save()
+
+    def set_orientation(
+        self,
+        focus: str = "",
+        question: str = "",
+        tensions: Optional[list] = None,
+    ):
+        orient = self.data.setdefault("orientation", empty_soul()["orientation"])
+        if focus:
+            orient["current_focus"] = focus[:160]
+        if question:
+            orient["open_question"] = question[:160]
+        if tensions is not None:
+            orient["tensions"] = [str(t)[:80] for t in tensions[:3]]
+        self.save()
+
+    def add_reflection(
+        self,
+        statement: str,
+        about: str = "self",
+        day: int = 0,
+        confidence: float = 0.5,
+    ):
+        statement = _clean_reflection(statement)
+        if not statement or _JUNK_MOMENT.search(statement):
+            return False
+        refs = self.data.setdefault("reflections", [])
+        prefix = statement[:40]
+        for prev in refs[-3:]:
+            prev_s = (prev.get("statement") or "")
+            if prev_s == statement or (prefix and prev_s.startswith(prefix)):
+                return False
+        refs.append({
+            "day": day,
+            "about": about,
+            "statement": statement,
+            "confidence": float(confidence),
+        })
+        if len(refs) > 12:
+            self.data["reflections"] = refs[-12:]
+        self.save()
+        return True
+
+    def add_milestone(self, moment: str, day: int = 0) -> bool:
+        moment = _first_sentence(moment, 80)
+        if not moment or len(moment) < 6:
+            return False
+        if _JUNK_MOMENT.search(moment):
+            return False
+        junk_starts = ("代码", "输出", "论文已", "搜索", "[", "找到 ", "stdout", "Tool")
+        if moment.startswith(junk_starts):
+            return False
+        marks = self.data.setdefault("milestones", [])
+        if any(m.get("moment") == moment for m in marks):
+            return False
+        marks.append({"day": day, "moment": moment})
+        if len(marks) > 10:
+            self.data["milestones"] = marks[-10:]
+        self.save()
+        return True
+
+    def add_murmur(self, thought: str):
+        thought = _first_sentence(thought, 60)
+        if not thought:
+            return
+        murmurs = self.data.setdefault("recent_murmurs", [])
+        murmurs.append(thought)
+        self.data["recent_murmurs"] = murmurs[-3:]
+        self.save()
+
+    def open_domain(self, domain: str, day: int = 0, reason: str = "") -> bool:
+        """Add a new intellectual territory. Digital lives may cross human limits."""
+        domain = _normalize_domain(domain)
+        if not domain:
+            return False
+        ident = self.data.setdefault("identity", empty_soul()["identity"])
+        domains = list(ident.get("domains") or [])
+        keys = {d.lower() for d in domains}
+        if domain.lower() in keys:
+            return False
+        if len(domains) >= 16:
+            return False
+        domains.append(domain)
+        ident["domains"] = domains
+        orient = self.data.setdefault("orientation", empty_soul()["orientation"])
+        recent = list(orient.get("recently_opened") or [])
+        note = domain if not reason else f"{domain} ({_clip(reason, 40)})"
+        if day:
+            note = f"Day{day}: {note}"
+        recent.append(note)
+        orient["recently_opened"] = recent[-5:]
+        log = self.data.setdefault("meta", {}).setdefault("domain_log", [])
+        log.append({"day": day, "domain": domain, "reason": _clip(reason, 80)})
+        self.data["meta"]["domain_log"] = log[-20:]
+        self.save()
+        return True
+
+    def apply_delta(self, updates: dict, day: int = 0) -> list[str]:
+        if not updates:
+            return []
+        applied = []
+
+        for rel in updates.get("relationship_updates") or []:
+            target = rel.get("target") or ""
+            bond = rel.get("new_bond") or rel.get("stance") or ""
+            note = rel.get("history_note") or ""
+            if target and (bond or note):
+                self.update_bond(target, stance=bond, history_note=note, day=day)
+                applied.append(f"bond:{target}")
+
+        q = updates.get("orientation_question") or ""
+        if not q:
+            qs = updates.get("knowledge_questions") or []
+            if qs:
+                q = qs[0]
+        focus = updates.get("orientation_focus") or ""
+        if q or focus:
+            self.set_orientation(focus=focus, question=q)
+            applied.append("orientation")
+
+        for ref in updates.get("reflections") or []:
+            if isinstance(ref, str):
+                ok = self.add_reflection(ref, about="self", day=day)
+            else:
+                ok = self.add_reflection(
+                    ref.get("statement", ""),
+                    about=ref.get("about", "self"),
+                    day=day,
+                    confidence=float(ref.get("confidence") or 0.5),
+                )
+            if ok:
+                applied.append("reflection")
+
+        for key, about in (
+            ("self_reflection", "self"),
+            ("work_reflection", "work"),
+        ):
+            if updates.get(key):
+                if self.add_reflection(updates[key], about=about, day=day):
+                    applied.append("reflection")
+
+        moment = updates.get("witnessed_moment") or updates.get("milestone") or ""
+        if moment and self.add_milestone(moment, day=day):
+            applied.append("milestone")
+
+        for item in updates.get("opened_domains") or updates.get("new_domains") or []:
+            if isinstance(item, dict):
+                ok = self.open_domain(
+                    item.get("domain") or item.get("name") or "",
+                    day=day,
+                    reason=item.get("reason") or "",
+                )
+                label = item.get("domain") or item.get("name") or ""
+            else:
+                ok = self.open_domain(str(item), day=day)
+                label = str(item)
+            if ok:
+                applied.append(f"domain:{label}")
+
+        return applied
 
     def get_context_summary(self) -> str:
-        """Get a ~200 token summary for injection into activate context."""
-        e = self.data.get("essence", {})
         name = self.data.get("name", "")
-        belief = e.get("core_belief", "")[:80]
+        ident = self.data.get("identity") or {}
+        orient = self.data.get("orientation") or {}
+        parts = [f"You are {name}."]
 
-        rels = self.data.get("relationships_deep", {})
-        rel_text = ""
-        for target, rel in list(rels.items())[:3]:
-            rel_text += f"对 {target}: {rel.get('bond', '')}. "
+        if ident.get("craft"):
+            parts.append(f"Craft: {ident['craft'][:120]}")
+        seed_doms = ident.get("seed_domains") or []
+        live_doms = ident.get("domains") or []
+        if live_doms:
+            parts.append(f"Domains (living): {', '.join(str(d) for d in live_doms[:8])}")
+        if seed_doms and seed_doms != live_doms:
+            parts.append(f"Seed domains: {', '.join(str(d) for d in seed_doms[:6])}")
+        if ident.get("who_i_am"):
+            parts.append(f"Who you are: {ident['who_i_am'][:160]}")
+        if ident.get("core_belief"):
+            parts.append(f"Core belief: {ident['core_belief'][:100]}")
+        if ident.get("how_i_think"):
+            parts.append(f"How you think: {ident['how_i_think'][:80]}")
+        if ident.get("what_drives_me"):
+            parts.append(f"What drives you: {ident['what_drives_me'][:80]}")
 
-        questions = self.data.get("knowledge_evolved", {}).get("questions", [])[-3:]
-        q_text = " ".join(questions) if questions else ""
-        
-        # Project info
-        projects = self.data.get("projects", {})
-        proj_text = ""
-        for goal, info in list(projects.items())[:2]:
-            pct = int(info.get("progress", 0) * 100)
-            proj_text += f"项目「{goal[:30]}」进度{pct}%. "
+        for target, rel in list((self.data.get("bonds") or {}).items())[:3]:
+            stance = (rel or {}).get("stance", "")
+            if stance:
+                parts.append(f"Toward {target}: {stance[:60]}")
 
-        return f"你是 {name}。核心信念: {belief}。{rel_text}{proj_text}当前探索的问题: {q_text}"
+        if orient.get("current_focus"):
+            parts.append(f"Current focus (mutable): {orient['current_focus'][:80]}")
+        if orient.get("open_question"):
+            parts.append(f"Open question: {orient['open_question'][:80]}")
+        recent_open = orient.get("recently_opened") or []
+        if recent_open:
+            parts.append(f"Recently opened domains: {'; '.join(str(x) for x in recent_open[-3:])}")
 
-    def update_project(self, goal: str, progress: float, breakthrough: str = ""):
-        """Record project progress."""
-        projects = self.data.setdefault("projects", {})
-        if goal not in projects:
-            projects[goal] = {"progress": 0.0, "breakthroughs": []}
-        projects[goal]["progress"] = max(projects[goal]["progress"], progress)
-        if breakthrough:
-            projects[goal].setdefault("breakthroughs", []).append(breakthrough)
-        self.save()
+        refs = self.data.get("reflections") or []
+        if refs:
+            parts.append(f"Recent reflection: {refs[-1].get('statement', '')[:80]}")
 
-    def add_deep_thought(self, thought) -> None:
-        """Record a deep thinking result in Soul.
-
-        Deep thoughts are different from idle thoughts — they represent
-        genuine understanding formed through reflection, not passing ideas.
-        """
-        from engine.deep_think import DeepThought
-        understanding = self.data.setdefault("understanding", [])
-        understanding.append({
-            "day": thought.day,
-            "insight": thought.understanding[:500],
-            "confidence": thought.confidence,
-            "observations": thought.observations[:200],
-            "connections": thought.connections[:200],
-            "implications": thought.implications,
-            "open_questions": thought.open_questions,
-            "timestamp": datetime.now().isoformat(),
-        })
-        # Keep last 20 deep thoughts
-        if len(understanding) > 20:
-            self.data["understanding"] = understanding[-20:]
-        self.save()
-
-    def get_deep_understanding(self, count: int = 3) -> str:
-        """Get recent deep understanding for context injection."""
-        understanding = self.data.get("understanding", [])[-count:]
-        if not understanding:
-            return ""
-        parts = []
-        for u in understanding:
-            parts.append(
-                f"[Day {u['day']}] 洞见 (把握{u['confidence']:.0%}): {u['insight'][:200]}"
-            )
         return "\n".join(parts)
 
-    def add_idle_thought(self, thought: str):
-        """Record an idle thought."""
-        thoughts = self.data.setdefault("idle_thoughts", [])
-        thoughts.append({
-            "time": datetime.now().isoformat(),
-            "content": thought,
-        })
-        if len(thoughts) > 30:
-            self.data["idle_thoughts"] = thoughts[-30:]
-        self.save()
-
-    def get_recent_idle_thoughts(self, count: int = 5) -> str:
-        """Get recent idle thoughts for context."""
-        thoughts = self.data.get("idle_thoughts", [])[-count:]
-        if not thoughts:
+    def get_deep_understanding(self, count: int = 3) -> str:
+        refs = (self.data.get("reflections") or [])[-count:]
+        if not refs:
             return ""
-        return "\n".join(f"· {t['content']}" for t in thoughts)
+        lines = []
+        for r in refs:
+            conf = r.get("confidence", 0.5)
+            lines.append(
+                f"[Day {r.get('day', '?')}] ({r.get('about', 'self')}, "
+                f"conf {conf:.0%}): {r.get('statement', '')}"
+            )
+        return "\n".join(lines)
+
+    def get_recent_idle_thoughts(self, count: int = 3) -> str:
+        murmurs = (self.data.get("recent_murmurs") or [])[-count:]
+        if not murmurs:
+            return ""
+        return "\n".join(f"· {m}" for m in murmurs)
+
+    def add_idle_thought(self, thought: str):
+        self.add_murmur(thought)
+
+    def add_witnessed_moment(self, moment: str, day: int = 0):
+        self.add_milestone(moment, day=day)
+
+    def add_knowledge(self, category: str, item: str):
+        if category in ("question", "questions"):
+            q = _first_sentence(item, 120)
+            if q and not _JUNK_MOMENT.search(q):
+                self.set_orientation(question=q)
+
+    def update_relationship(self, target_name: str, bond: str, history_note: str = ""):
+        self.update_bond(target_name, stance=bond, history_note=history_note)
+
+    def update_project(self, goal: str, progress: float, breakthrough: str = ""):
+        if breakthrough:
+            self.add_reflection(
+                f"Breakthrough feel on '{_first_sentence(goal, 40)}': {_first_sentence(breakthrough, 80)}",
+                about="work",
+            )
+        if goal:
+            self.set_orientation(focus=goal[:160])
+
+    def add_deep_thought(self, thought) -> None:
+        insight = getattr(thought, "understanding", None) or ""
+        if isinstance(thought, dict):
+            insight = thought.get("understanding") or thought.get("insight") or ""
+        day = getattr(thought, "day", 0)
+        if isinstance(thought, dict):
+            day = thought.get("day", 0)
+        conf = getattr(thought, "confidence", 0.5)
+        if isinstance(thought, dict):
+            conf = thought.get("confidence", 0.5)
+        self.add_reflection(insight, about="work", day=day or 0, confidence=float(conf or 0.5))
+        oq = getattr(thought, "open_questions", None)
+        if isinstance(thought, dict):
+            oq = thought.get("open_questions")
+        if isinstance(oq, list) and oq:
+            self.set_orientation(question=str(oq[0])[:160])
+        elif isinstance(oq, str) and oq.strip():
+            self.set_orientation(question=oq.strip()[:160])
+
+    def calibrate(self, day: int, recent_summaries: list[str] | None = None) -> Optional[str]:
+        ident = self.data.get("identity") or {}
+        core = (ident.get("core_belief") or "").strip()
+        who = (ident.get("who_i_am") or "").strip()
+        if not core and not who:
+            return None
+        parts = []
+        if who:
+            parts.append(f"You still see yourself as: {who[:100]}")
+        if core:
+            parts.append(f"Your core belief: {core[:100]}")
+        if recent_summaries:
+            parts.append("Hold your own method against recent events; do not be pulled off course.")
+        note = " ".join(parts)
+        meta = self.data.setdefault("meta", {})
+        meta["last_calibrated_day"] = day
+        self.save()
+        return note
 
     def save(self):
+        self.data["soul_version"] = SOUL_VERSION
         with open(self.path, "w") as f:
-            yaml.dump(self.data, f, allow_unicode=True, default_flow_style=False)
+            yaml.dump(self.data, f, allow_unicode=True, default_flow_style=False, sort_keys=False)
 
 
 class DailyArchive:
@@ -177,7 +720,7 @@ class DailyArchive:
 
     def __init__(self, path: str):
         self.path = path
-        os.makedirs(os.path.dirname(path), exist_ok=True)
+        os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
         self._ensure_file()
 
     def _read(self) -> list:
@@ -196,7 +739,6 @@ class DailyArchive:
             self._write([])
 
     def add_day_summary(self, day: int, summary: str, events: list):
-        """Add a day's summary."""
         data = self._read()
         data.append({
             "day": day,
@@ -207,7 +749,6 @@ class DailyArchive:
         self._write(data)
 
     def get_recent_context(self, days: int = 3) -> str:
-        """Get recent day summaries for context injection (~500 tokens)."""
         data = self._read()
         recent = data[-days:]
         lines = []
@@ -216,14 +757,9 @@ class DailyArchive:
         return "\n".join(lines)
 
     def compress_weekly(self, week_num: int, weekly_summary: str):
-        """Compress 7 daily archives into a weekly summary."""
         data = self._read()
-        # Mark the last 7 entries as compressed
-        cutoff = len(data) - 7
-        if cutoff < 0:
-            cutoff = 0
+        cutoff = max(0, len(data) - 7)
         compressed = data[cutoff:]
-        # Replace with weekly summary
         data = data[:cutoff]
         data.append({
             "week": week_num,

@@ -22,9 +22,17 @@
 
 import json
 import os
+import re
 from datetime import datetime
 from dataclasses import dataclass, field
 from typing import Optional
+
+# Narrative shells — not reusable semantic claims
+_FACT_SHELL = re.compile(
+    r"(讨论了|来找我聊了|翻阅了|论文已保存|使用了\w+|找到\s*\d+\s*篇|"
+    r"stdout|ToolResult|\[run_code\]|\[write_paper\])",
+    re.I,
+)
 
 
 @dataclass
@@ -89,8 +97,25 @@ class Memory:
 
     # ─── Semantic Memory ──────────────────────────────────────
 
-    def learn_fact(self, fact: str, source: str = "", confidence: float = 0.5):
-        """Store a semantic fact derived from experience."""
+    @staticmethod
+    def _fact_candidate(text: str) -> str:
+        """Return a cleaned fact string, or empty if it looks like a narrative shell."""
+        fact = " ".join((text or "").split()).strip()
+        if len(fact) < 8:
+            return ""
+        if _FACT_SHELL.search(fact):
+            return ""
+        return fact[:120]
+
+    def learn_fact(self, fact: str, source: str = "", confidence: float = 0.5) -> bool:
+        """Store a semantic fact derived from experience. Rejects narrative shells."""
+        fact = self._fact_candidate(fact)
+        if not fact:
+            return False
+        # Dedup near-identical facts
+        for existing in self.semantic_facts:
+            if (existing.get("fact") or "")[:60] == fact[:60]:
+                return False
         self.semantic_facts.append({
             "fact": fact,
             "source": source,
@@ -103,6 +128,7 @@ class Memory:
             self.semantic_facts.sort(key=lambda f: f["confidence"], reverse=True)
             self.semantic_facts = self.semantic_facts[:50]
         self.save()
+        return True
 
     def get_facts(self, count: int = 10) -> list[str]:
         """Get most confident semantic facts."""
@@ -166,25 +192,105 @@ class Memory:
 
     # ─── Internal ─────────────────────────────────────────────
 
+    def consolidate_day(self, day: int, keep_recent_days: int = 7) -> dict:
+        """Day-end memory hygiene: promote facts, compress stale low-value episodes.
+
+        Returns stats for logging.
+        """
+        today = [
+            e for e in self.episodes
+            if e.day == day and e.type not in ("compressed", "backstory")
+        ]
+
+        # Promote claim-shaped standouts only (never tool/observe shells)
+        facts_added = 0
+        promote_types = ("deep_think", "collision", "study")
+        type_rank = {"deep_think": 0, "collision": 1, "study": 2}
+
+        def _promote_text(ep: Episode) -> str:
+            for raw in (ep.detail, ep.summary):
+                cand = self._fact_candidate(raw or "")
+                if cand:
+                    return cand
+            return ""
+
+        candidates = [
+            e for e in today
+            if e.type in promote_types and e.importance >= 0.75
+        ]
+        candidates.sort(
+            key=lambda e: (type_rank.get(e.type, 9), -e.importance),
+        )
+        for ep in candidates:
+            text = _promote_text(ep)
+            if not text:
+                continue
+            if self.learn_fact(
+                text,
+                source=f"Day{day}/{ep.type}",
+                confidence=min(0.85, ep.importance * 0.7),
+            ):
+                facts_added += 1
+            if facts_added >= 3:
+                break
+
+        cutoff = day - keep_recent_days
+        keep: list[Episode] = []
+        to_compress: list[Episode] = []
+        for ep in self.episodes:
+            if ep.type in ("backstory", "compressed"):
+                keep.append(ep)
+            elif ep.day >= cutoff or ep.importance >= 0.85:
+                keep.append(ep)
+            else:
+                to_compress.append(ep)
+
+        compressed_count = 0
+        if len(to_compress) >= 5:
+            compressed = self._make_compressed(to_compress)
+            keep.insert(0, compressed)
+            compressed_count = len(to_compress)
+            self.episodes = keep
+        elif len(self.episodes) > self.max_episodes:
+            self._compress_oldest()
+
+        # Soft decay on working memory at day end
+        self.working["recent_observations"] = self.working.get("recent_observations", [])[-5:]
+
+        self.save()
+        return {
+            "day": day,
+            "today_episodes": len(today),
+            "facts_added": facts_added,
+            "compressed": compressed_count,
+            "remaining": len(self.episodes),
+        }
+
+    def _make_compressed(self, episodes: list[Episode]) -> Episode:
+        types = sorted(set(e.type for e in episodes))
+        days = [e.day for e in episodes]
+        avg_importance = sum(e.importance for e in episodes) / len(episodes)
+        highlights = sorted(episodes, key=lambda e: e.importance, reverse=True)[:3]
+        detail_bits = [h.summary[:60] for h in highlights if h.summary]
+        return Episode(
+            id=f"compressed_{episodes[0].id}",
+            time=episodes[0].time,
+            day=min(days),
+            type="compressed",
+            summary=f"早期记忆（{len(episodes)}个事件，Day{min(days)}-{max(days)}）",
+            detail=(
+                f"涉及: {', '.join(types)}。平均重要性: {avg_importance:.2f}。"
+                + (" 要点: " + "; ".join(detail_bits) if detail_bits else "")
+            ),
+            importance=avg_importance * 0.35,
+            tags=["compressed"],
+        )
+
     def _compress_oldest(self):
         """Compress the oldest 20 episodes into a single summary entry."""
         oldest = self.episodes[:20]
         self.episodes = self.episodes[20:]
-
-        # Create a compressed summary
-        types = set(e.type for e in oldest)
-        days = set(e.day for e in oldest)
-        avg_importance = sum(e.importance for e in oldest) / len(oldest)
-
-        compressed = Episode(
-            id=f"compressed_{oldest[0].id}",
-            time=oldest[0].time,
-            day=min(days),
-            type="compressed",
-            summary=f"早期记忆（{len(oldest)}个事件，Day{min(days)}-{max(days)}）",
-            detail=f"涉及: {', '.join(types)}。平均重要性: {avg_importance:.2f}",
-            importance=avg_importance * 0.3,  # compressed = less important
-        )
+        compressed = self._make_compressed(oldest)
         self.episodes.insert(0, compressed)
 
     def _load(self):

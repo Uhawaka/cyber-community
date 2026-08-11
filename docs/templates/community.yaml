@@ -1,0 +1,53 @@
+# Copy-paste world skeleton (= live WDL v2)
+
+format_version: "2.0"
+
+meta:
+  name: ""
+  description: ""
+
+world:
+  domain: "custom"
+  permeability: "connected"
+  worldview: ""
+  speech_language: "zh"
+
+sociology:
+  development_stage: "forming"
+  norms:
+    positive: []
+    negative: []
+  collective_memory:
+    founding_myth: ""
+    key_events: []
+    unresolved_tensions: []
+
+characters:
+  - name: ""
+    domain: ""
+    seed: ""
+    soul:
+      craft: ""
+      who_i_am: ""
+      core_belief: ""
+      how_i_think: ""
+      how_i_protect: ""
+      what_drives_me: ""
+      voice: []
+      bonds: {}
+    orientation:
+      current_focus: ""
+      open_question: ""
+      tensions: []
+    personality: {}
+    drives: {}
+    cognitive: {}
+    defense: {}
+    research: {}
+    relationships: []
+    scripts: {}
+    autonomy:
+      lam: 0.7
+      energy_max: 100
+
+tools: []

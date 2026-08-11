@@ -4,7 +4,41 @@ import os
 import json
 import urllib.request
 import urllib.error
+from pathlib import Path
 from typing import Optional
+
+
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+
+
+def _parse_dotenv(path: Path) -> dict[str, str]:
+    if not path.exists():
+        return {}
+    out: dict[str, str] = {}
+    for line in path.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, val = line.split("=", 1)
+        out[key.strip()] = val.strip().strip('"').strip("'")
+    return out
+
+
+def _load_secret(name: str) -> str:
+    """Resolve a secret with project-local .env winning over stale shell env.
+
+    Priority:
+      1. <project>/.env
+      2. process environment
+      3. ~/.hermes/.env
+    """
+    project_val = _parse_dotenv(PROJECT_ROOT / ".env").get(name, "")
+    if project_val:
+        return project_val
+    env_val = os.environ.get(name, "")
+    if env_val:
+        return env_val
+    return _parse_dotenv(Path.home() / ".hermes" / ".env").get(name, "")
 
 
 class LLM:
@@ -12,26 +46,22 @@ class LLM:
 
     def __init__(self, config: dict):
         cfg = config.get("llm", config)  # support both top-level and nested
-        self.model = cfg.get("model", "deepseek-chat")
-        self.base_url = cfg.get("base_url", "https://api.deepseek.com").rstrip("/")
+        provider = cfg.get("provider") or _load_secret("LLM_PROVIDER") or "deepseek"
+        self.model = cfg.get("model") or _load_secret("LLM_MODEL") or "deepseek-chat"
+        self.base_url = (
+            cfg.get("base_url")
+            or _load_secret(f"{provider.upper()}_BASE_URL")
+            or "https://api.deepseek.com"
+        ).rstrip("/")
         self.temperature = cfg.get("temperature", 0.8)
         self.max_tokens = cfg.get("max_tokens", 2000)
 
-        # API key: from env or .env
-        provider = cfg.get("provider", "deepseek")
         env_key = f"{provider.upper()}_API_KEY"
-        self.api_key = os.environ.get(env_key, "")
-        if not self.api_key:
-            # Try reading from ~/.hermes/.env
-            env_path = os.path.expanduser("~/.hermes/.env")
-            if os.path.exists(env_path):
-                for line in open(env_path):
-                    if line.startswith(env_key):
-                        self.api_key = line.split("=", 1)[1].strip().strip('"').strip("'")
-                        break
+        self.api_key = _load_secret(env_key)
         if not self.api_key:
             raise RuntimeError(
-                f"No API key found. Set {env_key} in environment or ~/.hermes/.env"
+                f"No API key found. Set {env_key} in project .env, "
+                f"environment, or ~/.hermes/.env (see .env.example)"
             )
 
     def chat(
@@ -73,7 +103,14 @@ class LLM:
         except Exception as e:
             raise RuntimeError(f"LLM request failed: {e}")
 
-    def think(self, character_name: str, prompt: str, temperature: Optional[float] = None) -> str:
+    def think(
+        self,
+        character_name: str,
+        prompt: str,
+        temperature: Optional[float] = None,
+        speech_language: str = "zh",
+    ) -> str:
         """Convenience: one-shot prompt with character context."""
-        system = f"You are {character_name}. Respond in character, in Chinese."
+        from engine.language import think_system
+        system = think_system(character_name, speech_language)
         return self.chat([{"role": "user", "content": prompt}], system=system, temperature=temperature)

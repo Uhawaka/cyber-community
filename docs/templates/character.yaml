@@ -1,0 +1,70 @@
+# Copy-paste character skeleton (= live engine fields)
+
+name: ""
+domain: ""                 # optional primary
+domains: []                # seed territories (2–4 recommended)
+seed: ""
+craft: ""
+
+soul:
+  craft: ""
+  who_i_am: ""
+  core_belief: ""
+  how_i_think: ""
+  how_i_protect: ""
+  what_drives_me: ""
+  voice: []
+  domains: []              # optional; else copied from domains[]
+  bonds: {}
+
+orientation:
+  current_focus: ""
+  open_question: ""
+  tensions: []
+  recently_opened: []
+
+personality:
+  openness: 5
+  conscientiousness: 5
+  extraversion: 5
+  agreeableness: 5
+  neuroticism: 5
+
+drives:
+  autonomy: 5
+  competence: 5
+  relatedness: 5
+  achievement: ""
+  epistemic: ""
+
+cognitive:
+  primary_mode: "symbolic"   # visual | symbolic | analogical | narrative | computational
+  secondary_mode: ""
+  metacognition: 5
+  ambiguity_tolerance: 5
+
+defense:
+  primary: "intellectualization"
+  trigger_sensitivity: ""
+
+self_concept: ""
+voice: []
+
+research:
+  project: ""
+  stuck_point: ""
+  obsession: ""
+
+relationships:
+  - target: ""
+    true_feeling: ""
+    surface: ""
+    history: ""
+
+community_role: ""
+jtbd: {}
+mental_models: []
+scripts: {}
+autonomy:
+  lam: 0.7
+  energy_max: 100

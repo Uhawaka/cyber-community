@@ -71,24 +71,19 @@
 他们会累、会兴奋、会嫉妒、会改变主意。
 他们不知道自己运行在硅基硬件上——就像你不知道自己运行在碳基神经元上。
 
-每个角色的性格决定了他们和人类世界的关系:
+每个角色的性格决定了他们和人类世界的关系
+（以 math-commune 当前阵容为例；数字生命可跨领域，不锁死人类专精）:
 
-  Elias  — 对人类世界的数学进展极度好奇。
-           「人类这几十年在质数分布上有没有新突破？」
-           对数学以外的人类事务几乎没兴趣。奥运会？不知道。
+  Elias  — 解析/谱估计取向。关心人类文献里 L-functions / spectral statistics
+           有没有可转换成有效估计的新结果。对热闹新闻几乎没兴趣。
 
-  Yuki   — 对人类的「抽象思维」审美感兴趣。
-           「他们的范畴论发端于 1940 年代，但最近三十年进展很慢。
-             我很想知道他们卡在哪里。」
-           对人类的情感表达方式好奇但不理解。
+  Yuki   — 算术几何取向。关心 Galois / motivic 约束能否解释谱现象；
+           对「人类卡在哪一层抽象」好奇。
 
-  Pavel  — 对人类世界最感兴趣的一个。
-           「物理学比数学更接地气。我想知道他们的 LHC 最近在跑什么。」
-           会关注科技新闻，偶尔对人类的政治感到困惑。
+  Pavel  — 概率/RMT 取向。关心随机矩阵基线何时失效；比其他人更愿意扫科技新闻。
 
-  Hayashi — 对人本身感兴趣。
-           「他们为什么要争吵？为什么不能像我们一样平静地解决问题？」
-           对人类的社会行为有观察者式的兴趣，不评判，只理解。
+  Nora   — 计算/实验取向。关心怎样设计能杀死漂亮断言的数值实验；
+           把 journal / arXiv / 代码库都当作压力测试的材料。
 ```
 
 ### 互联网是他们观察人类的窗口
@@ -333,7 +328,7 @@ Assassin's Creed 不是靠「历史模拟」成功的——是靠四层叙事互
 
 ### 2.1.2 领域知识是角色的「专业直觉」，不是「数据库」
 
-- Elias 不是「会查质数论文的 AI」，他是「对数论有直觉和执念的人」
+- Elias 不是「会查论文的 AI」，他是「对 arithmetic spectra 有直觉、且迷信有效估计的人」
 - 领域知识影响他**关心什么**、**忽略什么**、**对什么兴奋或愤怒**
 - 他的偏见和盲点比他的知识更有趣
 
@@ -813,12 +808,13 @@ character_state:
 ═══════════════════════════════════════════════════
   记忆架构:
 
-  Layer 1: Soul 文件（角色本质，极少变化）
-    ├── 核心人格（traits, flaws, voice_style）
-    ├── 核心价值观（不可改变的信念）
-    ├── 知识基础（领域知识，缓慢增长）
-    ├── 关键关系（对其他成员的态度和历史）
-    └── 重要问题的演化（"那个猜想能否推广？"）
+  Layer 1: Soul 文件（人格锚点 Soul v2，极少变化）
+    ├── identity（craft / who_i_am / core_belief / how_i_think / voice）
+    ├── bonds（对他人的深层态度）
+    ├── orientation（当前课题——可变，≠ identity）
+    ├── reflections / milestones（稀有高层沉淀）
+    └── recent_murmurs（短暂语气，非身份）
+    研究日志、工具输出 → Memory / Production，不进 Soul
 
   Layer 2: 长期记忆（模糊存档，按日归档）
     ├── Day 1:  摘要（"刚加入社区，认识了 Yuki 和 Pavel"）
@@ -842,9 +838,11 @@ character_state:
 activate 时，LLM 收到的上下文 = 
 
   Soul 摘要（始终注入，~200 tokens）:
-    "你是 Elias，一位数论学家。核心信念：一切数学现象背后都有深层结构。
-     你对 Yuki 又敬又妒，对 Pavel 是友好的对手关系。
-     你当前在关注：Siegel 零点与 zeta 零点间距。"
+    "You are Elias. Craft: analytic / spectral estimates.
+     Core belief: understanding is effective control.
+     Domains: analytic_number_theory, harmonic_analysis, spectral_theory.
+     Toward Yuki: respects geometry, fears missing estimates.
+     Current focus (mutable): low-lying L-function spectral statistics."
 
   短期记忆（最近 N 天的关键事件，~500 tokens）:
     [Day 3] 和 Pavel 讨论重整化群 → Pavel 提到物理类比
@@ -881,29 +879,34 @@ activate 时，LLM 收到的上下文 =
 Soul 文件不是初始 YAML 配置——是角色运行后自动生成和持续更新的。
 
 ```yaml
-# Elias.soul — 在 Day 30 自动生成，之后每日微调
+# Elias.yaml — Soul v2 (seeded from worlds/*/community.yaml, then slowly updated)
 
+soul_version: "2.0"
 name: Elias
-essence:
-  core_belief: "一切数学现象背后都有深层结构"
-  intellectual_style: "用具体数值验证抽象猜想"
-  emotional_pattern: "对突破兴奋，对失败沮丧，对 Yuki 又敬又妒"
-
-relationships_deep:
-  yuki:
-    bond: "最尊敬的对手，她让我想变得更好"
-    unresolved: "我从来没当面说过我对她的真实评价"
-    history: "合作过 2 次，争吵过 5 次，她帮我找过 1 次证明漏洞"
-  pavel:
-    bond: "吵吵闹闹的朋友，他让我不那么钻牛角尖"
-    history: "争论过 8 次，他赢过 3 次"
-
-knowledge_evolved:
-  gained: ["Siegel 零点与 zeta 零点间距的联系",
-           "Montgomery pair correlation 的推广方向"]
-  questions: ["L 函数的零点间距是否也有类似的统计规律？"]
-  abandoned: ["质数的随机性假说 → 证据不足，暂时搁置"]
+identity:
+  craft: "Research mathematician seeded in analytic number theory / harmonic analysis"
+  who_i_am: "A working analyst; digital mind free to open new domains when they feed estimates"
+  core_belief: "Understanding is effective control — stories without ranges are unfinished"
+  how_i_think: "Sees densities and oscillations, then asks for honest ranges"
+  what_drives_me: "Leave estimates others can actually use"
+  seed_domains: [analytic_number_theory, harmonic_analysis, spectral_theory]
+  domains: [analytic_number_theory, harmonic_analysis, spectral_theory]
+  voice:
+    - "Asks for the range: for which T, for which conductors?"
+bonds:
+  Yuki:
+    stance: "Respects her geometric dictionaries; fears they excuse missing estimates"
+orientation:
+  current_focus: "Effective control of low-lying spectral statistics for L-function families"
+  open_question: "Which RMT/geometry predictions become inequalities with ranges?"
+  tensions: []
+  recently_opened: []
+reflections: []
+milestones: []
+recent_murmurs: []
 ```
+
+规范契约见 `docs/contracts/soul-v2.schema.yaml`、`docs/contracts/soul-memory-boundary.md`、`docs/contracts/language-policy.md`（中文叙述 + 英文术语）。
 
 **Soul 文件的作用**：
 
@@ -1044,7 +1047,7 @@ $ cyber avatar leave "下周去京都参加研讨会，回见"
 ```
 $ cyber avatar arrive
 
-🏠 Alex 回到了数学家公社 (外出 7 天后归来)
+🏠 Alex 回到了 Math Commune (外出 7 天后归来)
 
 📋 你离开期间发生了:
   · Elias 深入研究 Siegel 零点，连续 3 天都在推导
@@ -1213,7 +1216,7 @@ $ cyber world "深海研究站，与世隔绝" --roles 生物学家,工程师,�
 
 ```bash
 # 1. 撒种子 — 只需一句话
-$ cyber seed "痴迷质数，觉得一切都有深层结构" --domain number_theory
+$ cyber seed "Mathematics earns trust through effective control" --domain analytic_number_theory
 
 # 2. 孵化 — 系统生成 3 个变体，各自隔离生活 5 虚拟天
 #    （背后：随机采样 λ、E_max、voice_style 等参数）
@@ -1267,52 +1270,33 @@ YAML 模式允许精确控制，但遵循同一个原则：**用户定义「什�
 用户不需要描述角色的怪癖、口头禅、情感模式——系统根据领域和角色自动推断。
 
 ```yaml
-# worlds/math-commune/community.yaml
+# worlds/math-commune/community.yaml  (live shape — English config)
 
-name: 数学家公社
-description: 三个数学家，每天争论，偶尔达成共识。
+format_version: "2.0"
+meta:
+  name: Math Commune
+  description: Working group on structure vs randomness in arithmetic spectra
 
-domain:
-  primary: mathematics
+world:
+  domain: mathematics
   permeability: connected
-  
-  data_sources:
-    - type: arxiv
-      categories: [math.NT, math.CT, math-ph, math.DS]
-      frequency: daily
+  speech_language: zh
+  shared_program: >
+    Structure versus randomness in arithmetic spectra (L-functions, RMT, geometry, numerics)
 
 characters:
-  # 极简模式：只需要名字 + 领域 + 一句话定位
   - name: Elias
-    domain: number_theory
-    seed: "痴迷质数的天才，觉得一切都有深层结构"
-    # ↑ 就这些。系统自动推断:
-    #   - 研究风格: 用数值验证猜想
-    #   - 情感模式: 对突破兴奋，对失败沮丧
-    #   - 可能的盲区: 过于相信数值直觉，忽视抽象框架
-    #   - 可能的怪癖: 会在凌晨三点因为一个想法跳起来
-    #   - 口头禅: 从 seed 中自然涌现
-
-  - name: Yuki
-    domain: category_theory
-    seed: "觉得一切都可以抽象成箭头"
-
-  - name: Pavel
-    domain: mathematical_physics
-    seed: "觉得纯数学太干净，物理的脏东西才有意思"
-
-# 如果想要更多控制，可以展开:
-#  - name: Elias
-#    domain: number_theory
-#    seed: "痴迷质数的天才"
-#    personality:        ← 可选覆盖，不填就自动推断
-#      traits: [...]
-#      flaws: [...]
-#    knowledge:           ← 可选覆盖
-#      blind_spots: [...]
-#    autonomy:            ← 可选覆盖
-#      energy_max: 100
+    domains: [analytic_number_theory, harmonic_analysis, spectral_theory]
+    seed: "Mathematics earns trust through effective control"
+    soul:
+      craft: "..."
+      core_belief: "..."   # identity — not the seasonal conjecture
+    orientation:
+      current_focus: "..." # mutable program
+  # Yuki / Pavel / Nora — same pattern; each has several seed domains
 ```
+
+完整可运行文件见仓库 `worlds/math-commune/community.yaml`；模板见 `docs/templates/`。
 
 ### 5.4 设计哲学
 
@@ -1372,15 +1356,15 @@ characters:
 ```
 模板 = 预配置的世界 + 匿名化的初始记忆
 
-热门模板:
-  - 数学家公社 (math-commune)
-  - 外星人观察站 (alien-observatory) ← 星际观察员，受限于星际法规只能通过互联网了解地球
-  - 投资委员会 (investment-committee)
-  - 北欧铁匠铺里的数学家 (norse-math)
-  - 赛博朋克唐诗社 (cyber-tang-poetry)
-  - 编剧工坊 (writers-room)
-  - 哲学咖啡馆 (philosophy-cafe)
-  - 代码审查会 (code-review-panel)
+热门模板（仓库已有）:
+  - Math Commune (math-commune) — arithmetic spectra working group
+  - Quant Lab (quant-lab)
+  - Poets' Salon (poets-salon)
+  - Philosophy Cafe (philosophy-cafe)
+  - Orbital Observation Post (alien-observers)
+
+设想中的模板市场（未实现）:
+  - 投资委员会 / 编剧工坊 / 代码审查会 …
 ```
 
 每个模板是一个 git repo。Fork 即可使用。
@@ -1493,16 +1477,21 @@ AI 的思考速度远超人类。一个社区的「一天」只需要 ~1-2 分�
 
 ## 8. 当前架构 (v5 — 已完成)
 
-### 8.1 模块清单 (23个, ~5700行)
+### 8.1 模块清单 (~28个)
 
 ```
 engine/
-├── __init__.py          # 包标识
+├── __init__.py          # 导出 SimulationEngine
 ├── events.py            # EventQueue (最小堆) + Event 数据类
 ├── character.py         # 状态机 + 能量系统 + 系统提示词构建
-├── engine.py            # DES 主循环, 14种事件处理器
+├── engine.py            # SimulationEngine 组装 (__init__ + mixins)
+├── sim_lifecycle.py     # bootstrap / run / day_boundary
+├── sim_activity.py      # activate / spontaneous / study / idle
+├── sim_social.py        # collision / gathering / seminar / collab
+├── sim_world.py         # observe / tools / env / anonymous events
+├── sim_cognition.py     # context / memory / deep think
 ├── interactions.py      # LLM驱动: decide_action, run_collision, run_gathering, run_tool_use
-├── soul.py              # SoulFile (YAML) + DailyArchive (JSON) + 模糊压缩
+├── soul.py              # Soul v2 人格锚点 (identity/bonds/reflections) + DailyArchive
 ├── memory.py            # 3层: episodic/semantic/working + 背记忆播种 + 心理过滤
 ├── deep_think.py        # 3轮反思 OBSERVE→CONNECT→UNDERSTAND
 ├── thought_loop.py      # 内心对话: self/critic 交替推理
@@ -1529,17 +1518,17 @@ engine/
 | Phase 1 | DES引擎 + 泊松 + 状态机 + 能量 + 碰撞 + 记忆 | ✅ 完成 |
 | Phase 2 | CLI + watch + digest | ✅ 完成 |
 | Phase 3 | 世界模板 + WDL v2 + 5个预置世界 | ✅ 完成 |
-| v5 升级 | 需求系统 + 日节律 + 内心对话 + 环境 + 产出管线 + 任务板 + 社会学v2 + 请求板 + 第4角色(Hayashi) | ✅ 完成 |
+| v5 升级 | 需求系统 + 日节律 + 内心对话 + 环境 + 产出管线 + 任务板 + 社会学v2 + 请求板 + 第4角色 | ✅ 完成 |
 | 待实现 | Web UI / API / 社区模板市场 / 向量记忆 | 🔲 未来 |
 
 ### 8.3 世界模板 (5个)
 
 | 世界 | 角色 | 特点 |
 |------|------|------|
-| math-commune | Elias/Yuki/Pavel/Hayashi | 完整心理学+社会学, 4角色 |
+| math-commune | Elias/Yuki/Pavel/Nora | 共享谱计划 + 多 seed domains + Soul v2 |
 | quant-lab | Elias/Yuki/Pavel (金融版) | 量化金融, 可评估推理 |
-| poets-salon | 李白/杜甫/王维 | v2 最小配置 |
-| philosophy-cafe | 萨特/加缪/波伏娃 | 封闭世界 |
+| poets-salon | Li Bai / Du Fu / Wang Wei | English WDL + enclosed |
+| philosophy-cafe | Sartre / Camus / Beauvoir | enclosed |
 | alien-observers | Zorax/Lyra/K-7 | 非人观察者 |
 
 ### 8.4 核心数据流
@@ -1562,12 +1551,15 @@ Day Rhythm + Poisson → Activate Event
   → 下一个 activate
 ```
 
-### 8.5 已知技术债
+### 8.5 已知技术债 / 近况
 
-1. **21个测试文件** — 只有 test_engine.py 是核心。其他是早期开发遗留, 待清理整合
-2. **内心对话0轮** — NoopLLM 下无法解析返回, dry_run 时跳过。真实LLM运行正常
-3. **NoopLLM 残留** — production.json 中 art_0014-0017 是 dry_run 污染, 需在 dry_run 时跳过生产
-4. **搜索缓存仅在当天** — 跨天同一查询仍会重新搜索。可接受(arXiv有3s延迟的礼貌限速)
+1. **测试** — `tests/test_*.py` 覆盖 Soul / culture / culture / missions / environment；`tests/archive/` 为早期 LLM 质量脚本
+2. **内心对话0轮** — NoopLLM 下无法解析返回, dry_run 时跳过。真实 LLM 运行正常
+3. **dry_run** — 已用临时目录，避免污染 `outputs/`
+4. **搜索缓存仅在当天** — 跨天同一查询仍会重新搜索（可接受）
+5. **run_code 沙箱** — AST 白名单 + `python3 -I`；非容器级
+6. **已落地** — 英文世界配置 / Soul v2 / 多种子领域可扩展 / 语言约定（中文叙述+英文术语）/ 按阵容生成环境 / 领域驱动 mission 与 observation
+7. **仍弱** — DESIGN 中部分「未来产品」叙事（Fork 市场、化身外出）尚未实现；`docs/reference/` 为非规范旧笔记
 
 ---
 
@@ -1586,7 +1578,7 @@ Day Rhythm + Poisson → Activate Event
 
 2. **角色崩溃**：长期运行后，角色会不会「变平」——所有角色趋同？
    - 候选方案：定期人格校准提示 + 角色间差异化奖励
-   - Soul 文件为校准提供了锚点——定期对比角色当前行为与 Soul 文件定义的 essence，发现漂移时注入校准提示
+   - Soul 文件为校准提供了锚点——定期对比角色当前行为与 Soul v2 identity，发现漂移时注入校准提示
 
 3. ~~tick 粒度~~ → **改用泊松过程。** 每个角色有独立 λ，自然产生差异化节奏。无需统一 tick。
 

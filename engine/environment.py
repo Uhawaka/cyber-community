@@ -99,64 +99,113 @@ class Node:
 class Environment:
     """The community's shared information space."""
 
-    def __init__(self, path: str = None):
+    def __init__(self, path: str = None, characters: dict = None):
         self.nodes: dict[str, Node] = {}
         self.character_locations: dict[str, str] = {}  # char_name -> node_id
         self.path = path
 
         if path and os.path.exists(path):
             self._load()
+            if characters:
+                self.ensure_cast(characters)
         else:
-            self._init_default()
+            self._init_layout(characters)
 
-    def _init_default(self):
-        """Create the default community layout."""
-        defaults = [
+    def _shared_nodes(self) -> list:
+        return [
             Node("commons", "commons", "中央大厅",
-                 "圆形空间。中央共享白板上留着所有人的笔迹。", created_by="community"),
-            Node("elias_study", "study_chamber", "Elias 的计算室",
-                 "质数标记在数轴上浮动。墙角堆着算到一半的草稿。",
-                 created_by="Elias", aesthetics="数值的、密集的、数据构成的河流",
-                 modifiers={"focus": 0.20, "energy_cost": -0.10}),
-            Node("yuki_study", "study_chamber", "Yuki 的箭头回廊",
-                 "无数箭头构成交换图。每一条都是一次逻辑跳转。",
-                 created_by="Yuki", aesthetics="抽象的、极简的、箭头搭建的教堂",
-                 modifiers={"focus": 0.25, "energy_cost": -0.05}),
-            Node("pavel_study", "study_chamber", "Pavel 的实验室",
-                 "湍流可视化在旋转。方程写在流动的表面上。",
-                 created_by="Pavel", aesthetics="物理的、动态的、风暴中心的涡旋",
-                 modifiers={"focus": 0.15, "computation_speed": 0.20}),
+                 "圆形空间。中央共享白板上留着所有人的笔迹与未完成的推导。",
+                 created_by="community"),
             Node("garden", "contemplation_garden", "静思园",
                  "空旷的场域。每个人看到的取决于此刻的心境。",
                  modifiers={"energy_recovery": 0.30, "inspiration_rate": 0.25}),
             Node("archive", "archive", "知识库",
-                 "所有研究成果的汇聚之地。书架会自己重新排列。",
+                 "研究成果与文献笔记的汇聚之地。书架会自己重新排列。",
                  modifiers={"inspiration_rate": 0.10}),
             Node("workshop", "workshop", "计算工坊",
-                 "共享计算资源池。数值实验的结果直接投射到大厅白板。",
+                 "共享计算资源池。实验输出可以直接投到大厅白板。",
                  modifiers={"computation_speed": 0.20}),
         ]
-        for n in defaults:
+
+    @staticmethod
+    def _study_node_for(name: str, config: dict | None = None) -> Node:
+        """Build a study chamber from character craft/domains — no lore hardcoding."""
+        cfg = config or {}
+        soul = cfg.get("soul") or {}
+        craft = (soul.get("craft") or cfg.get("craft") or cfg.get("community_role") or "").strip()
+        domains = cfg.get("domains") or []
+        if isinstance(domains, str):
+            domains = [domains]
+        if not domains and cfg.get("domain"):
+            domains = [cfg.get("domain")]
+        label = ", ".join(str(d).replace("_", " ") for d in domains[:3] if d)
+        nid = f"{name.lower().replace(' ', '_')}_study"
+        desc = f"{name} 的工作室。"
+        if label:
+            desc += f" 草稿与笔记围绕: {label}。"
+        if craft:
+            desc += f" 气质：{craft[:100]}"
+        mode = (cfg.get("cognitive") or {}).get("primary_mode") or ""
+        aesthetics = {
+            "computational": "终端、参数表、被划掉的误差曲线",
+            "visual": "草图、密度图、几何碎片",
+            "analogical": "对照表、跨领域箭头",
+            "symbolic": "公式墙、被圈出的引理",
+            "narrative": "时间线与情节式笔记",
+        }.get(mode, "未完成的推导与摊开的文献")
+        return Node(
+            nid, "study_chamber", f"{name} 的工作室",
+            desc, created_by=name, aesthetics=aesthetics,
+            modifiers={"focus": 0.20, "energy_cost": -0.08},
+        )
+
+    def _init_layout(self, characters: dict = None):
+        """Shared spaces + one study per character (cast-driven)."""
+        for n in self._shared_nodes():
             self.nodes[n.id] = n
 
-        # Default connections
-        connections = [
-            ("commons", "elias_study"), ("commons", "yuki_study"),
-            ("commons", "pavel_study"), ("commons", "garden"),
-            ("commons", "archive"), ("commons", "workshop"),
-            ("archive", "workshop"),
-        ]
-        for a, b in connections:
-            if a in self.nodes and b in self.nodes:
-                self.nodes[a].connections.append(b)
-                self.nodes[b].connections.append(a)
+        chars = characters or {}
+        for name, char in chars.items():
+            cfg = getattr(char, "config", None) or (char if isinstance(char, dict) else {})
+            study = self._study_node_for(name, cfg)
+            self.nodes[study.id] = study
+            self.character_locations[name] = study.id
 
-        # Initial character locations
-        self.character_locations = {
-            "Elias": "elias_study",
-            "Yuki": "yuki_study",
-            "Pavel": "pavel_study",
-        }
+        # Connect everything to commons; archive↔workshop
+        for nid, node in self.nodes.items():
+            if nid == "commons":
+                continue
+            if "commons" not in node.connections:
+                node.connections.append("commons")
+            if nid not in self.nodes["commons"].connections:
+                self.nodes["commons"].connections.append(nid)
+        if "archive" in self.nodes and "workshop" in self.nodes:
+            if "workshop" not in self.nodes["archive"].connections:
+                self.nodes["archive"].connections.append("workshop")
+            if "archive" not in self.nodes["workshop"].connections:
+                self.nodes["workshop"].connections.append("archive")
+
+        # Orphans without a room start in commons
+        for name in chars:
+            if name not in self.character_locations:
+                self.character_locations[name] = "commons"
+
+    def ensure_cast(self, characters: dict):
+        """Add missing study rooms / placements when cast changes or file is stale."""
+        if "commons" not in self.nodes:
+            for n in self._shared_nodes():
+                self.nodes.setdefault(n.id, n)
+        for name, char in (characters or {}).items():
+            cfg = getattr(char, "config", None) or {}
+            study = self._study_node_for(name, cfg)
+            if study.id not in self.nodes:
+                self.nodes[study.id] = study
+                if "commons" in self.nodes:
+                    study.connections.append("commons")
+                    if study.id not in self.nodes["commons"].connections:
+                        self.nodes["commons"].connections.append(study.id)
+            if name not in self.character_locations:
+                self.character_locations[name] = study.id
 
     # ─── Character Movement ────────────────────────────────────
 

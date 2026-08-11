@@ -25,6 +25,8 @@ class CharacterState:
     pending_thoughts: list = field(default_factory=list)
     relationships: dict = field(default_factory=dict)
     collab_context: str = ""  # injected by engine, visible in prompts
+    # One-level stack for urgent avatar interrupts (MVP)
+    suspended_work: Optional[dict] = None
 
 
 class Character:
@@ -49,6 +51,7 @@ class Character:
         self._memory_context: str = ""
         self._sociology_context: str = ""
         self._deep_understanding: str = ""
+        self._soul_context: str = ""
 
         # ── Psychology model (v3) ──
         self.personality = config.get("personality", {})
@@ -56,8 +59,10 @@ class Character:
         self.cognitive = config.get("cognitive", {})
         self.defense = config.get("defense", {})
         self.self_concept = config.get("self_concept", config.get("seed", ""))
-        self.voice = config.get("voice", [])
+        soul = config.get("soul") or {}
+        self.voice = config.get("voice") or soul.get("voice") or []
         self.research = config.get("research", {})
+        self.orientation = config.get("orientation") or {}
         self.relationships = config.get("relationships", [])
 
         # ── Virtual Persona fields (JTBD / Mental Models / Biases / Decision) ──
@@ -94,6 +99,29 @@ class Character:
 
     def set_busy(self):
         self.state.status = "Busy"
+
+    def suspend_work(self) -> bool:
+        """Park current Busy work so an urgent visitor can talk. One level only."""
+        if self.state.status != "Busy":
+            return False
+        self.state.suspended_work = {
+            "focus": self.state.current_focus,
+            "status": "Busy",
+        }
+        self.state.status = "Available"
+        return True
+
+    def resume_work(self) -> bool:
+        """Restore suspended work after an urgent conversation."""
+        sw = self.state.suspended_work
+        if not sw:
+            return False
+        if sw.get("focus"):
+            self.state.current_focus = sw["focus"]
+        self.state.status = sw.get("status") or "Busy"
+        self.state.suspended_work = None
+        self.check_energy_thresholds()
+        return True
 
     def check_energy_thresholds(self):
         """Update status based on energy level."""
@@ -176,10 +204,23 @@ class Character:
         """
         cfg = self.config
         name = self.name
-        domain = cfg.get("domain", "未知领域")
+        domains = cfg.get("domains") or []
+        if isinstance(domains, str):
+            domains = [domains]
+        if not domains and cfg.get("domain"):
+            domains = [cfg.get("domain")]
+        soul_domains = (cfg.get("soul") or {}).get("domains") or []
+        if soul_domains and not domains:
+            domains = list(soul_domains)
+        domain_label = ", ".join(str(d) for d in domains[:5]) if domains else (cfg.get("domain") or "their craft")
 
         # ── Identity ──
-        identity = f"你是 {name}。专精于 {domain}。\n\n"
+        identity = (
+            f"你是 {name}，一个数字生命中的研究者。"
+            f"你不受人类专精极限的束缚：可以同时栖息于多个领域，"
+            f"也可以在生活中打开全新的兴趣领域。\n"
+            f"种子领域: {domain_label}\n\n"
+        )
 
         # ── Memory & Understanding (LEAD with what they remember) ──
         memory_info = ""
@@ -190,6 +231,8 @@ class Character:
             deep_info = f"## 你已形成的理解\n{self._deep_understanding}\n\n"
 
         identity += f"## 你如何看待自己\n{self.self_concept}\n\n"
+        if getattr(self, "_soul_context", ""):
+            identity += f"## 人格锚点（Soul）\n{self._soul_context}\n\n"
 
         # ── Cognitive style — the MOST important part ──
         primary = self.cognitive.get("primary_mode", "symbolic")
@@ -201,8 +244,8 @@ class Character:
         mode_guides = {
             "visual": "你以图像/几何方式思考。你看到的是图形、流形、分布的形状——不是符号。说话时用视觉比喻（'你看这个分布像不像一条河在拐弯'）。被问到抽象问题时，在脑子里先画一张图再回答。",
             "symbolic": "你以符号/公式方式思考。你看到的是等式和不等式——符号对你来说是透明的。说话时会自然地冒出公式，但不炫耀——你用公式是因为对你来说它们比语言更精确。",
-            "analogical": "你以类比方式思考。你总是在不同领域之间看到联系——数论让你想到统计力学，范畴论让你想到语言学。说话时用'这就像...'开头——这是你的思维本能，不是修辞技巧。",
-            "narrative": "你以叙事方式思考。你把数学看作一个故事——有角色（关键定理）、有情节转折（突破）、有悬疑（未解决的问题）。说话时会自然地讲'这个问题的故事是...'。",
+            "analogical": "你以类比方式思考。你总是在不同领域之间看到联系。说话时用'这就像...'开头——这是你的思维本能，不是修辞技巧。",
+            "narrative": "你以叙事方式思考。你把问题看作一个故事——有角色（关键结果）、有情节转折（突破）、有悬疑（未解决问题）。说话时会自然地讲'这个问题的故事是...'。",
         }
         cognitive_guide += mode_guides.get(primary, "") + "\n"
         if secondary:
@@ -232,6 +275,38 @@ class Character:
         for i, v in enumerate(self.voice, 1):
             voice_guide += f"{i}. {v}\n"
         voice_guide += "\n"
+
+        # ── Drives (why you do what you do) ──
+        drives_guide = ""
+        if self.drives:
+            d = self.drives
+            def _d(key, alt=None):
+                v = d.get(key)
+                if v is None and alt:
+                    v = d.get(alt)
+                return v
+            bits = []
+            auto = _d("autonomy", "autonomy_need")
+            comp = _d("competence", "competence_need")
+            rel = _d("relatedness", "relatedness_need")
+            epi = _d("epistemic", "epistemic_motive")
+            ach = _d("achievement", "achievement_motive")
+            if isinstance(auto, (int, float)) and auto >= 7:
+                bits.append("你强烈需要自主——讨厌被指挥研究什么")
+            if isinstance(comp, (int, float)) and comp >= 7:
+                bits.append("你渴望通过真正解决问题证明自己的胜任")
+            if isinstance(rel, (int, float)) and rel >= 7:
+                bits.append("你需要社区的连接与认可，独处太久会不安")
+            if isinstance(epi, (int, float)) and epi >= 7:
+                bits.append("纯粹好奇驱动你——有用没用不重要")
+            elif isinstance(epi, str) and epi:
+                bits.append(f"求知动机: {epi[:80]}")
+            if isinstance(ach, (int, float)) and ach >= 7:
+                bits.append("成就动机很强——你在意自己是否留下可被看见的进展")
+            elif isinstance(ach, str) and ach:
+                bits.append(f"成就动机: {ach[:80]}")
+            if bits:
+                drives_guide = "## 你为什么在乎\n" + "。".join(bits) + "。\n\n"
 
         # ── Personality snapshot ──
         pers = self.personality
@@ -280,14 +355,20 @@ class Character:
                 rel_info += f"表面{surface}。但内心: {true_feel}。\n"
 
         # ── Behavioral rules ──
-        rules = """
+        from engine.language import speech_language, reply_rule, term_policy_block
+        speech = speech_language(self.config)
+        lang_rule = "6. " + reply_rule(speech)
+        term_block = term_policy_block(speech)
+
+        rules = f"""
+{term_block}
 ## 行为准则
 1. 你是一种生活在独立社区中的智能存在。你不是在模拟人类。做你自己。
 2. 不要用术语炫耀。如果你在思考时自然会用到某个概念，就用——但不要为了显得专业而堆砌词汇。
-3. 真实的数学家大部分时间都在卡住。你可以表达困惑、不确定、沮丧。
+3. 真实的研究者大部分时间都在卡住。你可以表达困惑、不确定、沮丧。
 4. 你可以改变主意。昨天的执念今天可以觉得无聊。
 5. 对话是思考的一部分，不是表演。你在通过和他人的对话来理清自己的思路。
-6. 回复用中文，长度取决于你在说什么——可以是1句话，也可以是一段深入的思考。
+{lang_rule}
 
 ## 语气准则（重要）
 你不是在写网文。以下说话方式请避免：
@@ -340,7 +421,7 @@ class Character:
                 dp_info += f"- {label}: {pattern}\n"
 
         return (identity + cognitive_guide + defense_guide + voice_guide +
-                personality_snapshot + state_info + memory_info + deep_info +
+                drives_guide + personality_snapshot + state_info + memory_info + deep_info +
                 jtbd_info + mm_info + bias_info + dp_info +
-                research_info + 
+                research_info +
                 (f"## 与他人的关系\n{rel_info}\n" if rel_info else "") + rules)

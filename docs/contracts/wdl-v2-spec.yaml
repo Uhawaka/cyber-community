@@ -1,0 +1,70 @@
+# World Definition Language v2 — live dialect
+# All worlds under worlds/*/community.yaml SHOULD use this shape.
+
+format_version: "2.0"
+
+meta:
+  name: ""                 # required — also used as output folder label
+  description: ""
+  author: ""
+
+world:
+  domain: ""               # mathematics | literature | philosophy | science | art | custom
+  permeability: "connected"  # enclosed | connected | hybrid
+  worldview: ""
+  speech_language: "zh"    # dialogue language for LLM replies (config content stays English)
+  shared_program: ""       # optional: common objects/questions so specialists can collide
+
+sociology:
+  development_stage: "forming"  # forming | storming | norming | performing
+  stage_note: ""
+  norms:
+    positive: []
+    negative: []
+  hierarchy: {}
+  collective_memory:
+    founding_myth: ""
+    key_events: []
+    unresolved_tensions: []
+
+characters:
+  - name: ""
+    domain: ""             # primary label (optional if domains[] set)
+    domains: []            # seed territories (preferred); may grow at runtime in Soul
+    seed: ""               # epistemic one-liner → falls back to core_belief if soul omitted
+    craft: ""              # optional alias for soul.craft
+    speech_language: ""    # optional override
+
+    soul:                  # preferred — stable identity
+      craft: ""
+      who_i_am: ""
+      core_belief: ""
+      how_i_think: ""
+      how_i_protect: ""
+      what_drives_me: ""
+      voice: []
+      bonds: {}
+
+    orientation:           # preferred — mutable program
+      current_focus: ""
+      open_question: ""
+      tensions: []
+
+    # Flat psych fields (live engine — NOT nested under psychology.*)
+    personality: {}
+    drives: {}
+    cognitive: {}
+    defense: {}
+    self_concept: ""
+    voice: []
+    research: {}
+    relationships: []
+    jtbd: {}
+    mental_models: []
+    cognitive_biases: []
+    decision_patterns: {}
+    scripts: {}
+    community_role: ""
+    autonomy: {}
+
+tools: []

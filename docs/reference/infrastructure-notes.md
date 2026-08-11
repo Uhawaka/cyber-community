@@ -1,3 +1,5 @@
+> **Non-normative reference.** Live schema: `docs/contracts/` and `docs/templates/`.
+
 # 社区基础设施模型
 #
 # 角色是能量体生命，没有实体。

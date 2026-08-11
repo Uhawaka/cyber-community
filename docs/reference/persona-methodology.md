@@ -1,3 +1,5 @@
+> **Non-normative reference.** Live schema: `docs/contracts/` and `docs/templates/`.
+
 # 虚拟人方法论 — 从市场研究/UX 领域借鉴
 #
 # 来源综合:

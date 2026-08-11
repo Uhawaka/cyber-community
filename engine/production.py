@@ -1,8 +1,8 @@
 """Production Pipeline: observation → reasoning → discussion → artifacts.
 
-The community's purpose: mathematicians observe the human world, process
-what they find through their distinct cognitive styles, debate with each
-other, and produce tangible intellectual outputs.
+The community's purpose: digital researchers observe the human / academic
+world, process findings through distinct cognitive styles, debate, and
+produce tangible intellectual outputs.
 
 Pipeline:
   External Input → Observation → Study → Collision/Gathering → Artifact → Archive

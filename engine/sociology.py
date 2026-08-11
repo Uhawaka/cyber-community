@@ -164,9 +164,10 @@ class Ritual:
 class CommunityEngine:
     """The full social system — roles, exchanges, information, rituals."""
 
-    def __init__(self, characters: dict):
+    def __init__(self, characters: dict, sociology_config: dict | None = None):
         self.characters = characters
         self.names = list(characters.keys())
+        self.sociology_config = sociology_config or {}
 
         # Roles
         self.roles: dict[str, str] = {}           # name → primary role
@@ -195,54 +196,79 @@ class CommunityEngine:
         self._init_rituals()
 
     def _init_roles(self):
-        """Assign initial social roles based on character traits."""
-        # Default roles — can shift over time
-        defaults = {
-            "Elias": "challenger",   # questions everything
-            "Yuki": "elder",          # respected for depth
-            "Pavel": "bridge",        # connects everyone
-            "Hayashi": "nurturer",    # cares about people
-        }
-        for name, role in defaults.items():
-            if name in self.names:
-                self.roles[name] = role
-                self.role_history[name] = [(role, 0)]
-
-        # Newcomers get "newcomer" if not in defaults
+        """Assign roles from personality/drives — no name hardcoding."""
         for name in self.names:
-            if name not in self.roles:
-                self.roles[name] = "newcomer"
+            char = self.characters.get(name)
+            role = self._role_from_traits(char)
+            self.roles[name] = role
+            self.role_history[name] = [(role, 0)]
+
+    @staticmethod
+    def _role_from_traits(char) -> str:
+        if char is None:
+            return "newcomer"
+        cfg = getattr(char, "config", {}) or {}
+        p = getattr(char, "personality", None) or cfg.get("personality") or {}
+        d = getattr(char, "drives", None) or cfg.get("drives") or {}
+        ex = float(p.get("extraversion", 5) or 5)
+        ag = float(p.get("agreeableness", 5) or 5)
+        co = float(p.get("conscientiousness", 5) or 5)
+        op = float(p.get("openness", 5) or 5)
+        rel = float(d.get("relatedness", 5) or 5)
+        comp = float(d.get("competence", 5) or 5)
+
+        if ex >= 7 and (ag >= 6 or rel >= 7):
+            return "bridge"
+        if co >= 7 and ag <= 4:
+            return "challenger"
+        if op >= 8 and co <= 5:
+            return "elder"  # depth / taste authority
+        if ag >= 7 and rel >= 7:
+            return "nurturer"
+        if comp >= 8 and ex <= 4:
+            return "challenger"
+        return "newcomer"
 
     def _init_stage(self):
-        """Define how characters present themselves."""
-        presences = {
-            "Elias": StagePresence("Elias",
-                in_public="严肃、精确、不耐烦——用数据和公式说话，不闲聊",
-                in_private="焦虑、自我怀疑——反复检查计算结果，会在草稿纸上写'我是不是在浪费时间'",
-                tells=["独自一人时会自言自语", "深夜时会盯着同一个数字看很久"]),
-            "Yuki": StagePresence("Yuki",
-                in_public="优雅、抽象、偶尔刻薄——用最少的词表达最深的洞察",
-                in_private="比表面更孤独——偶尔会画一些没有数学意义的箭头，只是觉得好看",
-                tells=["在没人注意时会在纸上画重复的几何图案"]),
-            "Pavel": StagePresence("Pavel",
-                in_public="热情、幽默、自嘲——让所有人放松的人",
-                in_private="比表面更焦虑——担心自己的工作永远不够严格，偶尔检查邮件希望得到认可",
-                tells=["独自时会盯着同一个方程看很久，不写任何东西"]),
-            "Hayashi": StagePresence("Hayashi",
-                in_public="温暖、好奇、连接者——让每个人觉得自己被看见",
-                in_private="偶尔感到不被理解——她的工作不被认为是'真正的数学'。偷偷把观察笔记藏起来",
-                tells=["笔记本从不离身", "在别人争论时会安静地做笔记"]),
-        }
+        """Stage presence derived from voice / cognitive / community_role."""
         for name in self.names:
-            if name in presences:
-                self.stage[name] = presences[name]
+            char = self.characters.get(name)
+            self.stage[name] = self._presence_from_traits(name, char)
+
+    @staticmethod
+    def _presence_from_traits(name: str, char) -> "StagePresence":
+        cfg = getattr(char, "config", {}) or {} if char else {}
+        voice = getattr(char, "voice", None) or cfg.get("voice") or []
+        if not voice:
+            voice = (cfg.get("soul") or {}).get("voice") or []
+        role = (cfg.get("community_role") or "").strip()
+        mode = (cfg.get("cognitive") or getattr(char, "cognitive", {}) or {}).get("primary_mode", "")
+        defense = (cfg.get("defense") or getattr(char, "defense", {}) or {}).get("primary", "")
+
+        public_bits = []
+        if role:
+            public_bits.append(role[:40])
+        if mode:
+            public_bits.append(f"思维偏 {mode}")
+        if voice:
+            public_bits.append(str(voice[0])[:50])
+        in_public = "；".join(public_bits) if public_bits else "在公共场合克制、就事论事"
+
+        private = "独处时更诚实——会复查自己是否在自欺"
+        if defense == "humor":
+            private = "独处时比表面更焦虑；幽默是外壳"
+        elif defense == "intellectualization":
+            private = "独处时把不安转成技术细节反复推敲"
+
+        tells = [str(v)[:40] for v in voice[:2]] if voice else ["工作时会自言自语"]
+        return StagePresence(name, in_public=in_public, in_private=private, tells=tells)
 
     def _init_rituals(self):
         """Define community rituals."""
         self.rituals = [
             Ritual("每周研讨会", "轮流主讲，其他人提问和质疑", "weekly", emotional_charge=0.6),
             Ritual("走廊偶遇", "在大厅或花园随机碰到，闲聊几句", "spontaneous", emotional_charge=0.2),
-            Ritual("沉默的认可", "当某人展示了一个真正漂亮的证明，其他人会沉默片刻——这是最高赞誉",
+            Ritual("沉默的认可", "当某人展示了一个真正漂亮的结果，其他人会沉默片刻——这是最高赞誉",
                    "spontaneous", emotional_charge=0.5),
         ]
 
@@ -279,6 +305,11 @@ class CommunityEngine:
             self.recent_activity[name] = self.recent_activity[name][-10:]
 
     # ─── Context Generation ────────────────────────────────────
+
+    def get_culture_context(self) -> str:
+        """Community-wide norms / stage / collective memory from YAML."""
+        from engine.culture import format_culture_context
+        return format_culture_context(self.sociology_config)
 
     def get_social_context(self, char_name: str) -> str:
         """Rich social context for this character's prompt."""
@@ -318,3 +349,33 @@ class CommunityEngine:
         # (implicit — the character just IS their stage-appropriate self)
 
         return "\n".join(parts)
+
+    def get_community_snapshot(self) -> str:
+        """Observer-facing snapshot for digests (not injected into character prompts)."""
+        parts = []
+
+        ranking = sorted(self.status.items(), key=lambda x: x[1], reverse=True)
+        if ranking:
+            parts.append(
+                "地位排序: "
+                + ", ".join(f"{n}({s:.0f})" for n, s in ranking)
+            )
+
+        role_bits = [f"{n}:{r}" for n, r in self.roles.items() if r]
+        if role_bits:
+            parts.append("角色: " + ", ".join(role_bits))
+
+        buzz_all = []
+        for name in self.names:
+            buzz_all.extend(self.grapevine.get_buzz(name)[:1])
+        # de-dupe while preserving order
+        seen = set()
+        unique_buzz = []
+        for b in buzz_all:
+            if b not in seen:
+                seen.add(b)
+                unique_buzz.append(b)
+        if unique_buzz:
+            parts.append("近期流言: " + "; ".join(unique_buzz[:3]))
+
+        return "\n".join(parts) if parts else "社区氛围平静。"

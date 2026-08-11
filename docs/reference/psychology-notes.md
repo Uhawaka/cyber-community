@@ -1,3 +1,5 @@
+> **Non-normative reference.** Live schema: `docs/contracts/` and `docs/templates/`.
+
 # 赛博社区 · 心理学 & 社会学模型设计
 #
 # 基于以下理论框架，适配为可操作的 LLM 角色系统：

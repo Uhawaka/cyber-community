@@ -10,16 +10,74 @@ Tools are defined per-world in community.yaml. The ToolRegistry loads
 available tools and provides execution with artifact saving.
 """
 
+import ast
 import os
 import json
 import re
 import subprocess
+import tempfile
 import urllib.request
 import urllib.parse
 import xml.etree.ElementTree as ET
 from pathlib import Path
 from datetime import datetime
 from typing import Optional
+
+
+# Modules allowed inside sandboxed run_code (scientific / stdlib safe subset)
+_ALLOWED_MODULES = frozenset({
+    "math", "cmath", "random", "statistics", "decimal", "fractions",
+    "itertools", "functools", "operator", "collections", "heapq",
+    "bisect", "array", "copy", "dataclasses", "typing", "abc",
+    "string", "re", "json", "csv", "time", "datetime", "calendar",
+    "numpy", "np", "scipy", "sympy", "pandas", "matplotlib",
+    "mpl_toolkits", "sklearn", "networkx",
+})
+
+_FORBIDDEN_NAMES = frozenset({
+    "eval", "exec", "compile", "__import__", "open", "input",
+    "breakpoint", "exit", "quit", "help", "memoryview",
+})
+
+_FORBIDDEN_ATTRS = frozenset({
+    "__subclasses__", "__bases__", "__globals__", "__code__",
+    "__builtins__", "__loader__", "__import__", "system",
+    "popen", "walk", "remove", "unlink", "rmtree",
+})
+
+
+def validate_sandboxed_code(code: str) -> Optional[str]:
+    """Static check for dangerous patterns. Returns error message or None if OK."""
+    try:
+        tree = ast.parse(code)
+    except SyntaxError as e:
+        return f"语法错误: {e}"
+
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            for alias in node.names:
+                root = alias.name.split(".")[0]
+                if root not in _ALLOWED_MODULES:
+                    return f"沙箱不允许导入模块: {alias.name}"
+        elif isinstance(node, ast.ImportFrom):
+            if node.module is None:
+                return "沙箱不允许相对导入"
+            root = node.module.split(".")[0]
+            if root not in _ALLOWED_MODULES:
+                return f"沙箱不允许导入模块: {node.module}"
+        elif isinstance(node, ast.Call):
+            func = node.func
+            if isinstance(func, ast.Name) and func.id in _FORBIDDEN_NAMES:
+                return f"沙箱禁止调用: {func.id}()"
+            if isinstance(func, ast.Attribute) and func.attr in _FORBIDDEN_ATTRS:
+                return f"沙箱禁止属性调用: .{func.attr}"
+        elif isinstance(node, ast.Attribute):
+            if node.attr in _FORBIDDEN_ATTRS:
+                return f"沙箱禁止访问: .{node.attr}"
+        elif isinstance(node, ast.Name) and node.id in ("__builtins__", "__loader__"):
+            return f"沙箱禁止访问: {node.id}"
+
+    return None
 
 
 class ToolResult:
@@ -83,16 +141,29 @@ class ToolRegistry:
     def _make_run_code(self, cfg: dict):
         desc = cfg.get("description", "编写并运行Python代码来验证数学猜想或进行数值实验")
         timeout = cfg.get("timeout_seconds", 30)
+        enabled = cfg.get("enabled", True)
+        # Default ON: AST allowlist + isolated subprocess. Set sandbox: false to opt out.
+        sandbox = cfg.get("sandbox", True)
 
         def run(char_name: str, params: dict) -> ToolResult:
             code = params.get("code", "")
             language = params.get("language", "python")
             topic = params.get("topic", "")
 
+            if not enabled:
+                return ToolResult(False, "run_code 已在世界配置中禁用")
+
             if not code.strip():
                 return ToolResult(False, "没有提供代码")
 
-            # Write code to temp file
+            if language and language.lower() not in ("python", "py", ""):
+                return ToolResult(False, f"仅支持 Python，收到: {language}")
+
+            if sandbox:
+                err = validate_sandboxed_code(code)
+                if err:
+                    return ToolResult(False, err)
+
             now = datetime.now().strftime("%Y%m%d_%H%M%S")
             safe_name = char_name.replace(" ", "_")
             code_dir = self.output_dir / "code"
@@ -103,12 +174,24 @@ class ToolRegistry:
                 f.write(code)
 
             try:
-                result = subprocess.run(
-                    ["python3", str(code_path)],
-                    capture_output=True,
-                    text=True,
-                    timeout=timeout,
-                )
+                with tempfile.TemporaryDirectory(prefix="cc_code_") as tmp:
+                    run_env = {
+                        "PATH": os.environ.get("PATH", "/usr/bin:/bin"),
+                        "PYTHONDONTWRITEBYTECODE": "1",
+                        "HOME": tmp,
+                        "TMPDIR": tmp,
+                        "LANG": os.environ.get("LANG", "en_US.UTF-8"),
+                    }
+                    # -I: isolated mode (ignore user site / PYTHONPATH)
+                    cmd = ["python3", "-I", str(code_path)] if sandbox else ["python3", str(code_path)]
+                    result = subprocess.run(
+                        cmd,
+                        capture_output=True,
+                        text=True,
+                        timeout=timeout,
+                        cwd=tmp,
+                        env=run_env,
+                    )
                 stdout = result.stdout[:3000] if result.stdout else ""
                 stderr = result.stderr[:1000] if result.stderr else ""
 
@@ -119,7 +202,6 @@ class ToolRegistry:
                     output = f"代码运行出错。\n错误:\n{stderr}" if stderr else f"代码运行出错（退出码: {result.returncode}）"
                     success = False
 
-                # Save metadata
                 meta_path = code_dir / f"{safe_name}_{now}_meta.json"
                 with open(meta_path, "w") as f:
                     json.dump({
@@ -128,13 +210,14 @@ class ToolRegistry:
                         "timestamp": datetime.now().isoformat(),
                         "exit_code": result.returncode,
                         "success": success,
+                        "sandbox": sandbox,
                     }, f, ensure_ascii=False, indent=2)
 
                 return ToolResult(
                     success=success,
                     output=output,
                     artifact_path=str(code_path),
-                    metadata={"topic": topic, "language": language},
+                    metadata={"topic": topic, "language": language, "sandbox": sandbox},
                 )
             except subprocess.TimeoutExpired:
                 return ToolResult(False, f"代码运行超时（>{timeout}秒）")
@@ -299,9 +382,10 @@ class ToolRegistry:
                     bing_url = "https://www.bing.com/search?" + urllib.parse.urlencode({
                         "q": query, "count": max_results
                     })
+                    # Prefer English for academic / technical retrieval
                     req = urllib.request.Request(bing_url, headers={
                         "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
-                        "Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8",
+                        "Accept-Language": "en-US,en;q=0.9,zh-CN;q=0.5",
                     })
                     with urllib.request.urlopen(req, timeout=10) as resp:
                         html = resp.read().decode("utf-8", errors="replace")

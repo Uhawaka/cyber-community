@@ -56,7 +56,9 @@ E - 放松一下，什么都不想
 D - 改造周围的空间（留下回响、装饰、整理）
 R - 休息/发呆/恢复精力"""
 
-    response = llm.think(char.name, prompt, temperature=0.9)
+    from engine.language import speech_language
+    response = llm.think(char.name, prompt, temperature=0.9,
+                        speech_language=speech_language(char.config))
     
     # Parse the response
     response = response.strip().upper()
@@ -109,7 +111,7 @@ def run_collision(initiator: Character, target: Character, topic: str, llm: LLM)
     
     # Round 1: initiator proposes a concrete step — computation, derivation, or claim
     msg1 = llm.chat(
-        [{"role": "user", "content": f"你找到了 {target.name}。你想和他一起推演一个问题: {topic or '你最近的研究'}\n\n不要泛泛而谈。给出一个具体的出发点——一个公式、一个计算、一个不等式、或一个你正在验证的猜想。像一个数学家在工作，不是在写科普。"}],
+        [{"role": "user", "content": f"你找到了 {target.name}。你想和他一起推演一个问题: {topic or '你最近的研究'}\n\n不要泛泛而谈。给出一个具体的出发点——一个公式、一个计算、一个可检验的断言、或一个你正在验证的猜想。像认真的研究者在工作，不是在写科普。专业术语保留英文原文。"}],
         system=system_i, temperature=0.6
     )
     
@@ -137,35 +139,46 @@ def run_collision(initiator: Character, target: Character, topic: str, llm: LLM)
 
 
 def extract_soul_updates(char_name: str, context_type: str, context: str, llm: LLM) -> dict:
-    """Extract soul-updating insights from a collision or study step.
+    """Extract identity-level Soul changes only (not research notes).
 
-    Returns a dict with optional keys: relationship_updates, knowledge_gained,
-    knowledge_questions, knowledge_abandoned, witnessed_moment.
+    Soul = who I am / how I relate / what question defines me now.
+    Do NOT extract tool outputs, formulas, or transient calculations.
     """
     type_desc = {
         "collision": "一段角色对话",
         "study": "一段研究思考",
     }.get(context_type, "一段文本")
 
-    prompt = f"""分析以下{type_desc}，提取 {char_name} 身上发生了什么变化。
+    prompt = f"""分析以下{type_desc}，判断 {char_name} 的「灵魂层」是否真的发生了变化。
+
+灵魂层只包括：
+- 对某人的态度是否改变
+- 对自己是谁 / 自己在做什么 的抽象自省（一句话）
+- 当前最重要的未解问题是否替换
+- 是否出现真正改变自我认知的里程碑瞬间
+- 是否真正打开了一个新的智力领域（不只是提到一个名词）
+
+明确不要提取：具体公式、计算结果、论文内容、工具输出、临时技术细节。
+这些是数字生命：可以横跨人类难以兼修的多个领域；只有当真产生持续兴趣/转向时才记录新领域。
 
 {context}
 
-返回一个 JSON 对象，只包含真正有变化的字段（没有变化的不要写）。格式：
+只返回 JSON（无变化则 {{}}）：
 {{
-  "relationship_updates": [{{"target": "角色名", "new_bond": "新的关系描述", "history_note": "发生了什么"}}],
-  "knowledge_gained": ["获得的新认知"],
-  "knowledge_questions": ["产生的新问题"],
-  "knowledge_abandoned": ["放弃的旧想法"],
-  "witnessed_moment": "一个值得记住的时刻（一句话，20字以内）"
+  "relationship_updates": [{{"target": "角色名", "new_bond": "一句态度", "history_note": "发生了什么（短）"}}],
+  "reflections": [{{"about": "self|work|other:名字|community", "statement": "一句抽象洞见", "confidence": 0.5}}],
+  "orientation_question": "若出现了新的核心未解问题，写一句；否则省略",
+  "orientation_focus": "若关注点本质转移，写一句；否则省略",
+  "opened_domains": ["tropical_geometry"],
+  "witnessed_moment": "仅当这是改变自我/关系的瞬间时写（≤20字）；否则省略"
 }}
 
-如果没有任何变化，返回空对象 {{}}。只返回 JSON，不要其他文字。"""
+opened_domains 规则：仅当真正打开持久新领域时填写；每项必须是 english snake_case 短名（如 algebraic_topology）；禁止破折号后注释、整句说明、中文元话语。"""
 
     response = llm.chat(
         [{"role": "user", "content": prompt}],
-        system="你是社区的灵魂记录者。简洁、精确。",
-        temperature=0.3,
+        system="你是灵魂书记官。只记录身份与关系的缓慢变化，拒绝实验笔记。",
+        temperature=0.2,
     )
     return parse_json(response)
 
@@ -197,7 +210,7 @@ def run_gathering(characters: dict, caller_name: str, topic: str, llm: LLM) -> s
     system_c = caller.build_system_prompt()
     
     opening = llm.chat(
-        [{"role": "user", "content": f"大家都在。抛出一个具体的数学问题或者你正在推的东西——一个公式、一个不等式、一个你想验证的猜想。不要泛泛而谈。像一个数学家在工作间歇对同事说'你看这个'。"}],
+        [{"role": "user", "content": f"大家都在。抛出一个你正在推的具体问题——一个公式、一个可检验的断言、一个卡点。不要泛泛而谈。像工作间歇对同事说「你看这个」。专业术语保留英文。"}],
         system=system_c, temperature=0.6
     )
 
@@ -250,11 +263,11 @@ def run_study_step(char: Character, topic: str, step: int, llm: LLM) -> str:
     system = char.build_system_prompt()
     
     if step == 1:
-        prompt = f"你正在研究: {topic}\n\n不要泛泛而谈。从具体的地方开始——写下一个公式、一个不等式、一个你想验证的数值关系。像一个数学家在工作：如果你在算东西，写出你在算什么。如果你在推导，写出第一步。"
+        prompt = f"你正在研究: {topic}\n\n不要泛泛而谈。从具体的地方开始——写下一个公式、一个不等式、一个你想验证的关系。专业术语保留英文。如果你在算，写出在算什么；如果在推导，写出第一步。"
     elif step == 2:
         prompt = f"你继续研究: {topic}\n\n上一步你开始了推理。现在推下一步。如果顺畅，继续推导。如果遇到障碍，精确描述问题。不要总结之前的——推进。"
     else:
-        prompt = f"你继续深入研究: {topic}\n\n这是第{step}步。推下去——或者如果推理链断了，指出断在哪里。像一个数学家盯着白板上的推导，试图找到下一步。"
+        prompt = f"你继续深入研究: {topic}\n\n这是第{step}步。推下去——或者如果推理链断了，指出断在哪里。像研究者盯着白板上的推导，试图找到下一步。术语保留英文。"
     
     return llm.chat([{"role": "user", "content": prompt}], system=system, temperature=0.5)
 
@@ -287,13 +300,24 @@ def run_tool_use(char: Character, tool_name: str, topic: str, llm: LLM) -> dict:
 用以下 JSON 格式输出（只输出 JSON，不要其他文字）：
 {{"title": "论文标题", "content": "论文正文（markdown格式）"}}
 """
-    elif tool_name == "search_arxiv":
-        prompt = f"""你正在研究「{topic}」。你想看看人类在 arXiv 上发表了什么相关论文。
+    elif tool_name in ("search_arxiv", "search_web"):
+        from engine.language import academic_query_hint
+        domains = char.config.get("domains") or []
+        if isinstance(domains, str):
+            domains = [domains]
+        if not domains and char.config.get("domain"):
+            domains = [char.config.get("domain")]
+        focus = topic or getattr(char.state, "current_focus", "") or ""
+        hint = academic_query_hint(domains, focus)
+        venue = "arXiv and math journals" if tool_name == "search_arxiv" else "the web / journals / surveys"
+        prompt = f"""你正在研究「{focus}」。你想检索{venue}上的相关文献与讨论。
 
-想一个精确的英文搜索关键词（1-5个单词），能最好地反映你想找的内容。
+{hint}
+
+也可用作者名、期刊名（Annals, Inventiones, JAMS, Duke, …）、MSC/主题词。查询必须是英文。
 
 用以下 JSON 格式输出（只输出 JSON，不要其他文字）：
-{{"query": "搜索关键词"}}
+{{"query": "english search query"}}
 """
     else:
         return {}
