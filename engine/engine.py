@@ -1454,58 +1454,99 @@ class SimulationEngine:
         if not char_a or not char_b:
             return
 
-        focus_a = char_a.state.current_focus or ""
-        focus_b = char_b.state.current_focus or ""
-
         # Already collaborating?
         for p in self.collab.get_active():
             if a in p.participants and b in p.participants:
-                # They're already working together — advance the project
                 if p.topic[:30] in topic or topic[:30] in p.topic:
                     p.advance(random.uniform(0.02, 0.05))
                     p.last_worked_day = self.day
                 return
 
-        # Check topic overlap
-        if not self.collab.detect_overlap(focus_a, focus_b):
+        # Deep enough dialogue → use LLM to check for genuine overlap
+        if len(dialogue) < 400:
             return
+        
+        if random.random() < 0.35:
+            try:
+                # Ask LLM: are these two working on related things?
+                prompt = f"""两个角色刚进行了一次深入的对话。判断他们是否在讨论相关的研究方向，从而应该协作。
 
-        # Deep enough dialogue + overlapping interests → propose collaboration
-        if len(dialogue) > 600:
-            # Higher chance if dialogue is substantive
-            if random.random() < 0.4:
-                project_topic = topic if len(topic) > 10 else f"{focus_a[:30]} × {focus_b[:30]}"
-                project = self.collab.create(
-                    project_topic, a, [a, b], self.day
+角色A ({a}) 的研究焦点: {char_a.state.current_focus or "未知"}
+角色B ({b}) 的研究焦点: {char_b.state.current_focus or "未知"}
+对话主题: {topic}
+对话摘要 (最后300字): {dialogue[-300:]}
+
+只回答 YES 或 NO。他们是否在讨论有实质交叉的研究问题？"""
+                response = self.llm.chat(
+                    [{"role": "user", "content": prompt}],
+                    system="你是一个研究协作判断器。只回答YES或NO。",
+                    temperature=0.1
                 )
+                should_collab = "YES" in response.upper()
+            except Exception:
+                # Fallback to keyword matching
+                should_collab = self.collab.detect_overlap(
+                    char_a.state.current_focus or "",
+                    char_b.state.current_focus or ""
+                )
+            
+            if should_collab:
+                project_topic = topic if len(topic) > 10 else f"{char_a.state.current_focus or a} × {char_b.state.current_focus or b}"
+                project = self.collab.create(project_topic[:60], a, [a, b], self.day)
                 self._log(f"\n  🤝 {a} 和 {b} 发现共同兴趣，发起协作: {project_topic[:50]}")
                 self.event_log.append({
                     "time": self.clock, "type": "collaboration_start",
                     "participants": [a, b], "topic": project_topic,
                 })
-                # Boost mood
                 char_a.state.mood = "excited"
                 char_b.state.mood = "curious"
 
     def _check_solo_to_collab(self, char_name: str, thought):
-        """After deep think, character may notice others' work relates to theirs."""
+        """After deep think, check if insight mentions others → collaboration signal."""
         char = self.characters.get(char_name)
         if not char:
             return
         
+        # Check if insight mentions other characters by name
+        insight_text = thought.understanding or ""
+        mentioned = [n for n in self.characters if n != char_name and n in insight_text]
+        
+        if mentioned:
+            # Strong signal — the character is thinking about someone else's work
+            other = mentioned[0]
+            if random.random() < 0.5:
+                # They explicitly connect their work to another's
+                my_topic = char.state.current_focus or ""
+                their_focus = self.characters[other].state.current_focus or ""
+                joint_topic = f"{my_topic[:25]} × {their_focus[:25]}"
+                
+                # Check if they already have a collab
+                already = any(
+                    char_name in p.participants and other in p.participants
+                    for p in self.collab.get_active()
+                )
+                if not already:
+                    self.collab.create(joint_topic, char_name, [char_name, other], self.day)
+                    self._log(f"\n  🤝 {char_name} 在深度反思中注意到与 {other} 的联系，发起协作!")
+                    self.event_log.append({
+                        "time": self.clock, "type": "collaboration_start",
+                        "participants": [char_name, other], "topic": joint_topic,
+                    })
+                    char.state.mood = "excited"
+                    self.characters[other].state.mood = "curious"
+                    return
+        
+        # Fallback: keyword-based candidate detection
         my_topic = char.state.current_focus or ""
         candidates = self.collab.find_collaboration_candidates(
             char_name, my_topic, self.characters
         )
         
-        if candidates and random.random() < 0.25:
+        if candidates and random.random() < 0.2:
             other = random.choice(candidates)
-            # They notice the connection
             char.state.pending_thoughts.append(
                 f"我注意到{other}的研究可能和我的工作有关——也许该找ta聊聊"
             )
-            if hasattr(char, '_verbose') or random.random() < 0.3:
-                pass  # The pending_thoughts will surface in future context
 
     def _inject_collab_context(self, char_name: str):
         """Inject collaboration info into character's system prompt context."""
