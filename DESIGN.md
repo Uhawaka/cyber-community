@@ -1491,58 +1491,83 @@ AI 的思考速度远超人类。一个社区的「一天」只需要 ~1-2 分�
 
 ---
 
-## 8. 路线图
+## 8. 当前架构 (v5 — 已完成)
 
-### Phase 0: 原型验证 ✅ (已完成)
+### 8.1 模块清单 (23个, ~5700行)
 
-- [x] 调度器驱动的数学家公社
-- [x] arXiv 论文抓取和角色反应
-- [x] 基础辩论循环
-- [x] 每日简报生成
-- [x] 验证：角色对话质量和人格一致性 **远超预期**
+```
+engine/
+├── __init__.py          # 包标识
+├── events.py            # EventQueue (最小堆) + Event 数据类
+├── character.py         # 状态机 + 能量系统 + 系统提示词构建
+├── engine.py            # DES 主循环, 14种事件处理器
+├── interactions.py      # LLM驱动: decide_action, run_collision, run_gathering, run_tool_use
+├── soul.py              # SoulFile (YAML) + DailyArchive (JSON) + 模糊压缩
+├── memory.py            # 3层: episodic/semantic/working + 背记忆播种 + 心理过滤
+├── deep_think.py        # 3轮反思 OBSERVE→CONNECT→UNDERSTAND
+├── thought_loop.py      # 内心对话: self/critic 交替推理
+├── needs.py             # Maslow 5维需求 + 衰减/满足 + 行为覆盖
+├── day_rhythm.py        # 结构化日节律 + Poisson 自发活动
+├── environment.py       # 节点系统: study_chamber/commons/archive/workshop/garden
+├── rich_env.py          # 环境刺激: 回响/社会存在/发现/时间提示
+├── sociology.py         # Tuckman阶段/状态层级/规范/流言/礼物经济
+├── production.py        # 产出管线: insight/paper/observation → digest
+├── mission.py           # 观察任务: 进度追踪/完成奖励/新任务分配
+├── observation.py       # 观察查询生成 (arXiv)
+├── request_board.py     # 社区请求板: help/review/discuss/offer/social
+├── tools.py             # ToolRegistry: run_code/write_paper/search_arxiv
+├── scripts.py           # 项目/例程/人格脚本/闲思
+├── world_builder.py     # WDL v2: 渐进式配置展开
+├── llm.py               # DeepSeek API 客户端
+└── utils.py             # parse_json 共享工具
+```
 
-### Phase 1: 自主引擎 (核心)
+### 8.2 路线图状态
 
-- [ ] 事件队列引擎（DES，EventQueue + 主循环 + 虚拟时钟）
-- [ ] 泊松过程激活模型（每个角色独立 λ，自主节奏）
-- [ ] 角色状态机（Available/Busy/Drained/Absent + 碰撞规则）
-- [ ] 能量系统（差异化消耗、碰撞增益、阈值门控）
-- [ ] 碰撞模式实现（社交动作 → 状态检查 → 即时碰撞/留言/拒绝）
-- [ ] 集会模式实现（召集→响应→讨论→解散 状态机 + 穿透规则）
-- [ ] 记忆系统（Soul 文件 + 日存档 + 模糊压缩 + context 注入）
-- [ ] 角色内在状态模型（mood, focus, relationships, pending_messages）
-- [ ] 决策提示工程调优
-- [ ] 目标：3 角色社区在事件驱动下自主运转 30 虚拟天，行为连贯合理
+| Phase | 内容 | 状态 |
+|-------|------|------|
+| Phase 1 | DES引擎 + 泊松 + 状态机 + 能量 + 碰撞 + 记忆 | ✅ 完成 |
+| Phase 2 | CLI + watch + digest | ✅ 完成 |
+| Phase 3 | 世界模板 + WDL v2 + 5个预置世界 | ✅ 完成 |
+| v5 升级 | 需求系统 + 日节律 + 内心对话 + 环境 + 产出管线 + 任务板 + 社会学v2 + 请求板 + 第4角色(Hayashi) | ✅ 完成 |
+| 待实现 | Web UI / API / 社区模板市场 / 向量记忆 | 🔲 未来 |
 
-### Phase 2: 用户交互
+### 8.3 世界模板 (5个)
 
-- [ ] CLI 重构：cyber run/watch/log/digest/event
-- [ ] 匿名事件注入：cyber event "Elias 桌上出现一封匿名信"
-- [ ] 实时旁观：cyber watch（DES 事件流实时输出）
-- [ ] 日报生成：cyber digest（按天/周/月）
+| 世界 | 角色 | 特点 |
+|------|------|------|
+| math-commune | Elias/Yuki/Pavel/Hayashi | 完整心理学+社会学, 4角色 |
+| quant-lab | Elias/Yuki/Pavel (金融版) | 量化金融, 可评估推理 |
+| poets-salon | 李白/杜甫/王维 | v2 最小配置 |
+| philosophy-cafe | 萨特/加缪/波伏娃 | 封闭世界 |
+| alien-observers | Zorax/Lyra/K-7 | 非人观察者 |
 
-### Phase 3: 社区生态
+### 8.4 核心数据流
 
-- [ ] 世界模板系统：YAML → 社区实例化
-- [ ] Fork 功能：`cyber fork <community>`
-- [ ] 角色导入/导出：跨社区复用角色
-- [ ] 种子场景系统：可选的剧情催化剂
-- [ ] 向量记忆：从 JSON → 实际向量检索
+```
+Backstory Seeds (5 核记忆)
+  → Episode Memory (心理过滤, 每天20-30条)
+  → Deep Think 触发 (积累事件 → OBSERVE→CONNECT→UNDERSTAND)
+  → Soul Understanding (洞见+信心分)
+  → System Prompt ("## 你记得的事" + "## 你已形成的理解")
+  → 角色知道他们是谁
+```
 
-### Phase 4: 开放平台
+```
+Day Rhythm + Poisson → Activate Event
+  → Needs System 覆盖 (能量关键? → 强制休息)
+  → Day Rhythm 加权选择 (早60%研究, 中午40%社交)
+  → 执行: study(内心对话) / socialize(碰撞) / observe(arXiv) / tool
+  → Soul/Memory/Sociology/Production 更新
+  → 下一个 activate
+```
 
-- [ ] 化身模式：经常外出 + 归来的沉浸式体验
-- [ ] Web UI：社区仪表盘 + 事件时间线
-- [ ] 社区模板市场：分享和发现世界模板
-- [ ] API：外部系统集成
-- [ ] 多社区管理：一个用户运行多个社区
+### 8.5 已知技术债
 
-### Phase 5: 社交与分发
-
-- [ ] 社区公开分享：只读链接
-- [ ] Digest 订阅：每日邮件/推送
-- [ ] Fork 可视化：社区分叉树
-- [ ] 角色市场：角色评分、导入统计
+1. **21个测试文件** — 只有 test_engine.py 是核心。其他是早期开发遗留, 待清理整合
+2. **内心对话0轮** — NoopLLM 下无法解析返回, dry_run 时跳过。真实LLM运行正常
+3. **NoopLLM 残留** — production.json 中 art_0014-0017 是 dry_run 污染, 需在 dry_run 时跳过生产
+4. **搜索缓存仅在当天** — 跨天同一查询仍会重新搜索。可接受(arXiv有3s延迟的礼貌限速)
 
 ---
 
