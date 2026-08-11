@@ -43,7 +43,13 @@ class SimulationEngine:
         self.archives: dict[str, DailyArchive] = {}
         
         permeability = config.get("domain", {}).get("permeability", "connected")
-        output_dir = Path("outputs") / config.get("name", "community").replace(" ", "-")
+        # In dry_run, use temp dir to avoid contaminating persistent files
+        if dry_run:
+            import tempfile
+            self._output_dir = Path(tempfile.mkdtemp(prefix="cc_dryrun_"))
+        else:
+            self._output_dir = Path("outputs") / config.get("name", "community").replace(" ", "-")
+        output_dir = self._output_dir
 
         for char_cfg in config.get("characters", []):
             name = char_cfg["name"]
@@ -1382,18 +1388,19 @@ class SimulationEngine:
         self._last_deep_think[char_name] = self.clock
 
         # Write to Soul
-        if soul:
+        if soul and not self.dry_run:
             soul.add_deep_thought(thought)
 
         # ── Production: record as insight artifact ──
-        self.production._current_day = self.day
-        self.production.create_artifact(
-            "insight", 
-            f"洞见: {thought.understanding[:60]}...",
-            thought.understanding[:500],
-            [char_name],
-            confidence=thought.confidence,
-        )
+        if not self.dry_run:
+            self.production._current_day = self.day
+            self.production.create_artifact(
+                "insight", 
+                f"洞见: {thought.understanding[:60]}...",
+                thought.understanding[:500],
+                [char_name],
+                confidence=thought.confidence,
+            )
 
         # ── Environment: notify rich env ──
         self.rich_env.record_event(f"{char_name} 有了一个深度洞见")
