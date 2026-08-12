@@ -1,5 +1,8 @@
-# Output artifacts
+# Runtime / local simulation state (may contain private run logs)
 outputs/
+*.log
+tmp/
+/tmp/
 
 # Python
 __pycache__/
@@ -7,20 +10,31 @@ __pycache__/
 *.pyo
 .venv/
 venv/
+.pytest_cache/
+.mypy_cache/
+*.egg-info/
+dist/
+build/
 
 # OS
 .DS_Store
 Thumbs.db
 
-# IDE
+# IDE / editor
 .vscode/
 .idea/
 *.swp
 *.swo
+.cursor/
 
-# Environment
+# Secrets — never commit real keys
 .env
+.env.*
+!.env.example
 .env.local
+*.pem
+credentials.json
+secrets/
 
 # Large cache files
 *.npz

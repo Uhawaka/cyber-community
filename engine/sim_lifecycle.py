@@ -180,6 +180,16 @@ class LifecycleMixin:
             for _ in range(random.randint(2, 3)):
                 self.queue.push(Event(time=self.clock + random.uniform(1, 23), 
                                        type="spontaneous", actor=char.name))
+            # Idle thoughts + observation (same as bootstrap)
+            if not self.dry_run:
+                self.queue.push(Event(time=self.clock + random.uniform(3.0, 6.0),
+                                       type="idle_thought", actor=char.name))
+                frame = getattr(self, "world_frame", {}) or {}
+                if frame.get("permeability", "connected") != "enclosed":
+                    self.queue.push(Event(
+                        time=self.clock + random.uniform(4.0, 8.0),
+                        type="observe_world", actor=char.name,
+                    ))
 
 
     def _generate_day_summary(self, name: str, char: Character, events: list) -> str:
