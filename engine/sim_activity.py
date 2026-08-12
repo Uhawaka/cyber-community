@@ -8,49 +8,106 @@ from engine.events import Event
 from engine.character import Character
 from engine.day_rhythm import get_phase, get_phase_activity
 from engine.needs import need_driven_activity, satisfy_needs
-from engine.thought_loop import InnerDialogue, next_inner_turn, extract_insight
+from engine.thought_loop import (
+    InnerDialogue,
+    next_inner_turn,
+    extract_insight,
+    should_end_dialogue,
+)
 from engine.interactions import decide_action, run_collision, run_study_step
 from engine.culture import psych_action_bias, apply_weight_bias
+from engine.inbox import (
+    suggest_inbox_action,
+    inbox_weight_bias,
+    consume_messages_from,
+)
 
 
 class ActivityMixin:
     """Character activation and self-directed activity handlers."""
+
+    def _run_inner_dialogue(
+        self,
+        char: Character,
+        topic: str,
+        max_turns: int | None = None,
+        verbose: bool = False,
+    ) -> InnerDialogue:
+        """Shared study path for activate + spontaneous (first turn must run)."""
+        dialogue = InnerDialogue()
+        dialogue.start(topic)
+        limit = max_turns if max_turns is not None else dialogue.max_turns
+        while dialogue.can_continue() and len(dialogue.turns) < limit:
+            if should_end_dialogue(dialogue) and dialogue.turns:
+                break
+            if not self._llm_budget_ok():
+                break
+            turn = next_inner_turn(self.llm, char, dialogue)
+            if turn is None:
+                break
+            dialogue.add_turn(turn.role, turn.content, turn.motivation)
+            self.event_log.append({
+                "time": self.clock + len(dialogue.turns) * 0.1,
+                "type": "inner_turn",
+                "actor": char.name,
+                "role": turn.role,
+                "content": turn.content,
+                "motivation": turn.motivation,
+            })
+        if verbose:
+            self._log(f"  💬 {char.name} 内心对话 ({len(dialogue.turns)}轮)")
+            for t in dialogue.turns[-3:]:
+                prefix = "  我:" if t.role == "self" else "  但:"
+                self._log(f"{prefix} {t.content[:100]}")
+        return dialogue
 
     def _handle_activate(self, event: Event, verbose: bool):
         char = self.characters.get(event.actor)
         if char is None:
             return
 
-        # Inject memory + understanding context
+        # Inject memory + understanding context (+ inbox briefing)
         self._inject_context(char.name)
 
         if char.state.energy <= 0:
             self._log(f"  {char.name} 能量耗尽，跳过激活")
-            # Still schedule next activation for tomorrow
+            # Rhythm / day_boundary will schedule the next beat — no Poisson chain
             char.reset_energy()
-            next_t = char.next_activate_time(self.clock)
-            if next_t < float('inf'):
-                self.queue.push(Event(time=next_t, type="activate", actor=char.name))
             return
 
         char.set_available()
 
-        # Use day rhythm, override with needs
-        phase = get_phase(self.clock)
-        state = self.needs.get(char.name)
-        if state:
-            state.decay_all(0.5)  # decay since last activation
-        psych_bias = psych_action_bias(char.personality, char.drives)
-        phase_decision = get_phase_activity(
-            phase,
-            char.scripts.routines if hasattr(char, "scripts") else None,
-            weight_bias=psych_bias,
-        )
-        decision = need_driven_activity(state, phase_decision) if state else phase_decision
-        decision["topic"] = char.state.current_focus or char.config.get("seed", "")
+        # Inbox-first: reply to people who reached out before broadcasting new work
+        inbox = getattr(char, "_inbox", None) or {}
+        inbox_decision = suggest_inbox_action(self, char.name, inbox)
+        if inbox_decision:
+            decision = inbox_decision
+            if verbose:
+                self._log(
+                    f"  [{char.name}] {decision['label']} (E={char.state.energy}) [inbox]"
+                )
+        else:
+            # Use day rhythm, override with needs; nudge social if inbox warm
+            phase = get_phase(self.clock)
+            state = self.needs.get(char.name)
+            if state:
+                state.decay_all(0.5)  # decay since last activation
+            psych_bias = psych_action_bias(char.personality, char.drives)
+            for k, v in inbox_weight_bias(inbox).items():
+                psych_bias[k] = psych_bias.get(k, 1.0) * v
+            phase_decision = get_phase_activity(
+                phase,
+                char.scripts.routines if hasattr(char, "scripts") else None,
+                weight_bias=psych_bias,
+            )
+            decision = need_driven_activity(state, phase_decision) if state else phase_decision
+            decision["topic"] = char.state.current_focus or char.config.get("seed", "")
 
-        if verbose:
-            self._log(f"  [{char.name}] {decision['label']} (E={char.state.energy})")
+            if verbose:
+                self._log(f"  [{char.name}] {decision['label']} (E={char.state.energy})")
+
+        # Consume anon stimuli only when this action can react
+        self._consume_anon_if_reactive(char.name, decision["type"])
 
         if decision["type"] == "observe_world":
             # Enclosed worlds have no window — fall back to study
@@ -65,9 +122,6 @@ class ActivityMixin:
                 char.spend("shallow")
                 obs_event = Event(time=self.clock, type="observe_world", actor=char.name)
                 self._handle_observe_world(obs_event, verbose)
-                next_t = char.next_activate_time(self.clock)
-                if next_t < float("inf"):
-                    self.queue.push(Event(time=next_t, type="activate", actor=char.name))
                 return
 
         if decision["type"] == "rest":
@@ -76,9 +130,6 @@ class ActivityMixin:
             state = self.needs.get(char.name)
             if state:
                 satisfy_needs(state, "rest", {"duration": 3})
-            next_t = char.next_activate_time(self.clock)
-            if next_t < float('inf'):
-                self.queue.push(Event(time=next_t, type="activate", actor=char.name))
             return
 
         if decision["type"] == "move":
@@ -88,9 +139,6 @@ class ActivityMixin:
                 if verbose:
                     node = self.environment.nodes.get(target_node)
                     self._log(f"    🚶 → {node.name if node else target_node}")
-            next_t = char.next_activate_time(self.clock)
-            if next_t < float('inf'):
-                self.queue.push(Event(time=next_t, type="activate", actor=char.name))
             return
 
         if decision["type"] == "modify_env":
@@ -101,9 +149,6 @@ class ActivityMixin:
                 actor=char.name,
                 data=decision
             ))
-            next_t = char.next_activate_time(self.clock)
-            if next_t < float('inf'):
-                self.queue.push(Event(time=next_t, type="activate", actor=char.name))
             return
 
         if decision["type"] == "entertain":
@@ -112,9 +157,6 @@ class ActivityMixin:
                 self._log(f"    🎵 {char.name} 在放松...")
             if random.random() < 0.2:
                 char.state.mood = random.choice(["curious", "playful", "inspired", "calm"])
-            next_t = char.next_activate_time(self.clock)
-            if next_t < float('inf'):
-                self.queue.push(Event(time=next_t, type="activate", actor=char.name))
             return
 
         if decision["type"] == "tool":
@@ -129,17 +171,23 @@ class ActivityMixin:
                 ))
                 if verbose:
                     self._log(f"    🔧 准备使用工具: {tool_name}")
-                next_t = char.next_activate_time(self.clock)
-                if next_t < float('inf'):
-                    self.queue.push(Event(time=next_t, type="activate", actor=char.name))
             return
 
         if decision["type"] == "socialize":
-            # Pick a target
+            # Prefer inbox-specified target, else random
             targets = [n for n in self.characters if n != char.name]
-            if targets:
+            preferred = decision.get("target")
+            if preferred and preferred in self.characters and preferred != char.name:
+                target_name = preferred
+            elif targets:
                 target_name = random.choice(targets)
+            else:
+                target_name = None
+
+            if target_name:
                 target = self.characters[target_name]
+                if decision.get("inbox_reply"):
+                    consume_messages_from(char, target_name)
 
                 if target.can_be_interrupted("normal"):
                     # Immediate collision
@@ -159,11 +207,6 @@ class ActivityMixin:
                     target.add_pending_message(char.name, f"[{char.name} 想找你聊聊]")
                     if verbose:
                         self._log(f"    → 给 {target_name} 留言 (对方 {target.state.status})")
-
-            # Schedule next activation
-            next_t = char.next_activate_time(self.clock)
-            if next_t < float('inf'):
-                self.queue.push(Event(time=next_t, type="activate", actor=char.name))
             return
 
         if decision["type"] == "gather":
@@ -175,43 +218,15 @@ class ActivityMixin:
                 actor=char.name,
                 data={"phase": "call", "topic": decision.get("topic", "general discussion")}
             ))
-            next_t = char.next_activate_time(self.clock)
-            if next_t < float('inf'):
-                self.queue.push(Event(time=next_t, type="activate", actor=char.name))
             return
 
         # study or observe — enter inner dialogue loop
+        # Rhythm owns the next activate beat (no post-activate Poisson densify)
         char.spend("medium")
         char.set_busy()
 
         topic = decision.get("topic", char.state.current_focus or "研究方向")
-        dialogue = InnerDialogue()
-        dialogue.start(topic)
-
-        # Run the inner dialogue — multiple short turns
-        turn_count = 0
-        while dialogue.is_active() and turn_count < dialogue.max_turns:
-            turn = next_inner_turn(self.llm, char, dialogue)
-            if turn is None:
-                break
-            dialogue.add_turn(turn.role, turn.content, turn.motivation)
-            turn_count += 1
-
-            # Log each turn
-            self.event_log.append({
-                "time": self.clock + turn_count * 0.1,
-                "type": "inner_turn",
-                "actor": char.name,
-                "role": turn.role,
-                "content": turn.content,
-                "motivation": turn.motivation,
-            })
-
-        if verbose:
-            self._log(f"  💬 {char.name} 内心对话 ({len(dialogue.turns)}轮)")
-            for t in dialogue.turns[-3:]:
-                prefix = "  我:" if t.role == "self" else "  但:"
-                self._log(f"{prefix} {t.content[:100]}")
+        dialogue = self._run_inner_dialogue(char, topic, verbose=verbose)
 
         # Record the accumulated thinking as a study_step
         full_thought = "\n".join(f"[{t.role}] {t.content}" for t in dialogue.turns)
@@ -234,12 +249,18 @@ class ActivityMixin:
         if project:
             char.scripts.advance_project(random.uniform(0.02, 0.05))
 
-        char.set_available()
+        # Count for deep-think trigger even when soul extract is budget-skipped
+        self._record_memory(
+            char.name,
+            "study",
+            f"内心对话{len(dialogue.turns)}轮: {topic[:60]}",
+            detail=full_thought[:300],
+            valence="curious",
+            importance=0.45,
+            tags=[topic[:30]],
+        )
 
-        # Schedule next activation
-        next_t = char.next_activate_time(self.clock)
-        if next_t < float('inf'):
-            self.queue.push(Event(time=next_t, type="activate", actor=char.name))
+        char.set_available()
 
 
     def _handle_continue(self, event: Event, verbose: bool):
@@ -279,24 +300,21 @@ class ActivityMixin:
             return
 
         self._inject_context(char.name)
-        # Use the old LLM-based decision for spontaneity
-        decision = self._decide_action(char)
+        # Inbox-first even on spontaneous ticks
+        inbox = getattr(char, "_inbox", None) or {}
+        decision = suggest_inbox_action(self, char.name, inbox) or self._decide_action(char)
+        self._consume_anon_if_reactive(char.name, decision["type"])
 
         if verbose:
-            self._log(f"  ✨ [{char.name}] {decision.get('label', 'spontaneous')} (自发)")
+            tag = "inbox" if decision.get("inbox_reply") else "自发"
+            self._log(f"  ✨ [{char.name}] {decision.get('label', 'spontaneous')} ({tag})")
 
         # Route to appropriate handler based on type
         if decision["type"] == "study":
             char.spend("medium")
             char.set_busy()
             topic = decision.get("topic", char.state.current_focus or "")
-            dialogue = InnerDialogue()
-            dialogue.start(topic)
-            for _ in range(min(dialogue.max_turns, 4)):
-                turn = next_inner_turn(self.llm, char, dialogue)
-                if turn is None:
-                    break
-                dialogue.add_turn(turn.role, turn.content, turn.motivation)
+            dialogue = self._run_inner_dialogue(char, topic, max_turns=4, verbose=verbose)
             full_thought = "\n".join(f"[{t.role}] {t.content}" for t in dialogue.turns)
             self.event_log.append({"time": self.clock, "type": "study_step", "actor": char.name,
                 "step": len(dialogue.turns), "topic": topic, "thought": full_thought})
@@ -304,12 +322,28 @@ class ActivityMixin:
             insight = extract_insight(dialogue)
             if insight:
                 self._update_soul_from_study(char.name, topic, insight)
+            self._record_memory(
+                char.name, "study",
+                f"自发研究{len(dialogue.turns)}轮: {topic[:60]}",
+                detail=full_thought[:300],
+                valence="curious",
+                importance=0.4,
+                tags=[topic[:30]],
+            )
             char.set_available()
         elif decision["type"] == "socialize":
             targets = [n for n in self.characters if n != char.name]
-            if targets:
+            preferred = decision.get("target")
+            if preferred and preferred in self.characters and preferred != char.name:
+                target_name = preferred
+            elif targets:
                 target_name = random.choice(targets)
+            else:
+                target_name = None
+            if target_name:
                 target = self.characters[target_name]
+                if decision.get("inbox_reply"):
+                    consume_messages_from(char, target_name)
                 if target.can_be_interrupted("normal"):
                     char.spend("collision")
                     dialogue = run_collision(char, target, decision.get("topic", ""), self.llm)
@@ -357,19 +391,21 @@ class ActivityMixin:
         project = char.scripts.get_active_project()
         project_text = f"\n你正在推进的项目: {project.goal}" if project else ""
 
-        system = char.build_system_prompt()
-        prompt = f"""你正在独处。你最近在想什么？{project_text}
+        thought = "脑海中飘过一些模糊的想法。"
+        if self._llm_budget_ok() and not self.dry_run:
+            system = char.build_system_prompt()
+            prompt = f"""你正在独处。你最近在想什么？{project_text}
 
 最近的杂念:
 {idle_context if idle_context else '（还没有记录）'}
 
 写一句话（20字以内），记录你此刻的想法。可以是一个念头、一个怀疑、一个发现、或一个情绪。"""
-
-        try:
-            thought = self.llm.chat([{"role": "user", "content": prompt}], system=system, temperature=0.9)
-            thought = thought.strip()[:100]
-        except Exception:
-            thought = "脑海中飘过一些模糊的想法。"
+            try:
+                thought = self.llm.chat(
+                    [{"role": "user", "content": prompt}], system=system, temperature=0.9
+                ).strip()[:100]
+            except Exception:
+                pass
 
         # Record
         char.scripts.record_idle_thought(thought, self.clock)

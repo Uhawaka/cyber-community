@@ -46,8 +46,13 @@ class InnerDialogue:
     def add_turn(self, role: str, content: str, motivation: str):
         self.turns.append(InnerTurn(role=role, content=content, motivation=motivation))
 
+    def can_continue(self) -> bool:
+        """True if another turn may be generated (including the first)."""
+        return bool(self.topic) and len(self.turns) < self.max_turns and self.stuck_count < 3
+
     def is_active(self) -> bool:
-        return len(self.turns) > 0 and len(self.turns) < self.max_turns and self.stuck_count < 3
+        """Alias for can_continue — empty dialogues must still enter the first turn."""
+        return self.can_continue()
 
     def recent_context(self, count: int = 4) -> str:
         """Recent turns for the LLM to build on."""

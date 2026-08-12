@@ -36,20 +36,29 @@ def decide_action(char: Character, llm: LLM, tools: Optional[list] = None) -> di
         if tool_lines:
             tool_info = "\n".join(tool_lines) + "\n"
     
+    priority_hint = ""
+    if pending_count > 0:
+        priority_hint = (
+            f"\n注意：你有 {pending_count} 条未读留言。"
+            "优先选 T 回复对方，不要先写长文或开全新话题。\n"
+        )
+
     prompt = f"""当前时间：第{getattr(char, '_day', 1)}天
 你的能量：{state.energy}/{state.energy_max}
 你的情绪：{state.mood}
 你正在关注：{state.current_focus or '无特定方向'}
 待处理消息：{pending_count}条
-
+{priority_hint}
     {char.scripts.get_active_project().summary() if char.scripts.get_active_project() else ''}
     {char.scripts.get_idle_context(3) if char.scripts.get_idle_context(3) else ''}
     {getattr(char, '_sociology_context', '')}
 
+优先级提醒：先回应找你的人 / 推进未完对话 → 再主动社交 → 最后才开新研究产出。
+
     你现在想做什么？只回答选项代码（一个字母）：
 S - 深入研究当前关注的话题
 O - 观察/搜索人类世界的信息
-T - 找社区里的某人聊天
+T - 找社区里的某人聊天（有留言时优先）
 G - 召集大家讨论
 {tool_info}M - 换个地方待着（去大厅/花园/别人那里）
 E - 放松一下，什么都不想

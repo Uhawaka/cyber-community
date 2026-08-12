@@ -44,19 +44,25 @@ class DeepThinkEngine:
                         hours_since_last: float) -> bool:
         """Determine if a deep thinking session should be triggered.
 
+        Requires some accumulated experience — never fires on empty counters
+        just because wall/virtual time passed (avoids eager first-day fanout).
+
         Triggers when:
-        - 5+ study steps accumulated without deep thinking
-        - 2+ collisions happened and last think was >8 hours ago
-        - 3+ tool uses produced interesting results
-        - Or >12 hours since last deep think (minimum reflection)
+        - 5+ study steps and ≥4h since last deep think
+        - 2+ collisions and ≥8h since last
+        - 3+ tool uses and ≥4h since last
+        - ≥3 total events and ≥12h since last (cooldown reflection)
         """
-        if hours_since_last > 12:
+        total = study_count + collision_count + tool_count
+        if total <= 0:
+            return False
+        if study_count >= 5 and hours_since_last >= 4:
             return True
-        if study_count >= 5:
+        if collision_count >= 2 and hours_since_last >= 8:
             return True
-        if collision_count >= 2 and hours_since_last > 8:
+        if tool_count >= 3 and hours_since_last >= 4:
             return True
-        if tool_count >= 3:
+        if total >= 3 and hours_since_last >= 12:
             return True
         return False
 

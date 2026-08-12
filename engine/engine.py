@@ -138,4 +138,19 @@ class SimulationEngine(
 
         for name in self.characters:
             self._event_counts[name] = {"study": 0, "collision": 0, "tool": 0}
-            self._last_deep_think[name] = 0.0
+            # Anchor to current clock so "hours since last" isn't huge at t≈12
+            self._last_deep_think[name] = self.clock
+
+        # Per-slice LLM budget (set by run_slice / live wake)
+        self._llm_calls_slice_start = 0
+        self._max_llm_calls_slice: int | None = None
+
+    def _llm_budget_ok(self) -> bool:
+        """True if another LLM call is allowed in the current slice."""
+        if self._max_llm_calls_slice is None:
+            return True
+        used = getattr(self.llm, "call_count", 0) - self._llm_calls_slice_start
+        return used < self._max_llm_calls_slice
+
+    def _llm_calls_used(self) -> int:
+        return getattr(self.llm, "call_count", 0) - self._llm_calls_slice_start

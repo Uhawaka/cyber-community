@@ -161,21 +161,23 @@ class Memory:
         """Build a memory context string for injection into prompts.
 
         This is what the character "remembers" when they think.
+        max_tokens is treated as an approximate character budget (×2).
         """
         parts = []
+        max_chars = max(120, int(max_tokens) * 2)
 
         # Working memory
         if self.working["current_focus"]:
-            parts.append(f"当前关注: {self.working['current_focus']}")
+            parts.append(f"当前关注: {self.working['current_focus'][:80]}")
         if self.working["active_hypotheses"]:
-            parts.append(f"活跃假设: {'; '.join(self.working['active_hypotheses'][-3:])}")
+            parts.append(f"活跃假设: {'; '.join(self.working['active_hypotheses'][-2:])}")
         if self.working["pending_questions"]:
-            parts.append(f"待解疑问: {'; '.join(self.working['pending_questions'][-3:])}")
+            parts.append(f"待解疑问: {'; '.join(self.working['pending_questions'][-2:])}")
 
         # Key semantic facts
         facts = self.get_facts(5)
         if facts:
-            parts.append(f"已知事实: {'; '.join(facts[:3])}")
+            parts.append(f"已知事实: {'; '.join(f[:60] for f in facts[:3])}")
 
         # Recent episodes (most recent 3, most important 2)
         recent = self.recall_recent(3)
@@ -183,12 +185,15 @@ class Memory:
         all_refs = recent + [e for e in important if e not in recent]
         if all_refs:
             ep_lines = []
-            for ep in all_refs[:5]:
+            for ep in all_refs[:4]:
                 emoji = {"exciting": "🔥", "frustrating": "😤", "curious": "🤔", "neutral": "📝"}.get(ep.emotional_valence, "")
-                ep_lines.append(f"[Day{ep.day}] {emoji} {ep.summary}")
+                ep_lines.append(f"[Day{ep.day}] {emoji} {ep.summary[:100]}")
             parts.append("记得的事:\n" + "\n".join(ep_lines))
 
-        return "\n".join(parts)
+        text = "\n".join(parts)
+        if len(text) > max_chars:
+            return text[: max_chars - 1] + "…"
+        return text
 
     # ─── Internal ─────────────────────────────────────────────
 

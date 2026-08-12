@@ -20,23 +20,7 @@ sys.path.insert(0, str(PROJECT_ROOT))
 from engine.llm import LLM
 from engine.engine import SimulationEngine
 from engine.live_session import LiveSession, parse_wake_times
-from engine.world_builder import expand_world
-import yaml
-
-
-def load_config(world_name: str) -> dict:
-    config_path = PROJECT_ROOT / "worlds" / world_name / "community.yaml"
-    if not config_path.exists():
-        print(f"❌ 找不到世界: {world_name}")
-        available = list((PROJECT_ROOT / "worlds").glob("*/community.yaml"))
-        if available:
-            print(f"   可用: {', '.join(p.parent.name for p in available)}")
-        sys.exit(1)
-    with open(config_path) as f:
-        raw = yaml.safe_load(f)
-    if raw.get("format_version") == "2.0":
-        raw = expand_world(raw)
-    return raw
+from engine.world_builder import load_world
 
 
 def main():
@@ -63,6 +47,12 @@ def main():
         default=40,
         help="每个窗口最多处理的 DES 事件数",
     )
+    parser.add_argument(
+        "--max-llm-per-wake",
+        type=int,
+        default=80,
+        help="每个窗口最多 LLM 调用次数（超预算则跳过深思/灵魂提取等）",
+    )
     parser.add_argument("--seed", type=int, default=None)
     parser.add_argument(
         "--wake-now",
@@ -74,7 +64,14 @@ def main():
     if args.seed is not None:
         random.seed(args.seed)
 
-    config = load_config(args.world)
+    try:
+        config = load_world(args.world, PROJECT_ROOT / "worlds")
+    except FileNotFoundError as e:
+        print(f"❌ {e}")
+        available = list((PROJECT_ROOT / "worlds").glob("*/community.yaml"))
+        if available:
+            print(f"   可用: {', '.join(p.parent.name for p in available)}")
+        sys.exit(1)
     world_name = (
         config.get("name")
         or (config.get("meta") or {}).get("name")
@@ -101,6 +98,7 @@ def main():
         wake_times=wake_times,
         virtual_hours_per_wake=args.virtual_hours_per_wake,
         max_events_per_wake=args.max_events_per_wake,
+        max_llm_calls_per_wake=args.max_llm_per_wake,
     )
 
     def _shutdown(signum, frame):

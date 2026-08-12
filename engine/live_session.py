@@ -57,6 +57,7 @@ class LiveSession:
         wake_times: list[tuple[int, int]] | None = None,
         virtual_hours_per_wake: float = 8.0,
         max_events_per_wake: int = 40,
+        max_llm_calls_per_wake: int = 80,
         sleep: Callable[[float], None] = time.sleep,
         now_fn: Callable[[], datetime] | None = None,
     ):
@@ -68,6 +69,7 @@ class LiveSession:
         self.wake_times = wake_times or parse_wake_times(None)
         self.virtual_hours_per_wake = float(virtual_hours_per_wake)
         self.max_events_per_wake = int(max_events_per_wake)
+        self.max_llm_calls_per_wake = int(max_llm_calls_per_wake)
         self._sleep = sleep
         self._now = now_fn or datetime.now
 
@@ -78,6 +80,7 @@ class LiveSession:
         self._idle = threading.Condition(self.lock)
         self._last_wake: Optional[datetime] = None
         self._wake_count = 0
+        self._wake_running = False
         self._log_lines: list[str] = []
 
         # Patch engine logger so watch can toggle without drowning the REPL
@@ -136,17 +139,36 @@ class LiveSession:
         return self.run_wake_window(verbose=self.watch)
 
     def run_wake_window(self, verbose: bool = False) -> dict:
+        """Advance one hang window without holding the REPL lock across LLM work."""
         with self.lock:
+            if self._wake_running:
+                return {
+                    "processed": 0,
+                    "clock": self.engine.clock,
+                    "day": self.engine.day,
+                    "queue": len(self.engine.queue),
+                    "llm_calls": 0,
+                    "skipped": "wake_in_progress",
+                }
+            self._wake_running = True
             until = self.engine.clock + self.virtual_hours_per_wake
+            max_events = self.max_events_per_wake
+            max_llm = self.max_llm_calls_per_wake
+        try:
+            # DES + LLM run unlocked so status / ask / talk can proceed
             stats = self.engine.run_slice(
                 until_time=until,
-                max_events=self.max_events_per_wake,
+                max_events=max_events,
+                max_llm_calls=max_llm,
                 verbose=verbose,
             )
-            self._last_wake = self._now()
-            self._wake_count += 1
-            self._idle.notify_all()
-            return stats
+        finally:
+            with self.lock:
+                self._wake_running = False
+                self._last_wake = self._now()
+                self._wake_count += 1
+                self._idle.notify_all()
+        return stats
 
     def next_wake_at(self) -> datetime:
         return next_wake_after(self._now(), self.wake_times)
@@ -225,6 +247,9 @@ class LiveSession:
                     actor = e.get("actor") or e.get("initiator") or ""
                     extra = e.get("topic") or e.get("target") or e.get("tool") or ""
                     parts.append(f"- t={e.get('time', 0):.1f} {et} {actor} {str(extra)[:50]}")
+            from engine.inbox import community_inbox_snapshot
+            parts.append("Inboxes (reply-first obligations):")
+            parts.append(community_inbox_snapshot(eng))
             try:
                 snap = eng.society.get_community_snapshot()
                 if snap:
@@ -307,15 +332,24 @@ class LiveSession:
                     return f"{target} 已有一层挂起工作，请先结束当前对话或等 TA 恢复。"
                 suspended = char.suspend_work()
 
-            reply = self._avatar_reply_locked(char, text, brief=char.state.status == "Drained")
+            brief = char.state.status == "Drained"
+            # Prepare under lock; LLM outside so wake/status aren't blocked
+            system, user_msg = self._prepare_avatar_prompt(char, text, brief=brief)
+            char_name = char.name
 
+        reply = self._avatar_llm_reply(system, user_msg)
+
+        with self.lock:
+            char = self.engine.characters.get(char_name)
+            if char is None:
+                return f"{char_name}: {reply}"
+            self._record_avatar_talk(char, text, reply)
             if suspended:
                 char.resume_work()
                 char.state.pending_thoughts.append(
                     f"[被 {self.avatar_name} 紧急打断后恢复] 刚才聊了: {text[:60]}"
                 )
-
-            return f"{target}: {reply}"
+            return f"{char_name}: {reply}"
 
     def _wait_available_locked(self, name: str, timeout: float) -> bool:
         deadline = time.time() + timeout
@@ -341,7 +375,7 @@ class LiveSession:
             st = char.state.status if char else "?"
             return f"等待超时：{target} 仍是 {st}。"
 
-    def _avatar_reply_locked(self, char, text: str, brief: bool = False) -> str:
+    def _prepare_avatar_prompt(self, char, text: str, brief: bool = False) -> tuple[str, str]:
         eng = self.engine
         eng._inject_context(char.name)
         system = char.build_system_prompt()
@@ -356,16 +390,21 @@ class LiveSession:
             f"{self.avatar_name}: {text}\n\n"
             f"请以 {char.name} 的身份回复。{style}"
         )
+        return system, user_msg
+
+    def _avatar_llm_reply(self, system: str, user_msg: str) -> str:
         try:
-            reply = eng.llm.chat(
+            reply = self.engine.llm.chat(
                 [{"role": "user", "content": user_msg}],
                 system=system,
                 temperature=0.7,
             )
         except Exception as e:
             reply = f"（没听清：{e}）"
-        reply = (reply or "").strip()
+        return (reply or "").strip()
 
+    def _record_avatar_talk(self, char, text: str, reply: str) -> None:
+        eng = self.engine
         mem = eng.memories.get(char.name)
         if mem:
             mem.remember(Episode(
@@ -391,7 +430,6 @@ class LiveSession:
             "text": text[:200],
             "reply": reply[:200],
         })
-        return reply
 
     # ── REPL ──────────────────────────────────────────────────
 
@@ -508,6 +546,7 @@ class LiveSession:
             stats = self.force_wake()
             return (
                 f"已跑完一个生活窗口: processed={stats['processed']} "
+                f"llm={stats.get('llm_calls', '?')} "
                 f"t={stats['clock']:.1f} Day{stats['day']}",
                 False,
             )

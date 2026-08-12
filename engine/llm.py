@@ -2,6 +2,7 @@
 
 import os
 import json
+import time
 import urllib.request
 import urllib.error
 from pathlib import Path
@@ -64,6 +65,9 @@ class LLM:
                 f"environment, or ~/.hermes/.env (see .env.example)"
             )
 
+        self.call_count = 0
+        self.error_count = 0
+
     def chat(
         self,
         messages: list[dict],
@@ -84,24 +88,38 @@ class LLM:
         }
 
         url = f"{self.base_url}/chat/completions"
-        req = urllib.request.Request(
-            url,
-            data=json.dumps(body).encode("utf-8"),
-            headers={
-                "Content-Type": "application/json",
-                "Authorization": f"Bearer {self.api_key}",
-            },
-        )
-
-        try:
-            with urllib.request.urlopen(req, timeout=120) as resp:
-                data = json.loads(resp.read())
-            return data["choices"][0]["message"]["content"]
-        except urllib.error.HTTPError as e:
-            error_body = e.read().decode() if e.fp else str(e)
-            raise RuntimeError(f"LLM API error {e.code}: {error_body[:500]}")
-        except Exception as e:
-            raise RuntimeError(f"LLM request failed: {e}")
+        last_err: Exception | None = None
+        for attempt in range(3):
+            req = urllib.request.Request(
+                url,
+                data=json.dumps(body).encode("utf-8"),
+                headers={
+                    "Content-Type": "application/json",
+                    "Authorization": f"Bearer {self.api_key}",
+                },
+            )
+            try:
+                with urllib.request.urlopen(req, timeout=120) as resp:
+                    data = json.loads(resp.read())
+                self.call_count += 1
+                return data["choices"][0]["message"]["content"]
+            except urllib.error.HTTPError as e:
+                error_body = e.read().decode() if e.fp else str(e)
+                last_err = RuntimeError(f"LLM API error {e.code}: {error_body[:500]}")
+                if e.code in (429, 500, 502, 503) and attempt < 2:
+                    time.sleep(1.5 * (attempt + 1))
+                    continue
+                self.error_count += 1
+                raise last_err
+            except Exception as e:
+                last_err = RuntimeError(f"LLM request failed: {e}")
+                if attempt < 2:
+                    time.sleep(1.0 * (attempt + 1))
+                    continue
+                self.error_count += 1
+                raise last_err
+        self.error_count += 1
+        raise last_err or RuntimeError("LLM request failed")
 
     def think(
         self,

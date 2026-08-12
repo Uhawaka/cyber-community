@@ -52,17 +52,22 @@ class LifecycleMixin:
         self,
         until_time: float | None = None,
         max_events: int = 40,
+        max_llm_calls: int | None = None,
         verbose: bool = False,
     ) -> dict:
         """Process a bounded DES slice (used by live hang windows).
 
         Dispatches events with time <= until_time (if set), up to max_events.
+        Soft-caps LLM calls via max_llm_calls (expensive paths skip when over).
         Does not call bootstrap; caller must bootstrap once for live mode.
         """
         if not getattr(self, "_bootstrapped", False):
             self.bootstrap()
             self._bootstrapped = True
             self.running = True
+
+        self._llm_calls_slice_start = getattr(self.llm, "call_count", 0)
+        self._max_llm_calls_slice = max_llm_calls
 
         processed = 0
         while self.running and self.queue and processed < max_events:
@@ -82,11 +87,14 @@ class LifecycleMixin:
             self._dispatch(event, verbose)
             processed += 1
 
+        used = self._llm_calls_used()
+        self._max_llm_calls_slice = None
         return {
             "processed": processed,
             "clock": self.clock,
             "day": self.day,
             "queue": len(self.queue),
+            "llm_calls": used,
         }
 
 
@@ -176,9 +184,9 @@ class LifecycleMixin:
             # Night wind-down (t+22)
             if random.random() < 0.5:
                 self.queue.push(Event(time=self.clock + 22.0, type="activate", actor=char.name))
-            # Poisson: 2-3 spontaneous events scattered through the day
-            for _ in range(random.randint(2, 3)):
-                self.queue.push(Event(time=self.clock + random.uniform(1, 23), 
+            # Spontaneous only (rhythm owns activate schedule — no post-activate Poisson)
+            for _ in range(random.randint(1, 2)):
+                self.queue.push(Event(time=self.clock + random.uniform(1, 23),
                                        type="spontaneous", actor=char.name))
             # Idle thoughts + observation (same as bootstrap)
             if not self.dry_run:
@@ -231,13 +239,24 @@ class LifecycleMixin:
                 parts.append(f"使用工具: {', '.join(tool_names)}")
             return "；".join(parts) if parts else "休息和思考"
         
+        fallback = "；".join(
+            p for p in [
+                f"研究了{len(study_steps)}次" if study_steps else "",
+                f"交流了{len(collisions)}次" if collisions else "",
+                f"用了{len(tool_uses)}次工具" if tool_uses else "",
+            ] if p
+        ) or "休息和思考"
+
+        if not self._llm_budget_ok():
+            return fallback
+
         context = "\n".join(context_parts)
         system = f"你是 {name} 的日记助手。用一句话（20字以内）总结 {name} 今天做了什么、想了什么。用第一人称。"
         prompt = f"今天的事件:\n{context}\n\n用一句话总结今天（第一人称，20字以内）:"
-        
+
         try:
             summary = self.llm.chat([{"role": "user", "content": prompt}], system=system, temperature=0.5)
             return summary.strip()[:60]
         except Exception:
-            return "深度研究了感兴趣的话题"
+            return fallback
 

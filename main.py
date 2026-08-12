@@ -13,7 +13,6 @@
 """
 
 import sys
-import yaml
 import argparse
 import random
 from pathlib import Path
@@ -27,24 +26,7 @@ sys.path.insert(0, str(PROJECT_ROOT))
 
 from engine.llm import LLM
 from engine.engine import SimulationEngine
-from engine.world_builder import expand_world
-
-
-def load_config(world_name: str, auto_expand: bool = True) -> dict:
-    config_path = PROJECT_ROOT / "worlds" / world_name / "community.yaml"
-    if not config_path.exists():
-        print(f"❌ 找不到世界: {world_name} ({config_path})")
-        available = list((PROJECT_ROOT / "worlds").glob("*/community.yaml"))
-        if available:
-            print(f"   可用世界: {', '.join(p.parent.name for p in available)}")
-        sys.exit(1)
-    with open(config_path) as f:
-        raw = yaml.safe_load(f)
-
-    if auto_expand and raw.get("format_version") == "2.0":
-        raw = expand_world(raw)
-
-    return raw
+from engine.world_builder import load_world
 
 
 def main():
@@ -76,7 +58,14 @@ def main():
     if args.seed is not None:
         random.seed(args.seed)
 
-    config = load_config(args.world)
+    try:
+        config = load_world(args.world, PROJECT_ROOT / "worlds")
+    except FileNotFoundError as e:
+        print(f"❌ {e}")
+        available = list((PROJECT_ROOT / "worlds").glob("*/community.yaml"))
+        if available:
+            print(f"   可用世界: {', '.join(p.parent.name for p in available)}")
+        sys.exit(1)
     world_name = (
         config.get("name")
         or (config.get("meta") or {}).get("name")

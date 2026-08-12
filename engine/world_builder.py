@@ -11,7 +11,10 @@ Architecture:
 """
 
 import random
+from pathlib import Path
 from typing import Optional
+
+import yaml
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -496,3 +499,19 @@ def _derive_sociology(characters: list) -> dict:
     }
 
     return sociology
+
+
+def load_world(world_name: str, worlds_root: str | Path | None = None) -> dict:
+    """Load worlds/<name>/community.yaml and expand WDL 2.0 if needed.
+
+    Shared by main.py and live.py so batch/live stay in sync.
+    """
+    root = Path(worlds_root) if worlds_root else Path(__file__).resolve().parent.parent / "worlds"
+    config_path = root / world_name / "community.yaml"
+    if not config_path.exists():
+        raise FileNotFoundError(f"找不到世界: {world_name} ({config_path})")
+    with open(config_path, encoding="utf-8") as f:
+        raw = yaml.safe_load(f) or {}
+    if raw.get("format_version") == "2.0":
+        raw = expand_world(raw)
+    return raw

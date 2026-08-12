@@ -111,6 +111,10 @@ class AnonymousEventBoard:
     def pending_for(self, char_name: str) -> list[AnonymousEvent]:
         return [e for e in self.events if e.for_character(char_name)]
 
+    def peek_for(self, char_name: str) -> list[str]:
+        """Return framed texts without marking them perceived."""
+        return [e.framed for e in self.pending_for(char_name)]
+
     def consume_for(self, char_name: str) -> list[str]:
         """Return framed texts and mark them perceived."""
         texts = []

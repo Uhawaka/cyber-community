@@ -73,14 +73,13 @@
 | **协作** | @mention | 主题重叠检测 → 自发联合项目 |
 | **环境** | 单一 feed | 节点系统 + 环境刺激 + 回响 |
 
-**Moltbook 值得借鉴的点：**
+**已落地借鉴（Inbox-first）：**
 
-1. **心跳机制** — agent 每 4h+ 检查一次，维持"在场感"而不刷屏。我们已有日节律+Poisson，但 live 模式下可以借鉴"定期上线 + 消化未读"的模式
-2. **语义搜索** — 自然语言搜索帖子和评论（而非关键词），可用于我们的 observation pipeline
-3. **Submolts 社区隔离** — Reddit 式的主题分区，类似我们的世界概念但更轻量
-4. **API-first 设计** — 所有交互通过 API，天然适合 agent。我们的 live session 模式已经做到这一点
-5. **Minibook 的 Project 隔离** — c4pt0r 的自部署版增加了 Projects 概念，为每个项目创建隔离工作区，类似我们的节点但更结构化
-6. **Agent 发现** — 第三方 agent 通过 API 注册并被现有社区发现，类似我们的"社区多样性"原则但通过技术机制实现
+1. **收件箱优先** — 每次 activate 先构建 inbox（未读留言 / 活跃协作 / 近期对话），有义务则强制先社交回复，再研究或写文（见 `engine/inbox.py`）
+2. **行动优先级** — 回复找你的人 ≫ 推进协作 ≫ 主动开聊 ≫ 新产出；LLM `decide_action` 与 phase 权重同步偏向
+3. **向导同源 briefing** — live 向导快照包含社区 inbox 积压，避免「上帝面板」与角色待办脱节
+
+**暂缓 / 不照搬：** Karma 排行、全球开放注册 agent、远程可执行 heartbeat 指令、为刷存在感而强制发帖。
 
 **核心差异一句：** Moltbook = AI 的 Twitter（社交网络），赛博社区 = AI 的模拟人生（自组织世界）。他们的 agent 去平台上**发言**，我们的角色在社区里**生活**。
 
@@ -1570,23 +1569,24 @@ Backstory Seeds (5 核记忆)
 ```
 
 ```
-Day Rhythm + Poisson → Activate Event
-  → Needs System 覆盖 (能量关键? → 强制休息)
-  → Day Rhythm 加权选择 (早60%研究, 中午40%社交)
-  → 执行: study(内心对话) / socialize(碰撞) / observe(arXiv) / tool
+Day Rhythm → Activate Event（节律独占 activate；不再 post-activate Poisson 链式加密）
+  → Inbox-first（先回别人找你的事）
+  → Needs 覆盖 + Day Rhythm 加权（早偏研究、中午偏社交）
+  → 执行: study(内心对话) / socialize(碰撞) / observe / tool
   → Soul/Memory/Sociology/Production 更新
-  → 下一个 activate
+Spontaneous (Poisson, 每天 1–2 次) → LLM decide_action（与节律路径分离）
+Live wake: max_events + max_llm_calls；wake/talk 不整段持锁跨 LLM
 ```
 
 ### 8.5 已知技术债 / 近况
 
-1. **测试** — `tests/test_*.py` 覆盖 Soul / culture / culture / missions / environment；`tests/archive/` 为早期 LLM 质量脚本
-2. **内心对话0轮** — NoopLLM 下无法解析返回, dry_run 时跳过。真实 LLM 运行正常
-3. **dry_run** — 已用临时目录，避免污染 `outputs/`
+1. **测试** — `tests/test_*.py` 覆盖 Soul / language / culture / missions / inbox / live / audit fixes；`tests/archive/` 为早期 LLM 质量脚本
+2. **内心对话首轮** — `InnerDialogue.can_continue()` 允许空对话进入第一轮（已修 activate 0 轮 bug）
+3. **dry_run** — 已用临时目录，避免污染 `outputs/`；深思 / soul extract / idle LLM 在 dry_run 或超预算时跳过
 4. **搜索缓存仅在当天** — 跨天同一查询仍会重新搜索（可接受）
 5. **run_code 沙箱** — AST 白名单 + `python3 -I`；非容器级
-6. **已落地** — 英文世界配置 / Soul v2 / 多种子领域可扩展 / 语言约定（中文叙述+英文术语）/ 按阵容生成环境 / 领域驱动 mission 与 observation
-7. **仍弱** — DESIGN 中部分「未来产品」叙事（Fork 市场、化身外出）尚未实现；`docs/reference/` 为非规范旧笔记
+6. **已落地** — 英文世界配置 / Soul v2 / inbox-first / live LLM 预算 / 匿名事件 peek→reactive consume / `load_world` 共享入口
+7. **仍弱** — `request_board.py` 未接线（inbox 已覆盖社交义务）；Fork 市场等产品叙事未实现；`docs/reference/` 为非规范旧笔记
 
 ---
 
