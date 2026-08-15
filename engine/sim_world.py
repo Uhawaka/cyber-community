@@ -76,14 +76,18 @@ class WorldMixin:
             or (char.research or {}).get("project")
             or ""
         )
+        frame = getattr(self, "world_frame", {}) or {}
         queries = get_observation_queries(
             char.research,
             char.config.get("domain", ""),
             domains=domains,
             focus=focus,
+            world_or_frame=frame,
+            config=getattr(self, "config", None),
         )
         if not queries:
-            queries = [("arxiv", "mathematics recent")]
+            fb = (frame.get("literature") or {}).get("fallback_query") or "research open problems"
+            queries = [("arxiv", fb)]
 
         day_key = str(self.day)
         done_today = self._search_history.setdefault(day_key, set())
@@ -169,7 +173,13 @@ class WorldMixin:
 
         # Step 1: LLM generates tool parameters
         try:
-            params = run_tool_use(char, tool_name, topic, self.llm)
+            params = run_tool_use(
+                char,
+                tool_name,
+                topic,
+                self.llm,
+                world_frame=getattr(self, "world_frame", None),
+            )
         except Exception as e:
             self._log(f"    ⚠ 工具参数生成失败: {e}")
             return

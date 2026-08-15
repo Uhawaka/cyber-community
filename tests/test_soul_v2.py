@@ -85,9 +85,24 @@ def test_seed_fills_identity_from_math_commune():
         assert "prime" not in belief, "core_belief must not collapse to a narrow topic"
         # Craft is analytic number theory; seasonal focus is shared spectral program
         craft = (ident.get("craft") or "").lower()
-        assert "analytic" in craft or "number theory" in craft or "l-function" in craft
+        assert (
+            "analytic" in craft
+            or "number theory" in craft
+            or "l-function" in craft
+            or "chair" in craft
+            or "analyst" in craft
+            or "estimate" in craft
+        )
         focus = (soul.data["orientation"].get("current_focus") or "").lower()
-        assert "spectral" in focus or "l-function" in focus or "estimate" in focus
+        assert (
+            "seed" in focus
+            or "shelf" in focus
+            or "clay" in focus
+            or "tool" in focus
+            or "attack" in focus
+            or "url" in focus
+            or "claim" in focus
+        )
         assert "knowledge_evolved" not in soul.data
 
 
@@ -181,8 +196,8 @@ def test_open_domain_grows_living_list():
         soul = SoulFile(str(Path(tmp) / "Elias.yaml"))
         soul.init_from_config("Elias", _elias_cfg(), world_name="Math Commune")
         seeds = list(soul.data["identity"]["seed_domains"])
-        assert len(seeds) >= 2
         assert soul.data["identity"]["domains"] == seeds
+        # Math Commune may start with an empty toolbox; open_domain still grows it.
         assert soul.open_domain("tropical_geometry", day=3, reason="dictionary to spectra")
         assert "tropical_geometry" in soul.data["identity"]["domains"]
         assert soul.data["identity"]["seed_domains"] == seeds  # seeds stable
@@ -237,10 +252,22 @@ def test_reflection_strips_numbering_and_boilerplate():
         assert soul.add_reflection(stmt, about="work", day=1) is False
 
 
-def test_math_commune_characters_have_multi_domain_seeds():
+def test_math_commune_starts_without_specialty_silos():
+    """Seed shelf drives work; characters do not pre-claim specialty domains."""
     cfg = _load_world("math-commune")
+    frame = cfg.get("world") or {}
+    lib = frame.get("seed_library") or []
+    assert len(lib) >= 8
+    blob = " ".join(str(x) for x in lib).lower()
+    assert "claymath.org" in blob
+    assert "annals" in blob
+    assert "inventiones" in blob or "springer.com/journal/222" in blob
+    assert "arxiv.org" in blob
+    assert frame.get("open_problems") in ([], None) or frame.get("open_problems") == []
     for c in cfg["characters"]:
-        assert len(c.get("domains") or []) >= 2, c["name"]
+        assert (c.get("domains") or []) == [], c["name"]
+        # No pre-set specialty domain field — expertise is earned later
+        assert not (c.get("domain") or "").strip() or c.get("domain") == "mathematics"
 
 
 if __name__ == "__main__":

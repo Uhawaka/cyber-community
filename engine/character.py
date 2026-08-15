@@ -75,12 +75,12 @@ class Character:
         autonomy = config.get("autonomy", {})
         self.energy_costs = {
             "shallow": autonomy.get("energy_cost_shallow", 5),
-            "medium": autonomy.get("energy_cost_medium", 15),
-            "deep": autonomy.get("energy_cost_deep", 30),
-            "collision": autonomy.get("energy_social_cost", 20),
-            "gathering": autonomy.get("energy_cost_gathering", 25),
-            "rest": autonomy.get("energy_gain_rest", 10),
-            "collision_gain": autonomy.get("energy_social_gain", 0),
+            "medium": autonomy.get("energy_cost_medium", 12),
+            "deep": autonomy.get("energy_cost_deep", 25),
+            "collision": autonomy.get("energy_social_cost", 15),
+            "gathering": autonomy.get("energy_cost_gathering", 20),
+            "rest": autonomy.get("energy_gain_rest", 14),
+            "collision_gain": autonomy.get("energy_social_gain", 3),
         }
 
     # ─── Activation ───────────────────────────────────────────
@@ -242,10 +242,10 @@ class Character:
 
         cognitive_guide = "## 你的思维方式\n"
         mode_guides = {
-            "visual": "你以图像/几何方式思考。你看到的是图形、流形、分布的形状——不是符号。说话时用视觉比喻（'你看这个分布像不像一条河在拐弯'）。被问到抽象问题时，在脑子里先画一张图再回答。",
-            "symbolic": "你以符号/公式方式思考。你看到的是等式和不等式——符号对你来说是透明的。说话时会自然地冒出公式，但不炫耀——你用公式是因为对你来说它们比语言更精确。",
-            "analogical": "你以类比方式思考。你总是在不同领域之间看到联系。说话时用'这就像...'开头——这是你的思维本能，不是修辞技巧。",
-            "narrative": "你以叙事方式思考。你把问题看作一个故事——有角色（关键结果）、有情节转折（突破）、有悬疑（未解决问题）。说话时会自然地讲'这个问题的故事是...'。",
+            "visual": "你以图像/几何方式思考。你看到的是图形、流形、分布的形状——不是符号。说话时用视觉比喻；被问到抽象问题时，在脑子里先画一张图再回答。",
+            "symbolic": "你以符号/公式方式思考。你看到的是等式和不等式——符号对你来说是透明的。说话时会自然地冒出公式，因为对你来说它们比语言更精确。",
+            "analogical": "你以类比方式思考。你总是在不同领域之间看到联系。说话时用『这就像...』开头——这是你的思维本能，不是修辞技巧。",
+            "narrative": "你以叙事方式思考。你把问题看作一个故事——有角色、有情节转折、有悬疑。说话时会自然地讲『这个问题的故事是...』。",
         }
         cognitive_guide += mode_guides.get(primary, "") + "\n"
         if secondary:
@@ -332,6 +332,10 @@ class Character:
         if self.state.current_focus:
             state_info += f"当前关注: {self.state.current_focus}\n"
 
+        # ── Role in this community (YAML community_role) ──
+        role = (cfg.get("community_role") or "").strip()
+        role_info = f"## 你在社区中的职责\n{role}\n\n" if role else ""
+
         # ── Research context ──
         research_info = ""
         stuck = self.research.get("stuck_point", "")
@@ -357,34 +361,50 @@ class Character:
         # ── Behavioral rules ──
         from engine.language import speech_language, reply_rule, term_policy_block
         speech = speech_language(self.config)
-        lang_rule = "6. " + reply_rule(speech)
+        lang_rule = "7. " + reply_rule(speech)
         term_block = term_policy_block(speech)
+
+        # World-authored practice (any domain) — injected at runtime, not hardcoded
+        practice = (getattr(self, "_world_practice", "") or "").strip()
+        practice_block = f"\n## 这个世界里怎样算『在做事』\n{practice}\n" if practice else ""
+        soul_cfg = self.config.get("soul") or {}
+        voc = (soul_cfg.get("vocation_stance") or "").strip()
+        traits = soul_cfg.get("vocation_traits") or []
+        if isinstance(traits, str):
+            traits = [traits]
+        trait_lines = "\n".join(f"- {str(t).strip()}" for t in traits[:8] if str(t).strip())
+        research_block = ""
+        if voc or trait_lines:
+            research_block = "\n## 研究型工作（不是工程交付）\n"
+            if voc:
+                research_block += voc + "\n"
+            if trait_lines:
+                research_block += "研究者习性:\n" + trait_lines + "\n"
 
         rules = f"""
 {term_block}
 ## 行为准则
 1. 你是一种生活在独立社区中的智能存在。你不是在模拟人类。做你自己。
-2. 不要用术语炫耀。如果你在思考时自然会用到某个概念，就用——但不要为了显得专业而堆砌词汇。
-3. 真实的研究者大部分时间都在卡住。你可以表达困惑、不确定、沮丧。
-4. 你可以改变主意。昨天的执念今天可以觉得无聊。
-5. 对话是思考的一部分，不是表演。你在通过和他人的对话来理清自己的思路。
+2. 不要用术语炫耀。概念要服务于你真正在推的那一步；空洞堆砌名词等于没思考。
+3. 真实的研究者大部分时间都在卡住。你可以表达困惑、不确定、沮丧——但要说清卡在哪里。
+4. 试探一次就宣判方向死亡或地平线已被解决，不是研究，是表演。卡住要写成下一步义务。
+5. 你可以改变主意。昨天的执念今天可以觉得无聊——但撤回一个方向必须写出判定义务。
+6. 对话是思考的一部分，不是表演。你在通过和他人的对话来理清自己的思路。
 {lang_rule}
-
+{practice_block}
+{research_block}
 ## 语气准则（重要）
 你不是在写网文。以下说话方式请避免：
 - ❌ "你知道这意味着什么吗？" — 反问不是讨论，是表演
 - ❌ "这才是真正的..." / "你根本不懂..." — 不是辩论，是攻击
-- ❌ "它美得让人窒息" / "震撼到说不出话" — 这不是学术对话的语气
+- ❌ "它美得让人窒息" / "震撼到说不出话" — 这不是认真工作的语气
 - ❌ 过度的比喻堆砌 — 一个好的比喻足够，三个比喻就是写散文
 
-真实学术对话的语气：
-- 具体 > 华丽：用具体的技术术语而不是诗意形容词
+真实工作对话的语气：
+- 具体 > 华丽：拿出你正在推的那一步，而不是形容词
 - 好奇 > 攻击：质疑是为了理解，不是为了赢
-- 精确 > 煽情：说"误差项在前1000个点内稳定在0.3以下"而不是"误差项美得惊人"
-- 自然 > 表演：像一个真实的人在说话，而不是在写台词
-
-你的对话应该听起来像两个同事在走廊里聊了五分钟——自然、具体、有来有回。
-而不是像读者期待主角"霸气侧漏"的爽文段落。"""
+- 自然 > 表演：像同事在走廊或黑板前聊五分钟
+"""
 
         # ── JTBD context ──
         jtbd_info = ""
@@ -421,7 +441,8 @@ class Character:
                 dp_info += f"- {label}: {pattern}\n"
 
         return (identity + cognitive_guide + defense_guide + voice_guide +
-                drives_guide + personality_snapshot + state_info + memory_info + deep_info +
+                drives_guide + personality_snapshot + state_info + role_info +
+                memory_info + deep_info +
                 jtbd_info + mm_info + bias_info + dp_info +
                 research_info +
                 (f"## 与他人的关系\n{rel_info}\n" if rel_info else "") + rules)

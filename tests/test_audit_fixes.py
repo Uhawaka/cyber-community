@@ -56,9 +56,25 @@ def test_inner_dialogue_can_continue_first_turn():
 def test_deep_think_not_eager_on_empty_counters():
     eng = DeepThinkEngine(CountingLLM())
     assert eng.should_trigger("Elias", 0, 0, 0, 100.0) is False
-    assert eng.should_trigger("Elias", 5, 0, 0, 3.0) is False
-    assert eng.should_trigger("Elias", 5, 0, 0, 4.0) is True
-    assert eng.should_trigger("Elias", 1, 1, 1, 12.0) is True
+    assert eng.should_trigger("Elias", 3, 0, 0, 2.0) is False
+    assert eng.should_trigger("Elias", 3, 0, 0, 3.0) is True
+    assert eng.should_trigger("Elias", 1, 1, 0, 8.0) is True
+
+
+def test_dense_day_schedule():
+    eng = _engine()
+    eng.bootstrap()
+    name = next(iter(eng.characters))
+    activates = sum(
+        1 for _, _, ev in eng.queue._heap
+        if ev.type == "activate" and ev.actor == name
+    )
+    spontaneous = sum(
+        1 for _, _, ev in eng.queue._heap
+        if ev.type == "spontaneous" and ev.actor == name
+    )
+    assert activates == len(eng.RHYTHM_OFFSETS)  # 9
+    assert 3 <= spontaneous <= 4
 
 
 def test_anon_peek_does_not_consume():

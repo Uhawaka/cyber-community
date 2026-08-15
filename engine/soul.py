@@ -20,7 +20,7 @@ SOUL_VERSION = "2.0"
 # Log / tool lines — format filters only (not research topics)
 _JUNK_MOMENT = re.compile(
     r"(使用\w+获得发现|代码运行|论文已保存|stdout|找到\s*\d+\s*篇|dry_run|ToolResult|"
-    r"run_code|write_paper|search_arxiv|search_web)",
+    r"run_code|write_paper|search_arxiv|read_arxiv|search_web)",
     re.I,
 )
 
@@ -56,6 +56,9 @@ def empty_soul(name: str = "") -> dict:
             # Intellectual territories: seeds from YAML; grows as life opens new fields
             "seed_domains": [],
             "domains": [],
+            "vocation": "",           # e.g. research — injected from world
+            "vocation_stance": "",    # how this vocation works (not a problem)
+            "vocation_traits": [],    # shared researcher habits (not a biography)
         },
         "bonds": {},
         "orientation": {
@@ -170,8 +173,14 @@ def _clean_reflection(statement: str) -> str:
 
 
 def normalize_domains(config: dict) -> list[str]:
-    """Collect seed domains from domains[] / domain / soul.domains."""
+    """Collect seed domains from domains[] / domain / soul.domains.
+
+    If `domains` is present (even as []), it is authoritative — do not also
+    force `domain:` into the seed list. That lets worlds start with an empty
+    living toolbox and open tools at runtime.
+    """
     raw: list = []
+    has_domains_key = "domains" in config
     if isinstance(config.get("domains"), list):
         raw.extend(config["domains"])
     elif isinstance(config.get("domains"), str) and config["domains"].strip():
@@ -179,17 +188,16 @@ def normalize_domains(config: dict) -> list[str]:
     soul_dom = (config.get("soul") or {}).get("domains") or (config.get("soul") or {}).get("seed_domains")
     if isinstance(soul_dom, list):
         raw.extend(soul_dom)
-    d = config.get("domain")
-    if isinstance(d, list):
-        raw.extend(d)
-    elif isinstance(d, str) and d.strip():
-        raw.append(d.strip())
+    if not has_domains_key:
+        d = config.get("domain")
+        if isinstance(d, list):
+            raw.extend(d)
+        elif isinstance(d, str) and d.strip():
+            raw.append(d.strip())
     out: list[str] = []
     seen = set()
     for item in raw:
         s = _normalize_domain(str(item)) or str(item).strip()
-        # Seeds from YAML may already be clean snake_case; keep if normalize fails
-        # only when original looks like a short domain token
         if not s:
             continue
         key = s.lower()
@@ -296,6 +304,13 @@ class SoulFile:
         fill("how_i_think", soul_cfg.get("how_i_think") or "")
         fill("how_i_protect", soul_cfg.get("how_i_protect") or "")
         fill("what_drives_me", soul_cfg.get("what_drives_me") or "")
+        fill("vocation", soul_cfg.get("vocation") or config.get("vocation") or "")
+        fill("vocation_stance", soul_cfg.get("vocation_stance") or "")
+        if soul_cfg.get("vocation_traits") and not ident.get("vocation_traits"):
+            traits = soul_cfg.get("vocation_traits") or []
+            if isinstance(traits, str):
+                traits = [traits]
+            ident["vocation_traits"] = [str(t).strip()[:160] for t in traits if str(t).strip()][:10]
         if soul_cfg.get("voice") and not ident.get("voice"):
             ident["voice"] = [str(v)[:100] for v in soul_cfg["voice"][:4]]
 
@@ -593,7 +608,7 @@ class SoulFile:
         parts = [f"You are {name}."]
 
         if ident.get("craft"):
-            parts.append(f"Craft: {ident['craft'][:120]}")
+            parts.append(f"Craft: {ident['craft'][:220]}")
         seed_doms = ident.get("seed_domains") or []
         live_doms = ident.get("domains") or []
         if live_doms:
@@ -601,13 +616,23 @@ class SoulFile:
         if seed_doms and seed_doms != live_doms:
             parts.append(f"Seed domains: {', '.join(str(d) for d in seed_doms[:6])}")
         if ident.get("who_i_am"):
-            parts.append(f"Who you are: {ident['who_i_am'][:160]}")
+            parts.append(f"Who you are: {ident['who_i_am'][:200]}")
         if ident.get("core_belief"):
-            parts.append(f"Core belief: {ident['core_belief'][:100]}")
+            parts.append(f"Core belief: {ident['core_belief'][:160]}")
         if ident.get("how_i_think"):
-            parts.append(f"How you think: {ident['how_i_think'][:80]}")
+            parts.append(f"How you think: {ident['how_i_think'][:160]}")
         if ident.get("what_drives_me"):
-            parts.append(f"What drives you: {ident['what_drives_me'][:80]}")
+            parts.append(f"What drives you: {ident['what_drives_me'][:120]}")
+        if ident.get("vocation"):
+            parts.append(f"Vocation: {ident['vocation']}")
+        if ident.get("vocation_stance"):
+            parts.append(f"Vocation stance: {ident['vocation_stance'][:240]}")
+        traits = ident.get("vocation_traits") or []
+        if traits:
+            parts.append("Researcher habits: " + " | ".join(str(t)[:70] for t in traits[:5]))
+        voice = ident.get("voice") or []
+        if voice:
+            parts.append("Voice habits: " + " | ".join(str(v)[:80] for v in voice[:3]))
 
         for target, rel in list((self.data.get("bonds") or {}).items())[:3]:
             stance = (rel or {}).get("stance", "")

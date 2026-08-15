@@ -6,8 +6,8 @@ from engine.memory import Episode
 from engine.interactions import extract_soul_updates
 from engine.needs import satisfy_needs
 
-# Soft cap for injected prompt context (~800 tokens story in DESIGN)
-_MAX_INJECT_CHARS = 2200
+# Soft cap for injected prompt context (world + culture + memory)
+_MAX_INJECT_CHARS = 3600
 
 # Actions that can meaningfully react to anonymous stimuli
 _REACTIVE_ACTIONS = frozenset({
@@ -105,10 +105,15 @@ class CognitionMixin:
         if mission_ctx:
             blocks.append(mission_ctx[:350])
 
-        from engine.culture import format_world_context
-        world_ctx = format_world_context(getattr(self, "world_frame", {}) or {})
+        from engine.culture import format_world_context, format_practice_context
+        from engine.research import research_prompt_block
+        frame = getattr(self, "world_frame", {}) or {}
+        char._world_practice = format_practice_context(frame)
+        char._skills_text = frame.get("skills_text") or {}
+        char._research_protocol = research_prompt_block(frame)
+        world_ctx = format_world_context(frame, max_chars=2800)
         if world_ctx:
-            blocks.append("## 你所在的世界\n" + world_ctx[:300])
+            blocks.append("## 你所在的世界\n" + world_ctx)
 
         culture_ctx = self.society.get_culture_context()
         if culture_ctx:

@@ -44,13 +44,13 @@ def main():
     parser.add_argument(
         "--max-events-per-wake",
         type=int,
-        default=40,
+        default=70,
         help="每个窗口最多处理的 DES 事件数",
     )
     parser.add_argument(
         "--max-llm-per-wake",
         type=int,
-        default=80,
+        default=160,
         help="每个窗口最多 LLM 调用次数（超预算则跳过深思/灵魂提取等）",
     )
     parser.add_argument("--seed", type=int, default=None)

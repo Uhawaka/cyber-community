@@ -56,8 +56,8 @@ class LiveSession:
         avatar_bio: str = "",
         wake_times: list[tuple[int, int]] | None = None,
         virtual_hours_per_wake: float = 8.0,
-        max_events_per_wake: int = 40,
-        max_llm_calls_per_wake: int = 80,
+        max_events_per_wake: int = 70,
+        max_llm_calls_per_wake: int = 160,
         sleep: Callable[[float], None] = time.sleep,
         now_fn: Callable[[], datetime] | None = None,
     ):

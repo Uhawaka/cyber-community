@@ -307,6 +307,19 @@ class Environment:
         echoes = node.get_echoes(2)
         if echoes:
             parts.append(f"这里的回响:\n{echoes}")
+        if node.contents:
+            lines = []
+            for item in node.contents[-6:]:
+                if isinstance(item, dict):
+                    body = (item.get("content") or "").strip()
+                    kind = item.get("type") or "note"
+                else:
+                    body = str(item).strip()
+                    kind = "note"
+                if body:
+                    lines.append(f"- [{kind}] {body[:160]}")
+            if lines:
+                parts.append("这里能翻到的材料:\n" + "\n".join(lines))
         occupants = [o for o in node.occupants if o != char_name]
         if occupants:
             parts.append(f"这里还有: {', '.join(occupants)}")

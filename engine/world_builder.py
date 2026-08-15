@@ -244,16 +244,22 @@ def expand_character(char_config: dict, world_domain: str) -> dict:
     """
     result = dict(char_config)  # Start with user's input
 
-    # Normalize multi-domain seeds (digital lives may span fields)
-    doms = result.get("domains")
-    if isinstance(doms, str):
-        doms = [doms]
-    if not doms:
-        d = result.get("domain")
-        if isinstance(d, list):
-            doms = list(d)
-        elif d:
-            doms = [d]
+    # Normalize multi-domain seeds (digital lives may span fields).
+    # Explicit domains: [] means empty toolbox — do not fill from domain:.
+    if "domains" in result and isinstance(result.get("domains"), list):
+        doms = list(result["domains"])
+    else:
+        doms = result.get("domains")
+        if isinstance(doms, str):
+            doms = [doms]
+        if not doms:
+            d = result.get("domain")
+            if isinstance(d, list):
+                doms = list(d)
+            elif d:
+                doms = [d]
+            else:
+                doms = []
     if isinstance(doms, list):
         cleaned, seen = [], set()
         for x in doms:
@@ -406,12 +412,13 @@ def _ensure_orientation_block(char: dict) -> dict:
     return orient
 
 
-def expand_world(raw_config: dict) -> dict:
+def expand_world(raw_config: dict, *, world_dir: Path | None = None) -> dict:
     """Expand a raw world config into a full simulation-ready config.
 
     Handles:
     - Flatten meta.name / description onto top-level for engine compatibility
     - Character expansion (minimal → full psychology + soul/orientation)
+    - Research vocation → inject research soul + load research skill
     - Sociology auto-derivation
     - Tool defaults
     - Inject speech_language onto characters
@@ -424,9 +431,19 @@ def expand_world(raw_config: dict) -> dict:
     if not result.get("description") and meta.get("description"):
         result["description"] = meta["description"]
 
-    world = raw_config.get("world", {})
+    world = dict(raw_config.get("world", {}) or {})
     world_domain = world.get("domain", raw_config.get("domain", {}).get("primary", "custom"))
     speech = world.get("speech_language") or "zh"
+
+    from engine.skills import inject_research_soul, load_world_skills
+
+    skills_text = load_world_skills(world, world_dir)
+    if skills_text:
+        world["skills_text"] = skills_text
+        result["world"] = world
+
+    vocation = str(world.get("vocation") or "").strip().lower()
+    voc_soul = world.get("vocation_soul") if isinstance(world.get("vocation_soul"), dict) else {}
 
     # ── Expand characters ──
     expanded_chars = []
@@ -437,6 +454,8 @@ def expand_world(raw_config: dict) -> dict:
         expanded = expand_character(char_cfg, world_domain)
         if not expanded.get("speech_language"):
             expanded["speech_language"] = speech
+        if vocation == "research":
+            expanded["soul"] = inject_research_soul(expanded.get("soul") or {}, voc_soul)
         expanded_chars.append(expanded)
     result["characters"] = expanded_chars
 
@@ -513,5 +532,5 @@ def load_world(world_name: str, worlds_root: str | Path | None = None) -> dict:
     with open(config_path, encoding="utf-8") as f:
         raw = yaml.safe_load(f) or {}
     if raw.get("format_version") == "2.0":
-        raw = expand_world(raw)
+        raw = expand_world(raw, world_dir=config_path.parent)
     return raw

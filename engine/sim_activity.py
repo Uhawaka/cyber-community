@@ -262,6 +262,21 @@ class ActivityMixin:
 
         char.set_available()
 
+        # Sometimes stay on the blackboard — continue cascade for depth
+        if (
+            dialogue.turns
+            and char.state.energy > 35
+            and self._llm_budget_ok()
+            and random.random() < 0.4
+        ):
+            self.queue.push(Event(
+                time=self.clock + 0.35,
+                type="continue",
+                actor=char.name,
+                data={"decision": {"type": "study", "topic": topic}, "step": 1},
+            ))
+            char.set_busy()
+
 
     def _handle_continue(self, event: Event, verbose: bool):
         char = self.characters.get(event.actor)
@@ -314,7 +329,7 @@ class ActivityMixin:
             char.spend("medium")
             char.set_busy()
             topic = decision.get("topic", char.state.current_focus or "")
-            dialogue = self._run_inner_dialogue(char, topic, max_turns=4, verbose=verbose)
+            dialogue = self._run_inner_dialogue(char, topic, max_turns=8, verbose=verbose)
             full_thought = "\n".join(f"[{t.role}] {t.content}" for t in dialogue.turns)
             self.event_log.append({"time": self.clock, "type": "study_step", "actor": char.name,
                 "step": len(dialogue.turns), "topic": topic, "thought": full_thought})
@@ -453,6 +468,7 @@ class ActivityMixin:
             weights["tool_run_code"] = 0.03
             weights["tool_write_paper"] = 0.03
             weights["tool_search_arxiv"] = 0.04
+            weights["tool_read_arxiv"] = 0.05
             weights["tool_search_web"] = 0.04
 
         e = char.state.energy
@@ -481,6 +497,7 @@ class ActivityMixin:
             "tool_run_code": "run_code",
             "tool_write_paper": "write_paper", 
             "tool_search_arxiv": "search_arxiv",
+            "tool_read_arxiv": "read_arxiv",
             "tool_search_web": "search_web",
         }
         if choice in tool_map:

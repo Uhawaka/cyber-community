@@ -11,27 +11,60 @@ from engine.character import Character
 class LifecycleMixin:
     """DES main loop and day-boundary housekeeping."""
 
-    def bootstrap(self):
-        """Schedule day rhythm + Poisson for spontaneous activities."""
+    # Dense day beats (virtual hours). Rhythm owns activate; spontaneous is separate.
+    RHYTHM_OFFSETS = (2.0, 4.0, 7.0, 10.0, 12.0, 14.0, 16.0, 18.0, 21.0)
+
+    def _schedule_day_activities(self, day_start: float):
+        """Push one virtual day's activates + spontaneous for every character."""
         for char in self.characters.values():
-            # Rhythm: structured day
-            self.queue.push(Event(time=2.0, type="activate", actor=char.name))
-            self.queue.push(Event(time=7.0, type="activate", actor=char.name))
-            self.queue.push(Event(time=10.0, type="activate", actor=char.name))
-            self.queue.push(Event(time=14.0, type="activate", actor=char.name))
-            self.queue.push(Event(time=18.0, type="activate", actor=char.name))
-            # Poisson: spontaneous between rhythm beats
-            self.queue.push(Event(time=random.uniform(0, 24.0), type="spontaneous", actor=char.name))
-            self.queue.push(Event(time=random.uniform(0, 24.0), type="spontaneous", actor=char.name))
-            # Idle thoughts always; observe only if the human-world window is open
+            for offset in self.RHYTHM_OFFSETS:
+                self.queue.push(Event(
+                    time=day_start + offset, type="activate", actor=char.name,
+                ))
+            # Spontaneous sparks between beats (density lever; not post-activate chain)
+            for _ in range(random.randint(3, 4)):
+                self.queue.push(Event(
+                    time=day_start + random.uniform(1.0, 23.0),
+                    type="spontaneous",
+                    actor=char.name,
+                ))
             if not self.dry_run:
-                self.queue.push(Event(time=random.uniform(3.0, 6.0), type="idle_thought", actor=char.name))
+                self.queue.push(Event(
+                    time=day_start + random.uniform(3.0, 6.0),
+                    type="idle_thought",
+                    actor=char.name,
+                ))
+                # Second idle later in the day — more Soul texture
+                self.queue.push(Event(
+                    time=day_start + random.uniform(14.0, 20.0),
+                    type="idle_thought",
+                    actor=char.name,
+                ))
                 frame = getattr(self, "world_frame", {}) or {}
                 if frame.get("permeability", "connected") != "enclosed":
-                    self.queue.push(
-                        Event(time=random.uniform(4.0, 8.0), type="observe_world", actor=char.name)
-                    )
+                    self.queue.push(Event(
+                        time=day_start + random.uniform(4.0, 8.0),
+                        type="observe_world",
+                        actor=char.name,
+                    ))
+                    self.queue.push(Event(
+                        time=day_start + random.uniform(15.0, 19.0),
+                        type="observe_world",
+                        actor=char.name,
+                    ))
 
+    def bootstrap(self):
+        """Schedule day rhythm + spontaneous for day 0; gather cast at commons."""
+        # Day-0: stand at the seed shelf so location context shows startup materials.
+        env = getattr(self, "environment", None)
+        if env and "commons" in env.nodes:
+            for name in list(getattr(self, "characters", {}) or {}):
+                env.move_character(name, "commons")
+            try:
+                env.save()
+            except Exception:
+                pass
+        self._schedule_day_activities(day_start=0.0)
         self.queue.push(Event(time=24.0, type="day_boundary"))
         self.queue.push(Event(time=72.0, type="weekly_seminar"))
 
@@ -168,36 +201,8 @@ class LifecycleMixin:
         # Save environment
         self.environment.save()
 
-        # Schedule rhythm-based activations for the new day
-        # Each character gets 4-6 activations spread across the day
-        for char in self.characters.values():
-            # Morning deep work (t+2, t+4, t+6)
-            self.queue.push(Event(time=self.clock + 2.0, type="activate", actor=char.name))
-            # Late morning check (t+7)
-            self.queue.push(Event(time=self.clock + 7.0, type="activate", actor=char.name))
-            # Midday social (t+10)
-            self.queue.push(Event(time=self.clock + 10.0, type="activate", actor=char.name))
-            # Afternoon work (t+14)
-            self.queue.push(Event(time=self.clock + 14.0, type="activate", actor=char.name))
-            # Evening reflection (t+18)
-            self.queue.push(Event(time=self.clock + 18.0, type="activate", actor=char.name))
-            # Night wind-down (t+22)
-            if random.random() < 0.5:
-                self.queue.push(Event(time=self.clock + 22.0, type="activate", actor=char.name))
-            # Spontaneous only (rhythm owns activate schedule — no post-activate Poisson)
-            for _ in range(random.randint(1, 2)):
-                self.queue.push(Event(time=self.clock + random.uniform(1, 23),
-                                       type="spontaneous", actor=char.name))
-            # Idle thoughts + observation (same as bootstrap)
-            if not self.dry_run:
-                self.queue.push(Event(time=self.clock + random.uniform(3.0, 6.0),
-                                       type="idle_thought", actor=char.name))
-                frame = getattr(self, "world_frame", {}) or {}
-                if frame.get("permeability", "connected") != "enclosed":
-                    self.queue.push(Event(
-                        time=self.clock + random.uniform(4.0, 8.0),
-                        type="observe_world", actor=char.name,
-                    ))
+        # Schedule denser rhythm + spontaneous for the new day
+        self._schedule_day_activities(day_start=self.clock)
 
 
     def _generate_day_summary(self, name: str, char: Character, events: list) -> str:

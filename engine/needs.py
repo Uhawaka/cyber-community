@@ -48,15 +48,15 @@ class NeedsState:
     """Full need state for one character."""
 
     energy: NeedProfile = field(default_factory=lambda: NeedProfile(
-        "energy", level=25.0, decay_per_hour=5.0, threshold_critical=70, threshold_high=50, baseline=10.0))
+        "energy", level=20.0, decay_per_hour=3.5, threshold_critical=80, threshold_high=55, baseline=10.0))
     safety: NeedProfile = field(default_factory=lambda: NeedProfile(
         "safety", level=30.0, decay_per_hour=1.5, threshold_critical=65, threshold_high=45, baseline=15.0))
     belonging: NeedProfile = field(default_factory=lambda: NeedProfile(
-        "belonging", level=35.0, decay_per_hour=2.5, threshold_critical=60, threshold_high=40, baseline=20.0))
+        "belonging", level=30.0, decay_per_hour=3.0, threshold_critical=55, threshold_high=35, baseline=15.0))
     esteem: NeedProfile = field(default_factory=lambda: NeedProfile(
         "esteem", level=40.0, decay_per_hour=1.0, threshold_critical=55, threshold_high=35, baseline=25.0))
     actualization: NeedProfile = field(default_factory=lambda: NeedProfile(
-        "actualization", level=25.0, decay_per_hour=1.5, threshold_critical=50, threshold_high=30, baseline=15.0))
+        "actualization", level=20.0, decay_per_hour=2.0, threshold_critical=45, threshold_high=28, baseline=12.0))
 
     def all_needs(self) -> list[NeedProfile]:
         return [self.energy, self.safety, self.belonging, self.esteem, self.actualization]

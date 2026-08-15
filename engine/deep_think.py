@@ -48,21 +48,21 @@ class DeepThinkEngine:
         just because wall/virtual time passed (avoids eager first-day fanout).
 
         Triggers when:
-        - 5+ study steps and ≥4h since last deep think
-        - 2+ collisions and ≥8h since last
-        - 3+ tool uses and ≥4h since last
-        - ≥3 total events and ≥12h since last (cooldown reflection)
+        - 3+ study steps and ≥3h since last deep think
+        - 1+ collisions and ≥6h since last
+        - 2+ tool uses and ≥3h since last
+        - ≥2 total events and ≥8h since last (cooldown reflection)
         """
         total = study_count + collision_count + tool_count
         if total <= 0:
             return False
-        if study_count >= 5 and hours_since_last >= 4:
+        if study_count >= 3 and hours_since_last >= 3:
             return True
-        if collision_count >= 2 and hours_since_last >= 8:
+        if collision_count >= 1 and hours_since_last >= 6:
             return True
-        if tool_count >= 3 and hours_since_last >= 4:
+        if tool_count >= 2 and hours_since_last >= 3:
             return True
-        if total >= 3 and hours_since_last >= 12:
+        if total >= 2 and hours_since_last >= 8:
             return True
         return False
 
@@ -131,11 +131,14 @@ class DeepThinkEngine:
 
 现在，把这一切综合起来。你真正理解到了什么？不是总结——是你个人的、经过思考后形成的洞见。
 
+纪律：洞见针对今天的工作单元，不是给整个未解/地平线问题下定论。
+一次试探不够宣判方向不可行；若收缩方向，写出判定义务。
+
 回答这些问题（叙述用中文；专业术语保留英文原文，不要硬译）：
-1. 我的核心洞见是什么？（1-2句话）
-2. 这对我的研究意味着什么？接下来应该往哪个方向走？
-3. 我有多大把握？（给一个0到1之间的数字）
-4. 这个洞见引出了什么新问题？"""
+1. 我的核心洞见是什么？（1-2句话；针对工作单元）
+2. 这对我下一步工作单元意味着什么？还缺什么实验或推导才能判定？
+3. 我有多大把握？（给一个0到1之间的数字；对地平线问题应远低于对工作单元）
+4. 这个洞见引出了什么新问题？（保持 open / obstructed，不要写成已解决）"""
 
         understanding = self.llm.chat(
             [{"role": "user", "content": r3_prompt}],

@@ -1569,14 +1569,20 @@ Backstory Seeds (5 核记忆)
 ```
 
 ```
-Day Rhythm → Activate Event（节律独占 activate；不再 post-activate Poisson 链式加密）
+Day Rhythm → Activate Event（每天 ~9 拍；节律独占 activate）
   → Inbox-first（先回别人找你的事）
-  → Needs 覆盖 + Day Rhythm 加权（早偏研究、中午偏社交）
-  → 执行: study(内心对话) / socialize(碰撞) / observe / tool
+  → Needs 覆盖 + Day Rhythm 加权（工作时段偏 study/socialize）
+  → 执行: study(内心对话≤10轮, 可 continue 连击) / socialize(碰撞 5 轮推演) / tool
   → Soul/Memory/Sociology/Production 更新
-Spontaneous (Poisson, 每天 1–2 次) → LLM decide_action（与节律路径分离）
-Live wake: max_events + max_llm_calls；wake/talk 不整段持锁跨 LLM
+Spontaneous (Poisson, 每天 3–4 次) → LLM decide_action
+Live wake 默认: max_events=70, max_llm=160（密度上去后避免窗内截断）
 ```
+
+### 8.4.1 世界文化在 YAML，不在 engine 分叉
+
+领域强度来自 `world.worldview` / `practice` / `governance` / `open_problems`（完整注入 prompt）。
+Engine 只做通用格式化。不要为数学/诗歌各写一套 `*_rigor.py`。
+Soul = 身份；攻坚清单与工作规范 = 世界文档。
 
 ### 8.5 已知技术债 / 近况
 

@@ -30,7 +30,11 @@ def resolve_sociology(config: dict) -> dict:
 
 
 def resolve_world_frame(config: dict) -> dict:
-    """Normalized worldview / window settings."""
+    """Normalized worldview / window / practice settings.
+
+    `world.practice` is authored craft culture for THIS world (any domain).
+    Engine only formats and injects it — never hardcodes a field's methods.
+    """
     world = config.get("world") or {}
     domain = config.get("domain") or {}
     if isinstance(domain, str):
@@ -58,16 +62,66 @@ def resolve_world_frame(config: dict) -> dict:
         shared = shared.strip()
     else:
         shared = ""
+
+    practice = world.get("practice") or config.get("practice") or {}
+    if not isinstance(practice, dict):
+        practice = {"how_we_work": str(practice)} if practice else {}
+
+    governance = world.get("governance") or config.get("governance") or {}
+    if not isinstance(governance, dict):
+        governance = {}
+
+    open_problems = world.get("open_problems") or config.get("open_problems") or []
+    if isinstance(open_problems, str):
+        open_problems = [open_problems]
+
+    seed_library = (
+        world.get("seed_library")
+        or world.get("library")
+        or config.get("seed_library")
+        or []
+    )
+    if isinstance(seed_library, str):
+        seed_library = [seed_library]
+
+    seed_readings = world.get("seed_readings") or config.get("seed_readings") or []
+    if isinstance(seed_readings, str):
+        seed_readings = [seed_readings]
+
+    from engine.literature import resolve_literature_config
+    from engine.research import resolve_research_config
+
+    literature = resolve_literature_config(world, config)
+    research = resolve_research_config(world, config)
+    vocation = str(world.get("vocation") or "").strip().lower()
+    skills = world.get("skills") or []
+    if isinstance(skills, str):
+        skills = [skills]
+    skills_text = world.get("skills_text") if isinstance(world.get("skills_text"), dict) else {}
+    if skills_text:
+        research = dict(research)
+        research["skills_text"] = skills_text
+
     return {
         "name": name,
         "domain": primary,
         "permeability": permeability,
         "worldview": worldview.strip() if isinstance(worldview, str) else "",
         "shared_program": shared,
+        "practice": practice,
+        "governance": governance,
+        "open_problems": open_problems,
+        "seed_library": seed_library,
+        "seed_readings": seed_readings,
+        "literature": literature,
+        "research": research,
+        "vocation": vocation,
+        "skills": [str(s).strip() for s in skills if str(s).strip()],
+        "skills_text": skills_text,
     }
 
 
-def format_culture_context(sociology: dict, max_chars: int = 700) -> str:
+def format_culture_context(sociology: dict, max_chars: int = 1100) -> str:
     """Format community norms / stage / memory for character prompts."""
     if not sociology:
         return ""
@@ -89,9 +143,9 @@ def format_culture_context(sociology: dict, max_chars: int = 700) -> str:
     positive = norms.get("positive") or []
     negative = norms.get("negative") or []
     if positive:
-        parts.append("被鼓励的: " + "；".join(str(x)[:60] for x in positive[:3]))
+        parts.append("被鼓励的:\n" + "\n".join(f"- {str(x)}" for x in positive[:6]))
     if negative:
-        parts.append("被排斥的: " + "；".join(str(x)[:60] for x in negative[:3]))
+        parts.append("被排斥的:\n" + "\n".join(f"- {str(x)}" for x in negative[:6]))
 
     sacred = norms.get("sacred_values") or sociology.get("sacred_values") or []
     if sacred:
@@ -131,16 +185,152 @@ def format_culture_context(sociology: dict, max_chars: int = 700) -> str:
     return text
 
 
-def format_world_context(frame: dict, max_chars: int = 400) -> str:
-    """Format worldview + observation window for character prompts."""
+def format_practice_context(frame: dict, max_chars: int = 3200) -> str:
+    """Format world.practice / governance / seed_library / open_problems."""
+    if not frame:
+        return ""
+    parts: list[str] = []
+
+    governance = frame.get("governance") or {}
+    if isinstance(governance, dict) and governance:
+        chair = governance.get("chair") or governance.get("leader") or ""
+        duties = governance.get("duties") or governance.get("mandate") or ""
+        cadence = governance.get("cadence") or ""
+        lines = []
+        if chair:
+            lines.append(f"组长 / chair: {chair}")
+        if duties:
+            lines.append(str(duties).strip()[:500])
+        if cadence:
+            lines.append(f"运转节奏: {str(cadence).strip()[:350]}")
+        if lines:
+            parts.append("治理:\n" + "\n".join(lines))
+
+    # Grain/verdict is short and must not lose to the URL shelf.
+    research_txt = ""
+    try:
+        from engine.research import format_research_context
+
+        research_txt = format_research_context(frame)
+    except Exception:
+        research_txt = ""
+    if research_txt:
+        parts.append("研究粒度 / 裁决纪律:\n" + research_txt)
+
+    # Math text first — long URL shelves must not crowd it out of the budget.
+    readings = frame.get("seed_readings") or []
+    if isinstance(readings, str):
+        readings = [readings]
+    if readings:
+        bits = []
+        for i, item in enumerate(readings[:5], 1):
+            if isinstance(item, dict):
+                title = (item.get("title") or "").strip()
+                body = (item.get("body") or item.get("statement") or item.get("text") or "").strip()
+                source = (item.get("source") or item.get("url") or "").strip()
+                line = f"{i}. {title}" if title else f"{i}."
+                if source:
+                    line += f"\n   source: {source}"
+                if body:
+                    line += f"\n   {body[:520]}"
+                bits.append(line)
+            else:
+                bits.append(f"{i}. {str(item).strip()[:520]}")
+        if bits:
+            parts.append("开箱即读的数学原文（不是口号）:\n" + "\n".join(bits))
+
+    library = frame.get("seed_library") or []
+    if isinstance(library, str):
+        library = [library]
+    if library:
+        bits = []
+        for i, item in enumerate(library[:12], 1):
+            if isinstance(item, dict):
+                title = (item.get("title") or item.get("name") or "").strip()
+                url = (item.get("url") or item.get("link") or item.get("href") or "").strip()
+                note = (item.get("note") or item.get("why") or item.get("summary") or "").strip()
+                line = f"{i}. {title}" if title else f"{i}."
+                if url:
+                    line = f"{line} {url}".strip()
+                if note:
+                    line += f"\n   {note[:120]}"
+                bits.append(line)
+            else:
+                bits.append(f"{i}. {str(item).strip()}")
+        if bits:
+            parts.append(
+                "启动种子书架（社区文献，不是分锅名单）:\n"
+                "先读原文/书架，自己选世界级难题，再自己找工具。"
+                "搜到论文后必须用 read_arxiv 深读正文/公式，禁止只甩标题名词。\n"
+                + "\n".join(bits)
+            )
+
+    problems = frame.get("open_problems") or []
+    if isinstance(problems, str):
+        problems = [problems]
+    if problems:
+        bits = []
+        for i, p in enumerate(problems[:8], 1):
+            if isinstance(p, dict):
+                title = (p.get("title") or p.get("name") or "").strip()
+                status = (p.get("status") or "open").strip()
+                prize = (p.get("prize") or "").strip()
+                source = (p.get("source") or "").strip()
+                attack = (p.get("attack") or p.get("statement") or p.get("why_hard") or "").strip()
+                line = f"{i}. [{status}] {title}"
+                if prize:
+                    line += f" ({prize})"
+                if source:
+                    line += f"\n   source: {source}"
+                if attack:
+                    line += f"\n   {attack[:280]}"
+                bits.append(line)
+            else:
+                bits.append(f"{i}. {str(p).strip()}")
+        if bits:
+            parts.append("白板上已挂名的难题（成员从种子书架认领后写入）:\n" + "\n".join(bits))
+
+    practice = frame.get("practice") or {}
+    mapping = [
+        ("how_we_work", "怎样才算在做事"),
+        ("valid_move", "什么算一次有效推进"),
+        ("invalid_move", "什么算无效（禁止）"),
+        ("blackboard", "共享对象 / 记号"),
+        ("learning", "如何自学新技能"),
+        ("artifact_standard", "成品标准"),
+        ("examples", "像样的发言长这样"),
+    ]
+    for key, label in mapping:
+        val = practice.get(key) if isinstance(practice, dict) else None
+        if not val:
+            continue
+        if isinstance(val, list):
+            body = "\n".join(f"- {str(x).strip()}" for x in val if str(x).strip())
+        else:
+            body = str(val).strip()
+        if body:
+            parts.append(f"{label}:\n{body}")
+
+    text = "\n\n".join(parts)
+    if len(text) > max_chars:
+        text = text[: max_chars - 1] + "…"
+    return text
+
+
+def format_world_context(frame: dict, max_chars: int = 2800) -> str:
+    """Format worldview + window + practice for character prompts.
+
+    Incomplete worlds produce buzzword characters. Prefer keeping authored
+    worldview intact over engine-side domain hacks.
+    """
     if not frame:
         return ""
 
     parts: list[str] = []
     name = frame.get("name") or "社区"
-    worldview = frame.get("worldview") or ""
+    worldview = (frame.get("worldview") or "").strip()
     if worldview:
-        parts.append(f"你生活在「{name}」。{worldview[:220]}")
+        parts.append(f"你生活在「{name}」。\n{worldview[:1200]}")
     else:
         parts.append(f"你生活在「{name}」。")
 
@@ -162,13 +352,51 @@ def format_world_context(frame: dict, max_chars: int = 400) -> str:
 
     shared = frame.get("shared_program") or ""
     if shared:
-        parts.append(f"共享研究计划（碰撞面）: {shared[:180]}")
+        parts.append(f"共享研究计划（碰撞面）:\n{shared[:400]}")
+
+    library = frame.get("seed_library") or []
+    if isinstance(library, str):
+        library = [library]
+    if library:
+        titles = []
+        for item in library[:6]:
+            if isinstance(item, dict):
+                t = (item.get("title") or item.get("name") or "").strip()
+                url = (item.get("url") or item.get("link") or "").strip()
+                if t and url:
+                    titles.append(f"{t} ({url})")
+                elif t or url:
+                    titles.append(t or url)
+            else:
+                s = str(item).strip()
+                if s:
+                    titles.append(s[:100])
+        if titles:
+            parts.append("种子书架: " + "；".join(titles))
+
+    problems = frame.get("open_problems") or []
+    if isinstance(problems, str):
+        problems = [problems]
+    if problems:
+        titles = []
+        for p in problems[:6]:
+            if isinstance(p, dict):
+                t = (p.get("title") or p.get("name") or "").strip()
+                if t:
+                    titles.append(t)
+            else:
+                t = str(p).strip()
+                if t:
+                    titles.append(t[:80])
+        if titles:
+            parts.append("白板上已挂名的难题: " + "；".join(titles))
+
     parts.append(
-        "你们是数字生命：种子领域只是起点，可以打开人类难以兼修的新领域，"
-        "但最好带回能翻译给同伴的东西。"
+        "你们是数字生命：没有预定的专业地盘。从种子书架出发，自己选世界级难题，"
+        "自己打开需要的数学工具与领域，带回能给同伴用的一步。"
     )
 
-    text = "\n".join(parts)
+    text = "\n\n".join(parts)
     if len(text) > max_chars:
         text = text[: max_chars - 1] + "…"
     return text

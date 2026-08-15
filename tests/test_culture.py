@@ -122,6 +122,22 @@ def test_engine_injects_culture_and_world():
     ctx = engine.characters["Elias"]._memory_context
     assert "社区文化" in ctx or "storming" in ctx
     assert "你所在的世界" in ctx or "窗" in ctx
+    prac = engine.characters["Elias"]._world_practice
+    assert "claymath.org" in prac or "种子" in prac
+    archive = engine.environment.nodes.get("archive")
+    assert archive and any(
+        "claymath" in str(c.get("content") if isinstance(c, dict) else c).lower()
+        for c in archive.contents
+    )
+
+
+def test_math_commune_seed_library_in_frame():
+    cfg = _world("math-commune")
+    frame = resolve_world_frame(cfg)
+    assert len(frame.get("seed_library") or []) >= 2
+    assert frame.get("open_problems") in ([], None) or frame.get("open_problems") == []
+    text = format_world_context(frame)
+    assert "种子书架" in text or "claymath" in text.lower()
 
 
 def test_enclosed_world_skips_observe_bootstrap():

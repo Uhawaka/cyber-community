@@ -34,6 +34,33 @@ Use `format_version: "2.0"` with `meta` / `world` / `characters` / `tools`. See 
 
 Prefer one precise stuck point over buzzword lists. Prefer relationship history that changes behavior over cartoon nicknames alone.
 
+## Research vocation (optional)
+
+If the world is a research studio (not an engineering shop):
+
+```yaml
+world:
+  vocation: research
+  skills: [research]          # docs/skills/research.md — how to research
+  vocation_soul:
+    stance: "A researcher, not an engineer. …"
+```
+
+On `expand_world` / `load_world` the engine:
+
+1. Injects `soul.vocation` + `soul.vocation_stance` (does not overwrite authored craft / beliefs)
+2. Loads the research skill and injects Stance / Cycle / phase slices into study, search, write, code, think
+
+The skill is the method: orient → review peers → carve a working unit → cross-domain if blocked → probe with obligation → record status. Engine does not invent this text.
+
+`vocation_soul.traits` are shared researcher habits (curiosity, question
+your own proof, unfinished-is-legal…). Working habits, not costumes.
+Warrants in `docs/skills/research.md` §Temperament should be *contemporary*
+(Tao, Gowers, Scholze, Zhang, Huh…) — not 19th-century mythology. Names
+stay in the skill file, not in `voice`.
+
+Worlds may override the skill at `worlds/<name>/skills/research.md`.
+
 ## Shared arena + growing domains
 
 Digital lives are not bound by human specialization limits.

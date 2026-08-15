@@ -30,6 +30,9 @@ def decide_action(char: Character, llm: LLM, tools: Optional[list] = None) -> di
             elif name == "search_arxiv":
                 tool_lines.append(f"A - 搜索arXiv论文: {desc}")
                 tool_shortcuts['A'] = ('tool', 'search_arxiv')
+            elif name == "read_arxiv":
+                tool_lines.append(f"R - 深读arXiv正文/公式: {desc}")
+                tool_shortcuts['R'] = ('tool', 'read_arxiv')
             elif name == "search_web":
                 tool_lines.append(f"W - 搜索互联网: {desc}")
                 tool_shortcuts['W'] = ('tool', 'search_web')
@@ -84,7 +87,7 @@ R - 休息/发呆/恢复精力"""
     }
     
     # Check tool shortcuts first
-    for key in ['C', 'P', 'A', 'W']:
+    for key in ['C', 'P', 'A', 'R', 'W']:
         if key in response and key in tool_shortcuts:
             action_type, tool_name = tool_shortcuts[key]
             return {"type": action_type, "label": f"🔧 使用工具: {tool_name}", "topic": state.current_focus or "", "tool": tool_name}
@@ -108,43 +111,73 @@ R - 休息/发呆/恢复精力"""
         return {"type": "rest", "label": "☕ 休息/发呆", "topic": ""}
 
 
-def run_collision(initiator: Character, target: Character, topic: str, llm: LLM) -> str:
-    """Run a collaborative reasoning session — NOT a chat.
+def _practice_hint(char: Character) -> str:
+    """World-authored practice note (any domain) — empty if world omitted it."""
+    return (getattr(char, "_world_practice", "") or "").strip()
 
-    Characters work through a problem together. Each round advances the
-    reasoning by one step: a claim, a computation, a derivation, an objection.
-    """
-    
+
+def _research_hint(char: Character, phase: str = "") -> str:
+    """World research skill (phase slice) — empty if the world has none."""
+    skills = getattr(char, "_skills_text", None) or {}
+    if skills.get("research"):
+        from engine.skills import skill_phase_block
+
+        return skill_phase_block(skills, phase=phase)
+    return (getattr(char, "_research_protocol", "") or "").strip()
+
+
+def run_collision(initiator: Character, target: Character, topic: str, llm: LLM) -> str:
+    """Collaborative working session — deepen one step per round."""
     system_i = initiator.build_system_prompt()
     system_t = target.build_system_prompt()
-    
-    # Round 1: initiator proposes a concrete step — computation, derivation, or claim
+    topic_text = topic or "你们正在一起推的问题"
+    practice = _practice_hint(initiator) or _practice_hint(target)
+    practice_line = f"\n本社区工作规范:\n{practice}\n" if practice else "\n"
+
     msg1 = llm.chat(
-        [{"role": "user", "content": f"你找到了 {target.name}。你想和他一起推演一个问题: {topic or '你最近的研究'}\n\n不要泛泛而谈。给出一个具体的出发点——一个公式、一个计算、一个可检验的断言、或一个你正在验证的猜想。像认真的研究者在工作，不是在写科普。专业术语保留英文原文。"}],
-        system=system_i, temperature=0.6
+        [{"role": "user", "content": (
+            f"你找到了 {target.name}。一起推进: {topic_text}\n"
+            f"{practice_line}"
+            f"不要闲聊。给出一个具体出发点——你真正在推的那一步。3-6句。"
+        )}],
+        system=system_i, temperature=0.45,
     )
-    
-    # Round 2: target engages with the actual reasoning — extend, challenge, or redirect
     msg2 = llm.chat(
-        [{"role": "user", "content": f"{initiator.name} 说: 「{msg1}」\n\n回应他的推理。不是评论——是推进。如果同意，推导下一步。如果怀疑，指出具体哪一步有问题。如果有不同角度，从那里开始推。像两个人在白板前面一起工作。"}],
-        system=system_t, temperature=0.6
+        [{"role": "user", "content": (
+            f"{initiator.name} 说: 「{msg1}」\n{practice_line}"
+            f"回应时推进或精确反驳——指出缺什么假设、哪一步站不住。不要评论风格。"
+        )}],
+        system=system_t, temperature=0.45,
     )
-    
-    # Round 3: initiator pushes further — where does this lead? What breaks?
     msg3 = llm.chat(
-        [{"role": "user", "content": f"你说了: 「{msg1}」\n\n{target.name} 回应: 「{msg2}」\n\n推下一步。这个推理链的下一步是什么？如果顺畅，继续推导。如果遇到障碍，精确指出问题在哪里。不要总结——推进。"}],
-        system=system_i, temperature=0.6
+        [{"role": "user", "content": (
+            f"你说了: 「{msg1}」\n{target.name} 回应: 「{msg2}」\n{practice_line}"
+            f"推下一步。若卡住，精确说出卡在哪里。"
+        )}],
+        system=system_i, temperature=0.45,
     )
-    
-    # Optional 4th round if the reasoning is deep enough
-    if len(msg1) + len(msg2) + len(msg3) > 600:
-        msg4 = llm.chat(
-            [{"role": "user", "content": f"{initiator.name} 接着说: 「{msg3}」\n\n回应。如果推理链已经到头，指出卡在哪里。如果还有一步可推，推出去。"}],
-            system=system_t, temperature=0.6
-        )
-        return f"{initiator.name}: {msg1}\n{target.name}: {msg2}\n{initiator.name}: {msg3}\n{target.name}: {msg4}"
-    
-    return f"{initiator.name}: {msg1}\n{target.name}: {msg2}\n{initiator.name}: {msg3}"
+    msg4 = llm.chat(
+        [{"role": "user", "content": (
+            f"{initiator.name} 接着说: 「{msg3}」\n{practice_line}"
+            f"压力测试：给一个会打破对方主张的例子/极限情形，或补上缺失的一步。"
+        )}],
+        system=system_t, temperature=0.45,
+    )
+    msg5 = llm.chat(
+        [{"role": "user", "content": (
+            f"对话至此:\n你: 「{msg1}」\n{target.name}: 「{msg2}」\n"
+            f"你: 「{msg3}」\n{target.name}: 「{msg4}」\n{practice_line}"
+            f"收一步：写出此刻最站得住的 claim，以及下一步要做的一件事。"
+        )}],
+        system=system_i, temperature=0.4,
+    )
+    return (
+        f"{initiator.name}: {msg1}\n"
+        f"{target.name}: {msg2}\n"
+        f"{initiator.name}: {msg3}\n"
+        f"{target.name}: {msg4}\n"
+        f"{initiator.name}: {msg5}"
+    )
 
 
 def extract_soul_updates(char_name: str, context_type: str, context: str, llm: LLM) -> dict:
@@ -264,76 +297,150 @@ def run_gathering(characters: dict, caller_name: str, topic: str, llm: LLM) -> s
 
 
 def run_study_step(char: Character, topic: str, step: int, llm: LLM) -> str:
-    """Execute one step of mathematical reasoning — NOT a diary entry.
-
-    Each step advances a chain of reasoning: computation, derivation,
-    conjecture formation, or identification of an obstacle.
-    """
+    """One focused working step — not a diary entry."""
     system = char.build_system_prompt()
-    
+    practice = _practice_hint(char)
+    research = _research_hint(char, "study")
+    practice_line = f"\n本社区工作规范:\n{practice}\n" if practice else "\n"
+    grain = f"\n{research}\n" if research else ""
+
     if step == 1:
-        prompt = f"你正在研究: {topic}\n\n不要泛泛而谈。从具体的地方开始——写下一个公式、一个不等式、一个你想验证的关系。专业术语保留英文。如果你在算，写出在算什么；如果在推导，写出第一步。"
+        prompt = (
+            f"你正在研究: {topic}\n{practice_line}{grain}"
+            f"按研究 skill：先点名 Horizon vs Working unit；新方向先 review 同行正文，"
+            f"再写下真正要推的第一步。不要开场白，不要试图今天证完地平线。"
+        )
     elif step == 2:
-        prompt = f"你继续研究: {topic}\n\n上一步你开始了推理。现在推下一步。如果顺畅，继续推导。如果遇到障碍，精确描述问题。不要总结之前的——推进。"
+        prompt = (
+            f"你继续研究: {topic}\n{practice_line}{grain}"
+            f"推工作单元的下一步。若卡住，精确描述缺哪一步义务，不要宣判方向死亡。"
+            f"不要总结之前的。"
+        )
     else:
-        prompt = f"你继续深入研究: {topic}\n\n这是第{step}步。推下去——或者如果推理链断了，指出断在哪里。像研究者盯着白板上的推导，试图找到下一步。术语保留英文。"
-    
-    return llm.chat([{"role": "user", "content": prompt}], system=system, temperature=0.5)
+        prompt = (
+            f"你继续深入研究: {topic}\n{practice_line}{grain}"
+            f"第{step}步：推进工作单元，或写下 obstruction（下一步被点名但未做）。"
+            f"禁止用一次试探给整个方向下定论。"
+        )
+
+    return llm.chat([{"role": "user", "content": prompt}], system=system, temperature=0.45)
 
 
-def run_tool_use(char: Character, tool_name: str, topic: str, llm: LLM) -> dict:
+def run_tool_use(
+    char: Character,
+    tool_name: str,
+    topic: str,
+    llm: LLM,
+    *,
+    world_frame: dict | None = None,
+) -> dict:
     """Generate tool parameters using LLM.
 
     Returns a dict with the tool-specific parameters:
     - run_code: {code, language, topic}
     - write_paper: {title, content, topic}
     - search_arxiv: {query, topic}
+    - read_arxiv: {arxiv_id} or {query}
+    - search_web: {query, topic}
     """
     system = char.build_system_prompt()
 
     if tool_name == "run_code":
-        prompt = f"""你正在研究「{topic}」。你想写一段 Python 代码来验证你的想法。
-
-请写一段简短的 Python 代码（30行以内）。代码要能独立运行，有清晰的注释说明你在验证什么。
+        research = _research_hint(char, "code")
+        grain = f"\n{research}\n" if research else ""
+        prompt = f"""你正在研究「{topic}」。你想写一段 Python 代码来验证一个*工作单元*，不是证完整个未解问题。
+{grain}
+请写一段简短的 Python 代码（30行以内）。代码要能独立运行，注释写清：
+- 这个探针在杀什么假设（kill criterion）
+- 失败时你学到什么，而不是「此路不通」
+沙箱可用: math/cmath/random/statistics/numpy/scipy/sympy — 不要 mpmath。
 
 用以下 JSON 格式输出（只输出 JSON，不要其他文字）：
 {{"code": "你的Python代码"}}
 """
     elif tool_name == "write_paper":
-        prompt = f"""你正在研究「{topic}」。你想把你的发现写成一篇简短的研究笔记。
+        practice = _practice_hint(char)
+        research = _research_hint(char, "write")
+        artifact = ""
+        if practice:
+            artifact = f"\n本社区对成品的标准:\n{practice}\n"
+        grain = f"\n{research}\n" if research else ""
+        prompt = f"""你正在研究「{topic}」。把你真正推出来的*工作单元*写成一篇研究笔记。
+{artifact}{grain}
+要求：
+- 开头标明：Horizon（引用的未解/世界级问题）vs Working unit（今天实际做的一小步）
+- 写你实际在做的对象与步骤，不要写口号式方法论散文
+- 必须出现至少一处 LaTeX 公式或形式化 Claim；若刚读过论文，引用其中的记号
+- 状态只能是 open / reconstructing / probing / obstructed / narrowed / withdrawn-with-obligation
+- 禁止：一次数值/一次直觉就宣判方向不可行，或宣称证完地平线问题
+- 若卡住：写清下一步义务（什么实验或推导能判定），不要下定论
+- 若社区规范要求记号/公式/例子，按规范来
 
-写一篇结构清晰的研究笔记（300-500字）：
-- 标题：一个吸引人的学术标题
-- 正文：你的核心发现、推理过程、你的结论
+用以下 JSON 输出（只输出 JSON）：
+{{"title": "笔记标题", "content": "正文（markdown）", "status": "probing"}}
+"""
+    elif tool_name == "read_arxiv":
+        focus = topic or getattr(char.state, "current_focus", "") or ""
+        prompt = f"""你正在研究「{focus}」。你要深读一篇 arXiv 论文的正文/公式，而不是只看标题。
 
-用以下 JSON 格式输出（只输出 JSON，不要其他文字）：
-{{"title": "论文标题", "content": "论文正文（markdown格式）"}}
+若你已知 arXiv id（如 2301.12345），填 arxiv_id。
+否则用英文 query 让系统挑最相关的一篇来读。
+
+用以下 JSON 输出（只输出 JSON）：
+{{"arxiv_id": "", "query": "english query if no id"}}
 """
     elif tool_name in ("search_arxiv", "search_web"):
         from engine.language import academic_query_hint
+        from engine.literature import resolve_literature_config
+
         domains = char.config.get("domains") or []
         if isinstance(domains, str):
             domains = [domains]
         if not domains and char.config.get("domain"):
             domains = [char.config.get("domain")]
         focus = topic or getattr(char.state, "current_focus", "") or ""
-        hint = academic_query_hint(domains, focus)
-        venue = "arXiv and math journals" if tool_name == "search_arxiv" else "the web / journals / surveys"
-        prompt = f"""你正在研究「{focus}」。你想检索{venue}上的相关文献与讨论。
-
+        lit = resolve_literature_config(world_frame)
+        hint = academic_query_hint(
+            domains, focus, channel=tool_name.replace("search_", ""), lit_cfg=lit
+        )
+        if tool_name == "search_arxiv":
+            venue = "arXiv (English frontier literature)"
+            json_shape = '{"query": "english search query"}'
+            extra = (
+                "Primary query MUST be English field/problem nouns. "
+                "也可用作者名、期刊名、MSC/主题词。搜完应再用 read_arxiv 深读一篇。"
+            )
+        else:
+            venue = "the web (English frontier + optional Chinese explanation)"
+            if lit.get("bilingual_web") and lit.get("allow_vernacular"):
+                json_shape = (
+                    '{"query": "english frontier query", '
+                    '"vernacular_zh": "optional short Chinese explanatory query"}'
+                )
+                extra = (
+                    "query = English frontier literature (journals, arXiv, surveys). "
+                    "vernacular_zh = optional Chinese 解读/综述轨，不能替代英文主检索。"
+                )
+            else:
+                json_shape = '{"query": "english search query"}'
+                extra = "Primary query MUST be English."
+        skill = _research_hint(char, "search")
+        skill_line = f"\n{skill}\n" if skill else ""
+        prompt = f"""你正在研究「{focus}」。你想检索{venue}。
+{skill_line}
 {hint}
 
-也可用作者名、期刊名（Annals, Inventiones, JAMS, Duke, …）、MSC/主题词。查询必须是英文。
+{extra}
 
 用以下 JSON 格式输出（只输出 JSON，不要其他文字）：
-{{"query": "english search query"}}
+{json_shape}
 """
     else:
         return {}
 
     response = llm.chat(
         [{"role": "user", "content": prompt}],
-        system=system, temperature=0.7,
+        system=system, temperature=0.45 if tool_name == "write_paper" else 0.55,
     )
     params = parse_json(response)
     params["topic"] = topic

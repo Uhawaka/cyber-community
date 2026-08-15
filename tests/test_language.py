@@ -9,10 +9,11 @@ sys.path.insert(0, str(ROOT))
 
 from engine.language import (
     reply_rule, term_policy_block, academic_query_hint, format_domains_for_query,
+    sanitize_academic_query, looks_like_cjk_query,
 )
 from engine.observation import get_observation_queries
 from engine.character import Character
-from main import load_config
+from engine.world_builder import load_world
 
 
 def test_term_policy_keeps_english_examples():
@@ -52,7 +53,7 @@ def test_format_domains_english():
 
 
 def test_character_prompt_has_language_policy_and_soul_hook():
-    cfg = load_config("math-commune")
+    cfg = load_world("math-commune", ROOT / "worlds")
     elias = next(c for c in cfg["characters"] if c["name"] == "Elias")
     ch = Character("Elias", elias)
     ch._soul_context = "You are Elias.\nCraft: analyst\nCore belief: effectivity"
@@ -65,6 +66,21 @@ def test_character_prompt_has_language_policy_and_soul_hook():
 def test_academic_query_hint_mentions_english():
     h = academic_query_hint(["random_matrix_theory"], "pair correlation")
     assert "English" in h or "english" in h.lower()
+
+
+def test_sanitize_rewrites_chinese_slogan_to_rh_english():
+    q = sanitize_academic_query(
+        "从验证推论转向直接攻击零点实部，接受逐点硬边界作为检验标准",
+        focus="Riemann Hypothesis zeros",
+    )
+    assert not looks_like_cjk_query(q)
+    assert "riemann" in q.lower() or "zeta" in q.lower()
+    assert "从验证" not in q
+
+
+def test_sanitize_keeps_english_query():
+    q = sanitize_academic_query("zero density estimates Riemann zeta", focus="")
+    assert "zero density" in q.lower()
 
 
 if __name__ == "__main__":

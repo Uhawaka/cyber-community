@@ -19,6 +19,9 @@ identity:
   voice: []              # 2-4 speech habits
   seed_domains: []       # YAML seeds — starting territories
   domains: []            # living territories (seeds + opened at runtime)
+  vocation: ""           # e.g. research — injected from world.vocation
+  vocation_stance: ""    # how the vocation works (not a conjecture)
+  vocation_traits: []    # shared researcher habits (not a biography)
 
 bonds: {}
   # OtherName:

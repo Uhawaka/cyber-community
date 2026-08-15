@@ -72,14 +72,14 @@ class SocialMixin:
         valence = "frustrating" if quality == "negative" else ("exciting" if len(dialogue) > 800 else "curious")
         self._record_memory(initiator.name, "collision",
             f"与{target.name}讨论了{topic[:40]}",
-            detail=dialogue[:300],
+            detail=dialogue[:800],
             participants=[target.name],
             valence=valence,
             importance=0.5 + (0.1 if len(dialogue) > 600 else 0),
             tags=[topic[:30]])
         self._record_memory(target.name, "collision",
             f"{initiator.name}来找我聊了{topic[:40]}",
-            detail=dialogue[:300],
+            detail=dialogue[:800],
             participants=[initiator.name],
             valence=valence,
             importance=0.5 + (0.1 if len(dialogue) > 600 else 0),

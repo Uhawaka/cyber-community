@@ -60,35 +60,58 @@ def think_system(character_name: str, lang: str = "zh") -> str:
     )
 
 
-def academic_query_hint(domains: list | None = None, focus: str = "") -> str:
-    """Hint for building English search queries."""
-    bits = []
-    if domains:
-        bits.append("domains: " + ", ".join(str(d) for d in domains[:5]))
-    if focus:
-        bits.append("focus: " + focus[:120])
-    extra = (" (" + "; ".join(bits) + ")") if bits else ""
-    return (
-        "Generate a precise English academic search query (3–8 words)"
-        f"{extra}. Prefer literature nouns (L-functions, random matrices, Galois, …). "
-        "Do not use Chinese in the query."
+def academic_query_hint(
+    domains: list | None = None,
+    focus: str = "",
+    *,
+    channel: str = "arxiv",
+    lit_cfg: dict | None = None,
+) -> str:
+    """Hint for building literature search queries (delegates to literature policy)."""
+    from engine.literature import literature_query_hint
+
+    return literature_query_hint(domains, focus, channel=channel, lit_cfg=lit_cfg)
+
+
+def looks_like_cjk_query(query: str) -> bool:
+    from engine.literature import looks_like_cjk
+
+    return looks_like_cjk(query)
+
+
+def sanitize_academic_query(
+    query: str,
+    focus: str = "",
+    fallback: str = "research open problems",
+    *,
+    extra_lexicon: list | None = None,
+) -> str:
+    """Force an English frontier query when the model emits Chinese slogans.
+
+    Thin wrapper over engine.literature — never returns a CJK-heavy string.
+    Default fallback is domain-agnostic; worlds set literature.fallback_query.
+    """
+    from engine.literature import to_frontier_english
+
+    eng, _ = to_frontier_english(
+        query, focus=focus, fallback=fallback, extra_lexicon=extra_lexicon
     )
+    return eng
 
 
 def format_domains_for_query(domains: list | None, focus: str = "", fallback: str = "") -> list[str]:
     """Build English observation/search query strings from living domains + focus."""
     queries: list[str] = []
     focus = " ".join((focus or "").split())
+    fb = fallback or "research open problems"
     if focus:
-        # Prefer English-looking focus; strip obvious Chinese-only noise lightly
-        queries.append(focus[:80])
+        queries.append(sanitize_academic_query(focus, focus=focus, fallback=fb))
     for d in domains or []:
         q = str(d).replace("_", " ").strip()
-        if q:
+        if q and not looks_like_cjk_query(q):
             queries.append(q)
     if not queries and fallback:
         queries.append(str(fallback).replace("_", " "))
-    # dedupe
     out, seen = [], set()
     for q in queries:
         key = q.lower()

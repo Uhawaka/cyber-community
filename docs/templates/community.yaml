@@ -11,6 +11,28 @@ world:
   permeability: "connected"
   worldview: ""
   speech_language: "zh"
+  # vocation: research          # inject research-type soul at community generation
+  # skills: [research]          # load docs/skills/research.md (or worlds/<name>/skills/)
+  # vocation_soul: { stance: "" }
+  shared_program: ""
+  # Optional — any world can define craft culture without engine forks:
+  # governance: { chair: "", duties: "", cadence: "" }
+  # seed_library: [{ title: "", url: "", note: "" }]   # startup shelf URLs
+  # seed_readings: [{ title: "", source: "", body: "" }]  # day-0 readable math text
+  # open_problems: [{ title: "", status: "open", attack: "" }]  # optional live board
+  # practice: { how_we_work: "", valid_move: [], invalid_move: [], learning: "", ... }
+  # literature:   # bilingual frontier search (engine.literature)
+  #   frontier_language: en          # arXiv / primary academic web
+  #   allow_vernacular: true         # Chinese OK for explanations
+  #   bilingual_web: true            # EN frontier + ZH vernacular tracks
+  #   vernacular_domains: []         # domains where zh frontier is legitimate
+  #   fallback_query: "research open problems"
+  #   en_site_hints: []
+  #   zh_site_hints: []
+  # research:   # attack grain (engine.research) — stop treating prize problems as today's homework
+  #   grain: working_unit            # working_unit | free
+  #   allow_horizon_solve: false
+  #   verdict_requires_obligation: true
 
 sociology:
   development_stage: "forming"

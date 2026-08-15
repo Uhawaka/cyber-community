@@ -35,7 +35,7 @@ class InnerDialogue:
     topic: str = ""
     confidence: float = 0.0
     stuck_count: int = 0
-    max_turns: int = 8
+    max_turns: int = 10
 
     def start(self, topic: str):
         self.topic = topic
@@ -84,15 +84,22 @@ def next_inner_turn(llm, char, dialogue: InnerDialogue) -> InnerTurn | None:
     """
     system = char.build_system_prompt()
     topic = dialogue.topic
+    practice = (getattr(char, "_world_practice", "") or "").strip()
+    from engine.skills import skill_phase_block
+
+    skills = getattr(char, "_skills_text", None) or {}
+    research = skill_phase_block(skills, phase="think") or (
+        getattr(char, "_research_protocol", "") or ""
+    ).strip()
+    practice_line = f"\n本社区工作规范:\n{practice}\n" if practice else "\n"
+    grain = f"\n{research}\n" if research else ""
 
     if not dialogue.turns:
-        # First turn: the "self" voice notices something
         prompt = (
-            f"你在研究: {topic}\n\n"
-            f"你正在和自己对话。第一个念头——你注意到了什么？\n"
-            f"不要长篇大论。像一个真实的人在心里自言自语：\n"
-            f"一句话提一个观察，一句话问一个问题。2-3句。\n"
-            f"例如: '等等，这个偏差在 ξ>1.5 时突然变大。是不是 CIR 的边界行为在作祟？'"
+            f"你在研究: {topic}\n{practice_line}{grain}"
+            f"你正在和自己对话。第一个念头要具体——"
+            f"今天的工作单元是哪一小步（不是整个未解问题）？"
+            f"2-4句。不要开场白。"
         )
         role = "self"
     else:
@@ -103,31 +110,28 @@ def next_inner_turn(llm, char, dialogue: InnerDialogue) -> InnerTurn | None:
 
         if role == "critic":
             prompt = (
-                f"你在心里和自己对话。刚才你想:\n{context}\n\n"
-                f"现在你的内心质疑者说话了。质疑刚才的想法——\n"
-                f"哪里可能不对？有什么被忽略了？有什么更简单的解释？\n"
-                f"一句话质疑，一句话建议。像真实的自我怀疑。"
+                f"你在心里和自己对话。刚才你想:\n{context}\n{practice_line}{grain}"
+                f"内心质疑者：哪里可能不对？缺什么义务（实验/推导）才能判定？"
+                f"不要宣判整个方向死亡。2-3句。"
             )
         else:
             prompt = (
-                f"你在心里和自己对话。你的质疑者说:\n{context}\n\n"
-                f"回应质疑。如果质疑有道理，接受并调整方向。\n"
-                f"如果质疑不对，解释为什么并推进思考。\n"
-                f"像真实的内心对话——可以承认'你说得对'，也可以说'不对，因为...'。"
+                f"你在心里和自己对话。质疑者说:\n{context}\n{practice_line}{grain}"
+                f"回应并推进工作单元：接受则改一小步，反驳则补一步。"
+                f"不要总结，不要给地平线问题下定论。2-4句。"
             )
 
-    response = llm.chat([{"role": "user", "content": prompt}], system=system, temperature=0.6)
+    response = llm.chat([{"role": "user", "content": prompt}], system=system, temperature=0.5)
 
-    # Determine motivation from the response
     motivation = "explore"
-    if any(w in response for w in ["不对", "但", "等等", "wait", "不是"]):
+    if any(w in response for w in ["不对", "但", "等等", "wait", "不是", "缺"]):
         motivation = "question"
-    elif any(w in response for w in ["试试", "试一下", "算一下", "验证"]):
+    elif any(w in response for w in ["试试", "试一下", "算一下", "验证", "estimate", "check"]):
         motivation = "propose"
-    elif any(w in response for w in ["所以", "因此", "这意味着", "这说明"]):
+    elif any(w in response for w in ["所以", "因此", "这意味着", "这说明", "hence"]):
         motivation = "conclude"
 
-    return InnerTurn(role=role, content=response.strip()[:200], motivation=motivation)
+    return InnerTurn(role=role, content=response.strip()[:400], motivation=motivation)
 
 
 def should_end_dialogue(dialogue: InnerDialogue) -> bool:
