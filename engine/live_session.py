@@ -33,6 +33,28 @@ def parse_wake_times(raw: str | list | tuple | None) -> list[tuple[int, int]]:
     return sorted(set(out))
 
 
+def community_has_lived(engine: SimulationEngine) -> bool:
+    """True only after a founding virtual day — not empty souls / backstory.
+
+    Engine __init__ always writes souls, backstory, and seed-shelf memories.
+    A previous live start that never ran a day must still count as unfounded.
+    Day/clock reset every process unless sim_state.json says otherwise.
+    """
+    state = getattr(engine, "_sim_state", None) or {}
+    if state.get("founded"):
+        return True
+    if int(getattr(engine, "day", 1) or 1) > 1:
+        return True
+    for archive in getattr(engine, "archives", {}).values():
+        try:
+            rows = archive._read()
+        except Exception:
+            continue
+        if any(isinstance(r, dict) and (r.get("summary") or r.get("day")) for r in (rows or [])):
+            return True
+    return False
+
+
 def next_wake_after(now: datetime, wake_times: list[tuple[int, int]]) -> datetime:
     """Next wall-clock wake strictly after `now` (local naive datetime)."""
     today = now.date()
@@ -98,6 +120,48 @@ class LiveSession:
                 self._log_lines = self._log_lines[-200:]
 
     # ── background hang ───────────────────────────────────────
+
+    def ensure_founded(self, *, verbose: bool = True) -> dict:
+        """If the community has never lived, create it and run one virtual day.
+
+        Live used to only bootstrap empty files and wait for a wall-clock wake,
+        which looks like 'nothing happened, no error'. Founding is a real day
+        (same path as `main.py --days 1`), then hang continues from there.
+        """
+        if community_has_lived(self.engine):
+            return {
+                "created": False,
+                "day": self.engine.day,
+                "clock": self.engine.clock,
+                "processed": 0,
+                "output_dir": str(self.engine._output_dir),
+            }
+        prev_log = self.engine._log
+        if verbose:
+            self.engine._log = self._orig_log
+            self._orig_log("社区尚未创建 — 先建档并跑完第一个虚拟日…")
+        try:
+            self.engine.run(max_days=1, verbose=verbose)
+        finally:
+            self.engine._bootstrapped = True
+            self.engine.running = False
+            self.engine._log = prev_log
+            if hasattr(self.engine, "save_sim_state"):
+                self.engine.save_sim_state(
+                    founded=self.engine.day > 1 or bool(self.engine.event_log)
+                )
+        if verbose:
+            self._orig_log(
+                f"第一个虚拟日结束：Day {self.engine.day}, t={self.engine.clock:.1f}。"
+                f"产出 {self.engine._output_dir}。进入常驻。"
+            )
+        return {
+            "created": True,
+            "day": self.engine.day,
+            "clock": self.engine.clock,
+            "processed": len(self.engine.event_log),
+            "output_dir": str(self.engine._output_dir),
+        }
 
     def start(self):
         with self.lock:

@@ -14,7 +14,7 @@ from pathlib import Path
 
 sys.stdout.reconfigure(line_buffering=True)
 
-PROJECT_ROOT = Path(__file__).parent
+PROJECT_ROOT = Path(__file__).resolve().parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
 from engine.llm import LLM
@@ -79,7 +79,7 @@ def main():
     )
     wake_times = parse_wake_times(args.wake_times)
 
-    print(f"🏠 赛博社区 · 常驻 · {world_name}")
+    print(f"🏠 赛博社区 · 常驻 · {world_name} ({args.world})")
     print(f"   成员: {', '.join(c['name'] for c in config['characters'])}")
     print(f"   马甲: {args.avatar}" + (f" — {args.bio}" if args.bio else ""))
     print(
@@ -91,6 +91,7 @@ def main():
 
     llm = LLM(config)
     engine = SimulationEngine(config, llm)
+    print(f"   产出目录: {engine._output_dir}")
     session = LiveSession(
         engine,
         avatar_name=args.avatar,
@@ -100,6 +101,17 @@ def main():
         max_events_per_wake=args.max_events_per_wake,
         max_llm_calls_per_wake=args.max_llm_per_wake,
     )
+    founded = session.ensure_founded(verbose=True)
+    if founded["created"]:
+        print(
+            f"   已创建 {args.world} 并跑完第一个虚拟日 → Day {founded['day']}, "
+            f"t={founded['clock']:.1f}, {founded['processed']} 事件\n"
+        )
+    else:
+        print(
+            f"   沿用已有社区 {engine._output_dir} "
+            f"（Day {founded['day']}, t={founded['clock']:.1f}）\n"
+        )
 
     def _shutdown(signum, frame):
         print("\n…收到信号，正在停下生活窗口")

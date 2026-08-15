@@ -121,26 +121,13 @@ def research_prompt_block(
     *,
     phase: str = "",
 ) -> str:
-    """Prompt block: prefer world-loaded research skill; else a short fallback."""
+    """Short grain line for the world. Character skill books live on Soul."""
     frame = cfg_or_frame or {}
-    skills_text = {}
-    if isinstance(frame, dict):
-        skills_text = frame.get("skills_text") or {}
-        if not skills_text and isinstance(frame.get("research"), dict):
-            skills_text = (frame.get("research") or {}).get("skills_text") or {}
-
-    from engine.skills import skill_phase_block
-
-    skill = skill_phase_block(skills_text, skill_id="research", phase=phase)
-    if skill:
-        return skill
-
     cfg = frame if frame.get("_resolved") else resolve_research_config(frame)
     if cfg.get("grain") == "free":
         return ""
-    # Fallback only if a research world forgot to ship the skill file
     return (
-        "Research (fallback): horizon ≠ today's work. Review peers before a Claim. "
+        "Research grain: horizon ≠ today's work. Review peers before a Claim. "
         "Carve a working unit. Failed probe ≠ infeasible. Status needs a next obligation."
     )
 

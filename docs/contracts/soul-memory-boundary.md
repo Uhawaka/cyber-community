@@ -2,12 +2,12 @@
 
 Normative. Matches `engine/soul.py` and `engine/memory.py`.
 
-| | Soul (personality anchor) | Memory (experience stream) | DailyArchive | Production |
-|--|---------------------------|----------------------------|--------------|------------|
-| Question | Who am I? How do I stand toward others? What occupies me now? | What happened? What was computed? Who said what? | What was today in one paragraph? | Finished notes, papers, code artifacts |
-| Cadence | Slow (days/weeks) | Fast (per event) | Once per day boundary | On tool success |
-| Allowed | `identity`, `bonds`, `orientation`, `reflections`, `milestones` | episodes, semantic facts, working focus | day/week summaries | markdown/code under `outputs/.../production` |
-| Forbidden | Tool stdout, paper paths, formula drafts, chitchat, research scrapbooks | Identity essays that belong in Soul; dumping full Soul into episodes | Tool dumps as "summary" | Treating production as personality |
+| | Soul (personality anchor) | Skills (earned craft) | Memory (experience stream) | DailyArchive | Production |
+|--|---------------------------|----------------------|----------------------------|--------------|------------|
+| Question | Who am I? How do I stand toward others? What occupies me now? | What can I do, and how do I work? | What happened? What was computed? Who said what? | What was today in one paragraph? | Finished notes, papers, code artifacts |
+| Cadence | Slow (days/weeks) | Grows with practice (study / read / write / code) | Fast (per event) | Once per day boundary | On tool success |
+| Allowed | `identity`, `bonds`, `orientation`, `reflections`, `milestones` | `skills.<id>`: level, moves, notes, stance snapshot | episodes, semantic facts, working focus | day/week summaries | markdown/code under `outputs/.../production` |
+| Forbidden | Tool stdout, paper paths, formula drafts, chitchat, research scrapbooks; dumping catalog markdown into identity | World manifesto dumps; treating a catalog file as every character's prompt | Identity essays that belong in Soul; dumping full Soul into episodes | Tool dumps as "summary" | Treating production as personality |
 
 ## `recent_murmurs`
 
@@ -36,9 +36,10 @@ Tiny ephemeral blur for prompts only. Cap ≤3. Not identity. Do not treat as du
 ## Update rules
 
 1. Seed Soul once from character YAML (`soul:` + `orientation:` preferred).
-2. Runtime Soul writes only via curated deltas (bonds, orientation, reflections, rare milestones, cleaned `opened_domains`).
+2. Runtime Soul writes only via curated deltas (bonds, orientation, reflections, rare milestones, cleaned `opened_domains`, rare `opened_skills`).
 3. Reject tool/log formats in milestones and reflections.
 4. Research facts go to Memory or Production — never `identity.core_belief`.
+5. Skills live on Soul as a sibling of identity (`skills`), not as `core_belief`. The engine catalog *creates* a skill; practice grows it. Do not dump `docs/skills/*.md` into every world prompt.
 
 ## References
 

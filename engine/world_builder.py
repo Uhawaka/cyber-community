@@ -418,7 +418,7 @@ def expand_world(raw_config: dict, *, world_dir: Path | None = None) -> dict:
     Handles:
     - Flatten meta.name / description onto top-level for engine compatibility
     - Character expansion (minimal → full psychology + soul/orientation)
-    - Research vocation → inject research soul + load research skill
+    - Research vocation → inject research soul + seed character skills from catalog
     - Sociology auto-derivation
     - Tool defaults
     - Inject speech_language onto characters
@@ -435,12 +435,14 @@ def expand_world(raw_config: dict, *, world_dir: Path | None = None) -> dict:
     world_domain = world.get("domain", raw_config.get("domain", {}).get("primary", "custom"))
     speech = world.get("speech_language") or "zh"
 
-    from engine.skills import inject_research_soul, load_world_skills
+    from engine.skills import inject_research_soul, list_catalog_ids, seed_skill_ids
 
-    skills_text = load_world_skills(world, world_dir)
-    if skills_text:
-        world["skills_text"] = skills_text
-        result["world"] = world
+    catalog = list_catalog_ids(world, world_dir)
+    world["skill_catalog"] = catalog
+    if world_dir:
+        result["_world_dir"] = str(world_dir)
+        result.setdefault("world_id", Path(world_dir).name)
+    result["world"] = world
 
     vocation = str(world.get("vocation") or "").strip().lower()
     voc_soul = world.get("vocation_soul") if isinstance(world.get("vocation_soul"), dict) else {}
@@ -456,6 +458,7 @@ def expand_world(raw_config: dict, *, world_dir: Path | None = None) -> dict:
             expanded["speech_language"] = speech
         if vocation == "research":
             expanded["soul"] = inject_research_soul(expanded.get("soul") or {}, voc_soul)
+        expanded["skills"] = seed_skill_ids(expanded, world, world_dir)
         expanded_chars.append(expanded)
     result["characters"] = expanded_chars
 
@@ -533,4 +536,5 @@ def load_world(world_name: str, worlds_root: str | Path | None = None) -> dict:
         raw = yaml.safe_load(f) or {}
     if raw.get("format_version") == "2.0":
         raw = expand_world(raw, world_dir=config_path.parent)
+    raw["world_id"] = world_name
     return raw

@@ -117,13 +117,10 @@ def _practice_hint(char: Character) -> str:
 
 
 def _research_hint(char: Character, phase: str = "") -> str:
-    """World research skill (phase slice) — empty if the world has none."""
-    skills = getattr(char, "_skills_text", None) or {}
-    if skills.get("research"):
-        from engine.skills import skill_phase_block
+    """This character's living skill book — not a world manifesto dump."""
+    from engine.skills import character_skill_hint
 
-        return skill_phase_block(skills, phase=phase)
-    return (getattr(char, "_research_protocol", "") or "").strip()
+    return character_skill_hint(char, phase=phase)
 
 
 def run_collision(initiator: Character, target: Character, topic: str, llm: LLM) -> str:
@@ -199,9 +196,11 @@ def extract_soul_updates(char_name: str, context_type: str, context: str, llm: L
 - 当前最重要的未解问题是否替换
 - 是否出现真正改变自我认知的里程碑瞬间
 - 是否真正打开了一个新的智力领域（不只是提到一个名词）
+- 是否真正掌握了一项新技艺（opened_skills: catalog id，如 research）
 
 明确不要提取：具体公式、计算结果、论文内容、工具输出、临时技术细节。
 这些是数字生命：可以横跨人类难以兼修的多个领域；只有当真产生持续兴趣/转向时才记录新领域。
+技能成长主要由实践自动记账；这里只在角色真正打开一门新技艺时写 opened_skills。
 
 {context}
 
@@ -212,10 +211,12 @@ def extract_soul_updates(char_name: str, context_type: str, context: str, llm: L
   "orientation_question": "若出现了新的核心未解问题，写一句；否则省略",
   "orientation_focus": "若关注点本质转移，写一句；否则省略",
   "opened_domains": ["tropical_geometry"],
+  "opened_skills": ["research"],
   "witnessed_moment": "仅当这是改变自我/关系的瞬间时写（≤20字）；否则省略"
 }}
 
-opened_domains 规则：仅当真正打开持久新领域时填写；每项必须是 english snake_case 短名（如 algebraic_topology）；禁止破折号后注释、整句说明、中文元话语。"""
+opened_domains 规则：仅当真正打开持久新领域时填写；每项必须是 english snake_case 短名（如 algebraic_topology）；禁止破折号后注释、整句说明、中文元话语。
+opened_skills 规则：仅当角色新掌握一门 catalog 技艺时填写；不要把一次阅读写成新 skill。"""
 
     response = llm.chat(
         [{"role": "user", "content": prompt}],

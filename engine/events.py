@@ -46,6 +46,20 @@ class EventQueue:
     def __bool__(self):
         return len(self._heap) > 0
 
+    def drop_at_or_before(self, t: float) -> int:
+        """Drop events with time <= t (used when restoring a mid-life clock)."""
+        kept = []
+        dropped = 0
+        while self._heap:
+            item = heapq.heappop(self._heap)
+            if item[0] > t:
+                kept.append(item)
+            else:
+                dropped += 1
+        for item in kept:
+            heapq.heappush(self._heap, item)
+        return dropped
+
 
 def sample_poisson_interval(lam: float) -> float:
     """Sample from exponential distribution: interval ~ Exp(λ)."""

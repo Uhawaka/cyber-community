@@ -54,8 +54,7 @@ class LifecycleMixin:
                     ))
 
     def bootstrap(self):
-        """Schedule day rhythm + spontaneous for day 0; gather cast at commons."""
-        # Day-0: stand at the seed shelf so location context shows startup materials.
+        """Schedule day rhythm + spontaneous for the current day; gather at commons."""
         env = getattr(self, "environment", None)
         if env and "commons" in env.nodes:
             for name in list(getattr(self, "characters", {}) or {}):
@@ -64,20 +63,33 @@ class LifecycleMixin:
                 env.save()
             except Exception:
                 pass
-        self._schedule_day_activities(day_start=0.0)
-        self.queue.push(Event(time=24.0, type="day_boundary"))
-        self.queue.push(Event(time=72.0, type="weekly_seminar"))
+        day_start = (max(int(self.day), 1) - 1) * 24.0
+        self._schedule_day_activities(day_start=day_start)
+        boundary = day_start + 24.0
+        if boundary <= self.clock:
+            boundary = (int(self.clock // 24) + 1) * 24.0
+        self.queue.push(Event(time=boundary, type="day_boundary"))
+        seminar = 72.0
+        if seminar > self.clock:
+            self.queue.push(Event(time=seminar, type="weekly_seminar"))
+        drop = getattr(self.queue, "drop_at_or_before", None)
+        if callable(drop):
+            drop(self.clock)
 
 
     def run(self, max_days: int = 1, verbose: bool = True):
         """Run simulation for max_days virtual days (batch / experiment)."""
         self.running = True
-        self.bootstrap()
+        if not getattr(self, "_bootstrapped", False):
+            self.bootstrap()
+            self._bootstrapped = True
 
         max_time = max_days * 24.0
         self.run_slice(until_time=max_time, max_events=10_000_000, verbose=verbose)
 
         self.running = False
+        if hasattr(self, "save_sim_state"):
+            self.save_sim_state(founded=self.day > 1 or bool(self.event_log))
         if verbose:
             self._log(f"模拟结束: Day {self.day}, t={self.clock:.1f}")
 
@@ -200,6 +212,8 @@ class LifecycleMixin:
 
         # Save environment
         self.environment.save()
+        if hasattr(self, "save_sim_state"):
+            self.save_sim_state(founded=True)
 
         # Schedule denser rhythm + spontaneous for the new day
         self._schedule_day_activities(day_start=self.clock)

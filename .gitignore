@@ -1,5 +1,6 @@
 # Runtime / local simulation state (may contain private run logs)
-outputs/
+outputs/*
+!outputs/.gitkeep
 *.log
 tmp/
 /tmp/

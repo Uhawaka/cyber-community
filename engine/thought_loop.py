@@ -85,12 +85,9 @@ def next_inner_turn(llm, char, dialogue: InnerDialogue) -> InnerTurn | None:
     system = char.build_system_prompt()
     topic = dialogue.topic
     practice = (getattr(char, "_world_practice", "") or "").strip()
-    from engine.skills import skill_phase_block
+    from engine.skills import character_skill_hint
 
-    skills = getattr(char, "_skills_text", None) or {}
-    research = skill_phase_block(skills, phase="think") or (
-        getattr(char, "_research_protocol", "") or ""
-    ).strip()
+    research = character_skill_hint(char, phase="think")
     practice_line = f"\n本社区工作规范:\n{practice}\n" if practice else "\n"
     grain = f"\n{research}\n" if research else ""
 

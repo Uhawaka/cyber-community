@@ -21,7 +21,7 @@ from datetime import datetime
 # Ensure real-time output — no buffering in --watch mode
 sys.stdout.reconfigure(line_buffering=True)
 
-PROJECT_ROOT = Path(__file__).parent
+PROJECT_ROOT = Path(__file__).resolve().parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
 from engine.llm import LLM
@@ -110,7 +110,7 @@ def main():
         digest = f"{digest}\n\n---\n社区动态:\n{snap}"
     print(digest)
 
-    output_dir = PROJECT_ROOT / "outputs" / args.world
+    output_dir = engine._output_dir
     output_dir.mkdir(parents=True, exist_ok=True)
     digest_path = output_dir / f"digest_{datetime.now().strftime('%Y%m%d_%H%M')}.md"
     with open(digest_path, "w") as f:

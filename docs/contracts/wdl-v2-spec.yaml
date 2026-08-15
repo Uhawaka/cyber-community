@@ -14,8 +14,9 @@ world:
   worldview: ""
   speech_language: "zh"    # dialogue language for LLM replies (config content stays English)
   shared_program: ""       # optional: common objects/questions so specialists can collide
-  vocation: ""             # optional: research → inject research soul + skill
-  skills: []               # optional: [research] loads docs/skills/<id>.md
+  vocation: ""             # optional: research → inject research soul + open skill on characters
+  skill_catalog: []        # optional: [research] — templates the engine may open
+  skills: []               # alias for skill_catalog (world) or seed ids (character)
   vocation_soul: {}        # optional: { stance: "" } overrides default research stance
 
 sociology:
@@ -47,6 +48,8 @@ characters:
       what_drives_me: ""
       voice: []
       bonds: {}
+
+    skills: []             # optional seed ids from world.skill_catalog (opened onto Soul)
 
     orientation:           # preferred — mutable program
       current_focus: ""

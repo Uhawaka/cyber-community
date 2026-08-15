@@ -107,9 +107,10 @@ class CognitionMixin:
 
         from engine.culture import format_world_context, format_practice_context
         from engine.research import research_prompt_block
+        from engine.skills import bind_character_skills
         frame = getattr(self, "world_frame", {}) or {}
         char._world_practice = format_practice_context(frame)
-        char._skills_text = frame.get("skills_text") or {}
+        bind_character_skills(char, self.souls.get(char_name))
         char._research_protocol = research_prompt_block(frame)
         world_ctx = format_world_context(frame, max_chars=2800)
         if world_ctx:
@@ -271,10 +272,17 @@ class CognitionMixin:
         self._check_solo_to_collab(char_name, thought)
 
     def _update_soul_from_study(self, char_name: str, topic: str, thought: str):
-        """Extract soul changes from a study step."""
+        """Grow skills from practice; optionally extract identity-level soul changes."""
         soul = self.souls.get(char_name)
         if soul is None:
             return
+        topic_s = " ".join((topic or "").split())[:40]
+        soul.practice_skill("research", f"studied {topic_s}".strip(), day=self.day, amount=0.03)
+        char = self.characters.get(char_name)
+        if char is not None:
+            from engine.skills import bind_character_skills
+
+            bind_character_skills(char, soul)
         if self.dry_run or not self._llm_budget_ok():
             return
 

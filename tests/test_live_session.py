@@ -14,9 +14,14 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from engine.character import Character
-from engine.engine import SimulationEngine
-from engine.live_session import LiveSession, next_wake_after, parse_wake_times
-from engine.world_builder import expand_world
+from engine.engine import OUTPUTS_ROOT, SimulationEngine, resolve_output_dir
+from engine.live_session import (
+    LiveSession,
+    community_has_lived,
+    next_wake_after,
+    parse_wake_times,
+)
+from engine.world_builder import expand_world, load_world
 
 
 class NoopLLM:
@@ -134,6 +139,67 @@ def test_force_wake_processes_events():
     stats = session.force_wake()
     assert stats["processed"] >= 1
     assert session._wake_count == 1
+
+
+def test_fresh_engine_has_not_lived():
+    eng = _engine()
+    eng.event_log.append({"type": "noise"})
+    assert community_has_lived(eng) is False
+
+
+def test_output_dir_uses_world_slug_not_display_name():
+    cfg = load_world("math-commune", ROOT / "worlds")
+    assert cfg.get("world_id") == "math-commune"
+    path = resolve_output_dir(cfg, dry_run=False)
+    assert path == OUTPUTS_ROOT / "math-commune"
+    assert path.is_relative_to(ROOT)
+    assert Path.home() / "outputs" not in path.parents
+    assert "Math-Commune" not in str(path)
+
+
+def test_sim_state_marks_founded_and_restores_day():
+    with tempfile.TemporaryDirectory() as tmp:
+        raw = yaml.safe_load((ROOT / "worlds/math-commune/community.yaml").read_text())
+        cfg = expand_world(raw) if raw.get("format_version") == "2.0" else raw
+        cfg["world_id"] = "math-commune"
+        cfg["_output_dir"] = tmp
+        eng = SimulationEngine(cfg, NoopLLM(), dry_run=True)
+        assert community_has_lived(eng) is False
+        assert eng.day == 1
+        session = LiveSession(eng, avatar_name="Alex")
+        first = session.ensure_founded(verbose=False)
+        assert first["created"] is True
+        assert eng.day >= 2
+        assert (Path(tmp) / "sim_state.json").is_file()
+        again = SimulationEngine(cfg, NoopLLM(), dry_run=True)
+        assert again.day >= 2
+        assert community_has_lived(again) is True
+        skipped = LiveSession(again, avatar_name="Alex").ensure_founded(verbose=False)
+        assert skipped["created"] is False
+        assert skipped["day"] >= 2
+
+
+def test_ensure_founded_runs_first_day_then_noop():
+    eng = _engine()
+    session = LiveSession(eng, avatar_name="Alex")
+    first = session.ensure_founded(verbose=False)
+    assert first["created"] is True
+    assert community_has_lived(eng) is True
+    assert eng.day >= 2
+    assert getattr(eng, "_bootstrapped", False) is True
+    boundaries = sum(
+        1 for _, _, ev in eng.queue._heap if ev.type == "day_boundary"
+    )
+    second = session.ensure_founded(verbose=False)
+    assert second["created"] is False
+    session.start()
+    try:
+        after = sum(
+            1 for _, _, ev in eng.queue._heap if ev.type == "day_boundary"
+        )
+        assert after == boundaries
+    finally:
+        session.stop()
 
 
 def test_batch_main_path_still_runs():

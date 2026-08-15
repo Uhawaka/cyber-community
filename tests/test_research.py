@@ -58,9 +58,12 @@ def test_math_commune_injects_research_soul():
     assert "chair" in (soul.get("craft") or "").lower() or "studio" in (soul.get("craft") or "").lower()
     frame = resolve_world_frame(cfg)
     assert frame.get("vocation") == "research"
-    assert "research" in (frame.get("skills_text") or {})
+    catalog = frame.get("skill_catalog") or frame.get("skills") or []
+    assert "research" in catalog
+    assert not (frame.get("skills_text") or {})
+    assert "research" in (elias.get("skills") or [])
     practice = format_practice_context(frame)
-    assert "review" in practice.lower() or "peer" in practice.lower() or "Stance" in practice
+    assert "review" in practice.lower() or "peer" in practice.lower() or "working unit" in practice.lower()
 
 
 def test_poets_salon_has_no_research_vocation():
@@ -69,6 +72,7 @@ def test_poets_salon_has_no_research_vocation():
     assert (frame.get("vocation") or "") != "research"
     first = cfg["characters"][0]
     assert (first.get("soul") or {}).get("vocation") in ("", None)
+    assert "research" not in (first.get("skills") or [])
 
 
 def test_free_grain_is_silent():

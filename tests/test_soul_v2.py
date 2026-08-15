@@ -104,6 +104,10 @@ def test_seed_fills_identity_from_math_commune():
             or "claim" in focus
         )
         assert "knowledge_evolved" not in soul.data
+        assert "research" in (soul.data.get("skills") or {})
+        rec = soul.data["skills"]["research"]
+        assert rec.get("level", 0) > 0
+        assert rec.get("stance")
 
 
 def test_reject_tool_junk_milestones():

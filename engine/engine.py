@@ -10,9 +10,29 @@ Modules:
 
 from __future__ import annotations
 
+import json
 import random
 import tempfile
 from pathlib import Path
+
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+OUTPUTS_ROOT = PROJECT_ROOT / "outputs"
+
+
+def resolve_output_dir(config: dict, *, dry_run: bool = False) -> Path:
+    """Always `<repo>/outputs/<world_id>` — never cwd or ~/outputs.
+
+    World id is the folder name (`math-commune`), not the display name
+    (`Math Commune` → Math-Commune). Tests may override with `_output_dir`.
+    """
+    if config.get("_output_dir"):
+        return Path(config["_output_dir"])
+    if dry_run:
+        return Path(tempfile.mkdtemp(prefix="cc_dryrun_"))
+    slug = str(config.get("world_id") or config.get("_world_id") or "").strip()
+    if not slug:
+        slug = str(config.get("name") or "community").replace(" ", "-")
+    return OUTPUTS_ROOT / slug
 
 from engine.events import EventQueue
 from engine.character import Character
@@ -32,6 +52,7 @@ from engine.collaboration import CollaborationBoard
 from engine.anonymous_events import AnonymousEventBoard
 from engine.culture import format_practice_context, resolve_sociology, resolve_world_frame
 from engine.research import research_prompt_block
+from engine.skills import bind_character_skills
 
 from engine.sim_lifecycle import LifecycleMixin
 from engine.sim_activity import ActivityMixin
@@ -67,11 +88,10 @@ class SimulationEngine(
 
         self.world_frame = resolve_world_frame(config)
         permeability = self.world_frame.get("permeability", "connected")
-        # In dry_run, use temp dir to avoid contaminating persistent files
-        if dry_run:
-            self._output_dir = Path(tempfile.mkdtemp(prefix="cc_dryrun_"))
-        else:
-            self._output_dir = Path("outputs") / config.get("name", "community").replace(" ", "-")
+        self._output_dir = resolve_output_dir(config, dry_run=dry_run)
+        self._state_path = self._output_dir / "sim_state.json"
+        self._sim_state: dict = {"founded": False, "day": 1, "clock": 0.0}
+        self._load_sim_state()
         output_dir = self._output_dir
 
         for char_cfg in config.get("characters", []):
@@ -89,7 +109,7 @@ class SimulationEngine(
             )
             self.souls[name] = soul
 
-            self.characters[name]._skills_text = self.world_frame.get("skills_text") or {}
+            bind_character_skills(self.characters[name], soul)
             self.characters[name]._research_protocol = research_prompt_block(self.world_frame)
             self.characters[name]._world_practice = format_practice_context(self.world_frame)
 
@@ -340,6 +360,46 @@ class SimulationEngine(
                 tags=["seed_shelf", "backstory", "founding"],
             ))
             mem.save()
+
+    def _load_sim_state(self) -> None:
+        """Restore day/clock/founded from outputs/<world>/sim_state.json."""
+        path = getattr(self, "_state_path", None)
+        if not path or not Path(path).is_file():
+            return
+        try:
+            data = json.loads(Path(path).read_text(encoding="utf-8")) or {}
+        except Exception:
+            return
+        if not isinstance(data, dict):
+            return
+        self._sim_state.update(data)
+        try:
+            self.day = max(1, int(data.get("day") or 1))
+        except (TypeError, ValueError):
+            pass
+        try:
+            self.clock = max(0.0, float(data.get("clock") or 0))
+        except (TypeError, ValueError):
+            pass
+
+    def save_sim_state(self, *, founded: bool | None = None) -> None:
+        path = getattr(self, "_state_path", None)
+        if not path:
+            return
+        prev = dict(getattr(self, "_sim_state", None) or {})
+        if founded is None:
+            founded = bool(prev.get("founded") or self.day > 1)
+        self._sim_state = {
+            "world_id": str(self.config.get("world_id") or self.config.get("_world_id") or ""),
+            "day": int(self.day),
+            "clock": float(self.clock),
+            "founded": bool(founded),
+        }
+        Path(path).parent.mkdir(parents=True, exist_ok=True)
+        Path(path).write_text(
+            json.dumps(self._sim_state, ensure_ascii=False, indent=2) + "\n",
+            encoding="utf-8",
+        )
 
     def _llm_calls_used(self) -> int:
         return getattr(self.llm, "call_count", 0) - self._llm_calls_slice_start

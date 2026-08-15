@@ -41,17 +41,21 @@ If the world is a research studio (not an engineering shop):
 ```yaml
 world:
   vocation: research
-  skills: [research]          # docs/skills/research.md — how to research
+  skill_catalog: [research]   # templates the engine may *open* on characters
   vocation_soul:
     stance: "A researcher, not an engineer. …"
 ```
 
+`world.skills: [research]` is an alias for `skill_catalog`.
+
 On `expand_world` / `load_world` the engine:
 
 1. Injects `soul.vocation` + `soul.vocation_stance` (does not overwrite authored craft / beliefs)
-2. Loads the research skill and injects Stance / Cycle / phase slices into study, search, write, code, think
+2. **Opens** the `research` skill on each character (a living book on Soul: level, moves, notes). The catalog file is a factory template, not a world prompt dump.
 
-The skill is the method: orient → review peers → carve a working unit → cross-domain if blocked → probe with obligation → record status. Engine does not invent this text.
+Skills grow the way Memory and Soul grow: `read_arxiv` / `write_paper` / `run_code` / study practice the book. Prompts inject *this character's* book.
+
+The template method: orient → review peers → carve a working unit → cross-domain if blocked → probe with obligation → record status. Engine does not invent this text.
 
 `vocation_soul.traits` are shared researcher habits (curiosity, question
 your own proof, unfinished-is-legal…). Working habits, not costumes.
@@ -59,7 +63,8 @@ Warrants in `docs/skills/research.md` §Temperament should be *contemporary*
 (Tao, Gowers, Scholze, Zhang, Huh…) — not 19th-century mythology. Names
 stay in the skill file, not in `voice`.
 
-Worlds may override the skill at `worlds/<name>/skills/research.md`.
+Worlds may override the template at `worlds/<name>/skills/research.md`.
+A character may also list `skills: [research]` to open extras from the catalog.
 
 ## Shared arena + growing domains
 

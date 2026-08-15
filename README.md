@@ -57,6 +57,8 @@ python main.py --days 1 --seed 42
 
 ```bash
 # 常驻进入（马甲 Alex）
+# 若该世界还没过过虚拟日，会先建档并跑完第一天，再挂起等墙钟窗口
+# 存档固定在仓库 outputs/<world-id>/（与从哪启动无关，不用 ~/outputs）
 python live.py
 python live.py --world math-commune --as Alex
 
@@ -133,7 +135,7 @@ cyber-community/
 │   └── ...
 ├── worlds/                 # 社区 YAML
 ├── docs/                   # contracts / authoring / templates
-└── outputs/                # 运行产物（gitignore）
+└── outputs/                # 运行存档（固定仓库内 outputs/<world-id>，gitignore）
 ```
 
 ## 文档

@@ -11,8 +11,8 @@ world:
   permeability: "connected"
   worldview: ""
   speech_language: "zh"
-  # vocation: research          # inject research-type soul at community generation
-  # skills: [research]          # load docs/skills/research.md (or worlds/<name>/skills/)
+  # vocation: research          # inject research-type soul; open research skill on each character
+  # skill_catalog: [research]   # templates only — not dumped into every prompt
   # vocation_soul: { stance: "" }
   shared_program: ""
   # Optional — any world can define craft culture without engine forks:

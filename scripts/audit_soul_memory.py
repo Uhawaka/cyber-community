@@ -11,6 +11,9 @@ from pathlib import Path
 import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+
+from engine.engine import OUTPUTS_ROOT
 
 SOUL_JUNK = re.compile(
     r"(使用\w+获得发现|代码运行|论文已保存|stdout|\[run_code\]|\[write_paper\]|"
@@ -106,17 +109,12 @@ def audit_memory(path: Path) -> list[str]:
 
 
 def main():
-    world = sys.argv[1] if len(sys.argv) > 1 else "Math-Commune"
-    base = ROOT / "outputs" / world
+    world = sys.argv[1] if len(sys.argv) > 1 else "math-commune"
+    base = OUTPUTS_ROOT / world
     if not base.exists():
-        # try alternate spacing
-        alt = ROOT / "outputs" / world.replace(" ", "-")
-        if alt.exists():
-            base = alt
-        else:
-            candidates = list((ROOT / "outputs").glob("*"))
-            print(f"No outputs/{world}. Available: {[p.name for p in candidates]}")
-            return 1
+        candidates = [p.name for p in OUTPUTS_ROOT.iterdir() if p.is_dir()] if OUTPUTS_ROOT.exists() else []
+        print(f"No {base}. Available: {candidates}")
+        return 1
 
     soul_dir = base / "souls"
     mem_dir = base / "memory"

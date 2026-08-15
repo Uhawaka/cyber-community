@@ -67,6 +67,7 @@ def empty_soul(name: str = "") -> dict:
             "tensions": [],
             "recently_opened": [],  # domains newly opened (short log)
         },
+        "skills": {},
         "reflections": [],
         "milestones": [],
         "meta": {
@@ -236,6 +237,8 @@ class SoulFile:
                 **(raw.get("orientation") or {}),
             }
             base["meta"] = {**empty_soul()["meta"], **(raw.get("meta") or {})}
+            sk = raw.get("skills")
+            base["skills"] = sk if isinstance(sk, dict) else {}
             return base
 
         out = empty_soul(raw.get("name", ""))
@@ -424,6 +427,25 @@ class SoulFile:
         if world_name:
             meta["seeded_from"] = world_name
 
+        from engine.skills import open_skill
+
+        book = self.data.setdefault("skills", {})
+        if not isinstance(book, dict):
+            book = {}
+            self.data["skills"] = book
+        raw_skills = config.get("skills") or []
+        if isinstance(raw_skills, dict):
+            for sid, rec in raw_skills.items():
+                if sid in book:
+                    continue
+                if isinstance(rec, dict) and rec.get("id"):
+                    book[sid] = rec
+                else:
+                    open_skill(book, str(sid), day=1)
+        else:
+            for sid in raw_skills:
+                open_skill(book, str(sid), day=1)
+
         self.save()
 
     def update_bond(self, target: str, stance: str = "", history_note: str = "", day: int = 0):
@@ -537,6 +559,42 @@ class SoulFile:
         self.save()
         return True
 
+    def open_skill(self, skill_id: str, day: int = 0, world_dir=None) -> bool:
+        """Instantiate a catalog template onto this character."""
+        from engine.skills import open_skill
+
+        book = self.data.setdefault("skills", {})
+        if not isinstance(book, dict):
+            book = {}
+            self.data["skills"] = book
+        if not open_skill(book, skill_id, world_dir=world_dir, day=day):
+            return False
+        self.save()
+        return True
+
+    def practice_skill(
+        self,
+        skill_id: str,
+        move: str = "",
+        *,
+        note: str = "",
+        day: int = 0,
+        amount: float = 0.04,
+    ) -> bool:
+        """Grow an already-open skill after study / read / write / code."""
+        from engine.skills import practice_skill
+
+        book = self.data.setdefault("skills", {})
+        if not practice_skill(book, skill_id, move, note=note, day=day, amount=amount):
+            return False
+        self.save()
+        return True
+
+    def format_skills(self, phase: str = "") -> str:
+        from engine.skills import format_skill_book
+
+        return format_skill_book(self.data.get("skills") or {}, phase=phase)
+
     def apply_delta(self, updates: dict, day: int = 0) -> list[str]:
         if not updates:
             return []
@@ -599,6 +657,24 @@ class SoulFile:
             if ok:
                 applied.append(f"domain:{label}")
 
+        for sid in updates.get("opened_skills") or []:
+            label = sid.get("id") if isinstance(sid, dict) else str(sid)
+            if self.open_skill(str(label), day=day):
+                applied.append(f"skill:{label}")
+
+        for item in updates.get("skill_moves") or []:
+            if isinstance(item, dict):
+                ok = self.practice_skill(
+                    item.get("skill") or item.get("id") or "research",
+                    item.get("move") or "",
+                    note=item.get("note") or "",
+                    day=day,
+                )
+            else:
+                ok = self.practice_skill("research", str(item), day=day)
+            if ok:
+                applied.append("skill_practice")
+
         return applied
 
     def get_context_summary(self) -> str:
@@ -646,6 +722,19 @@ class SoulFile:
         recent_open = orient.get("recently_opened") or []
         if recent_open:
             parts.append(f"Recently opened domains: {'; '.join(str(x) for x in recent_open[-3:])}")
+
+        book = self.data.get("skills") or {}
+        if book:
+            bits = []
+            for sid, rec in list(book.items())[:4]:
+                if not isinstance(rec, dict):
+                    continue
+                lv = float(rec.get("level") or 0)
+                moves = rec.get("moves") or []
+                last = f" · {moves[-1]}" if moves else ""
+                bits.append(f"{sid} lv {lv:.2f}{last}")
+            if bits:
+                parts.append("Skills (growing): " + "; ".join(bits))
 
         refs = self.data.get("reflections") or []
         if refs:

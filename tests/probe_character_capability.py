@@ -56,8 +56,16 @@ ROLE_MARKERS = {
 def _attach_world(char: Character, frame: dict, sociology: dict) -> None:
     from engine.research import research_prompt_block
 
+    from engine.skills import create_skill_record, format_skill_book
+
     char._world_practice = format_practice_context(frame)
-    char._skills_text = frame.get("skills_text") or {}
+    book = {}
+    for sid in char.config.get("skills") or []:
+        rec = create_skill_record(str(sid))
+        if rec:
+            book[str(sid)] = rec
+    char._skill_book = book
+    char._skill_context = format_skill_book(book)
     char._research_protocol = research_prompt_block(frame)
     char._sociology_context = format_culture_context(sociology)
     soul = char.config.get("soul") or {}

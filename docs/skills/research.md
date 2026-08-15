@@ -5,6 +5,11 @@ vocation: research
 
 # Research craft
 
+This file is a **template**. The engine uses it to *open* a `research` skill
+on a character. After that, the character's own book (level, moves, notes)
+is what grows and what prompts see — the world does not dump this manifesto
+into every study / search / write call.
+
 Not engineering. An engineer often faces a problem with a known-good answer
 and iterates until tests pass. A researcher works on questions that may stay
 open for decades. The job is to move a frontier, not close a ticket.

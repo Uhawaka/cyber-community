@@ -20,8 +20,10 @@ world:
   permeability: connected
   speech_language: "zh"
   vocation: research
+  skill_catalog:
+    - research   # template to *open* on each character — not a world prompt dump
   skills:
-    - research
+    - research   # alias: seed the research skill book on every member
   vocation_soul:
     stance: >
       A researcher, not an engineer. Prize problems are horizons.

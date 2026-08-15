@@ -838,9 +838,11 @@ character_state:
     ├── identity（craft / who_i_am / core_belief / how_i_think / voice）
     ├── bonds（对他人的深层态度）
     ├── orientation（当前课题——可变，≠ identity）
+    ├── skills（挣来的技艺书：level / moves / notes，随实践成长）
     ├── reflections / milestones（稀有高层沉淀）
     └── recent_murmurs（短暂语气，非身份）
     研究日志、工具输出 → Memory / Production，不进 Soul
+    世界 skill 目录只用来 *创建* 角色 skill，不往每个 prompt 塞方法论全文
 
   Layer 2: 长期记忆（模糊存档，按日归档）
     ├── Day 1:  摘要（"刚加入社区，认识了 Yuki 和 Pavel"）
@@ -1582,7 +1584,8 @@ Live wake 默认: max_events=70, max_llm=160（密度上去后避免窗内截断
 
 领域强度来自 `world.worldview` / `practice` / `governance` / `open_problems`（完整注入 prompt）。
 Engine 只做通用格式化。不要为数学/诗歌各写一套 `*_rigor.py`。
-Soul = 身份；攻坚清单与工作规范 = 世界文档。
+Soul = 身份；Skills = 挣来的技艺（随实践成长）；攻坚清单与工作规范 = 世界文档。
+引擎的 skill 目录是工厂：打开一门技艺到角色身上。不要在生成世界时把 `docs/skills/*.md` 塞进所有人的 prompt。
 
 ### 8.5 已知技术债 / 近况
 

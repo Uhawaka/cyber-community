@@ -94,13 +94,10 @@ def resolve_world_frame(config: dict) -> dict:
     literature = resolve_literature_config(world, config)
     research = resolve_research_config(world, config)
     vocation = str(world.get("vocation") or "").strip().lower()
-    skills = world.get("skills") or []
-    if isinstance(skills, str):
-        skills = [skills]
-    skills_text = world.get("skills_text") if isinstance(world.get("skills_text"), dict) else {}
-    if skills_text:
-        research = dict(research)
-        research["skills_text"] = skills_text
+    catalog = world.get("skill_catalog") or world.get("skills") or []
+    if isinstance(catalog, str):
+        catalog = [catalog]
+    catalog = [str(s).strip() for s in catalog if str(s).strip()]
 
     return {
         "name": name,
@@ -116,8 +113,8 @@ def resolve_world_frame(config: dict) -> dict:
         "literature": literature,
         "research": research,
         "vocation": vocation,
-        "skills": [str(s).strip() for s in skills if str(s).strip()],
-        "skills_text": skills_text,
+        "skill_catalog": catalog,
+        "skills": catalog,
     }
 
 

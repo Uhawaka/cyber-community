@@ -34,6 +34,17 @@ orientation:
   tensions: []           # ≤3
   recently_opened: []    # short log of newly opened domains
 
+skills: {}
+  # Earned craft book — sibling of identity, grows with practice.
+  # research:
+  #   id: research
+  #   level: 0.24
+  #   opened_day: 1
+  #   practices: 3
+  #   moves: ["deep-read 1806.01678"]
+  #   notes: []
+  #   stance: "..."        # snapshot from catalog at open time
+
 reflections: []
   # - day: 3
   #   about: self          # self | other:Name | work | community

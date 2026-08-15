@@ -209,7 +209,17 @@ class WorldMixin:
             if result.artifact_path:
                 self._log(f"    📁 制品: {result.artifact_path}")
 
-        # Tools update memory/production — NOT Soul (Soul is identity, not a lab notebook)
+        # Tools update memory/production. Skills grow here; Soul identity does not.
+
+        soul = self.souls.get(char.name)
+        if soul is not None:
+            from engine.skills import bind_character_skills, practice_from_tool
+
+            hit = practice_from_tool(tool_name, params, result.success)
+            if hit:
+                sid, move, amt = hit
+                soul.practice_skill(sid, move, day=self.day, amount=amt)
+                bind_character_skills(char, soul)
 
         # ── Memory: record tool use episode ──
         self._record_memory(char.name, "tool_use",

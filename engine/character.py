@@ -52,6 +52,8 @@ class Character:
         self._sociology_context: str = ""
         self._deep_understanding: str = ""
         self._soul_context: str = ""
+        self._skill_context: str = ""
+        self._skill_book: dict = {}
 
         # ── Psychology model (v3) ──
         self.personality = config.get("personality", {})
@@ -233,6 +235,9 @@ class Character:
         identity += f"## 你如何看待自己\n{self.self_concept}\n\n"
         if getattr(self, "_soul_context", ""):
             identity += f"## 人格锚点（Soul）\n{self._soul_context}\n\n"
+        skill_ctx = (getattr(self, "_skill_context", "") or "").strip()
+        if skill_ctx:
+            identity += f"## 技能（会随实践成长）\n{skill_ctx}\n\n"
 
         # ── Cognitive style — the MOST important part ──
         primary = self.cognitive.get("primary_mode", "symbolic")
