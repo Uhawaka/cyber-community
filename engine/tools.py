@@ -290,12 +290,25 @@ def parse_arxiv_atom(xml_data: str) -> list[dict]:
             if name_elem is not None and name_elem.text:
                 authors.append(name_elem.text.strip())
         published = entry.find("atom:published", ns)
+        categories = []
+        for cat in entry.findall("atom:category", ns):
+            term = (cat.get("term") or "").strip()
+            if term:
+                categories.append(term)
+        prim_el = entry.find("arxiv:primary_category", ns)
+        primary = ""
+        if prim_el is not None:
+            primary = (prim_el.get("term") or "").strip()
+        if not primary and categories:
+            primary = categories[0]
         papers.append({
             "arxiv_id": aid,
             "title": title_text,
             "authors": authors,
             "summary": summary_text,
             "published": (published.text or "")[:10] if published is not None else "",
+            "primary_category": primary,
+            "categories": categories,
             "abs_url": f"https://arxiv.org/abs/{aid}" if aid else "",
             "pdf_url": f"https://arxiv.org/pdf/{aid}.pdf" if aid else "",
             "html_url": (
@@ -343,8 +356,21 @@ class ToolRegistry:
         self.world_frame = world_frame or {}
         self.config = config or {}
 
+        from engine.literature import SEARCH_TOOL_NAMES, search_is_enabled
+
+        lit = (self.world_frame or {}).get("literature")
+        if not isinstance(lit, dict):
+            world = (self.config or {}).get("world") or {}
+            lit = world.get("literature") if isinstance(world, dict) else None
+        allow_search = (
+            search_is_enabled(self.world_frame, self.config)
+            if isinstance(lit, dict)
+            else True
+        )
         for cfg in tool_configs:
             name = cfg["name"]
+            if name in SEARCH_TOOL_NAMES and not allow_search:
+                continue
             if name == "run_code":
                 self.tools[name] = self._make_run_code(cfg)
             elif name == "write_paper":
@@ -514,26 +540,34 @@ class ToolRegistry:
 
         def run(char_name: str, params: dict) -> ToolResult:
             from engine.literature import (
+                compose_arxiv_search_query,
+                filter_shelf_hits,
                 looks_like_cjk,
                 plan_literature_search,
                 primary_query,
                 resolve_literature_config,
             )
 
-            raw_query = params.get("query", "")
+            from engine.work_queue import agent_search_query
+
+            raw_query = agent_search_query(params.get("query", ""))
             topic = params.get("topic", raw_query)
+            if not raw_query:
+                return ToolResult(False, "不会提问：没有给出可检索的 query，不代搜")
             lit = resolve_literature_config(self.world_frame, self.config)
             plan = plan_literature_search(
                 intent="frontier",
                 channel="arxiv",
-                query=str(raw_query or ""),
-                focus=str(topic or ""),
+                query=str(raw_query),
+                focus="",
                 world_or_frame=self.world_frame,
                 config=self.config,
             )
             query = primary_query(plan, "arxiv")
-            if not query.strip():
-                return ToolResult(False, "没有提供搜索关键词")
+            if not query.strip() or agent_search_query(query) == "":
+                return ToolResult(False, "不会提问：没有给出可检索的 query，不代搜")
+            shelf = list(lit.get("arxiv_categories") or [])
+            api_q = compose_arxiv_search_query(query, shelf)
 
             now = datetime.now().strftime("%Y%m%d_%H%M%S")
             safe_name = char_name.replace(" ", "_")
@@ -542,40 +576,30 @@ class ToolRegistry:
 
             try:
                 url = (
-                    f"http://export.arxiv.org/api/query?search_query=all:{urllib.parse.quote(query)}"
+                    f"http://export.arxiv.org/api/query?search_query={urllib.parse.quote(api_q)}"
                     f"&start=0&max_results={max_results}&sortBy=relevance"
                 )
                 xml_data = _http_get(url, timeout=15).decode("utf-8")
                 papers = parse_arxiv_atom(xml_data)
-
-                if not papers:
-                    retry_plan = plan_literature_search(
-                        intent="frontier",
-                        channel="arxiv",
-                        query=str(topic or query),
-                        focus=str(topic or query),
-                        world_or_frame=self.world_frame,
-                        config=self.config,
-                    )
-                    retry_q = primary_query(retry_plan, "arxiv")
-                    if retry_q and retry_q != query:
-                        xml_data = _http_get(
-                            f"http://export.arxiv.org/api/query?search_query=all:{urllib.parse.quote(retry_q)}"
-                            f"&start=0&max_results={max_results}&sortBy=relevance",
-                            timeout=15,
-                        ).decode("utf-8")
-                        papers = parse_arxiv_atom(xml_data)
-                        if papers:
-                            query = retry_q
+                papers, dropped = filter_shelf_hits(papers, shelf)
 
                 search_path = search_dir / f"{safe_name}_{now}_search.json"
                 with open(search_path, "w") as f:
                     json.dump({
                         "character": char_name,
                         "query": query,
+                        "api_query": api_q,
                         "raw_query": raw_query,
                         "cjk_rewritten": looks_like_cjk(raw_query),
                         "literature_policy": lit.get("frontier_language"),
+                        "shelf": shelf,
+                        "dropped_off_shelf": [
+                            {
+                                "arxiv_id": p.get("arxiv_id"),
+                                "primary_category": p.get("primary_category"),
+                            }
+                            for p in dropped
+                        ],
                         "timestamp": datetime.now().isoformat(),
                         "results": papers,
                     }, f, ensure_ascii=False, indent=2)
@@ -584,15 +608,22 @@ class ToolRegistry:
                 if looks_like_cjk(raw_query) and raw_query.strip() != query:
                     note = f"（文献策略: 前沿检索改写为英文 → {query}）\n"
 
+                drop_note = ""
+                if dropped:
+                    drop_note = (
+                        f"货架外丢掉 {len(dropped)} 篇"
+                        f"（{', '.join(sorted({(p.get('primary_category') or '?') for p in dropped}) )}）。\n"
+                    )
                 if not papers:
                     output = (
-                        f"arXiv搜索「{query}」: 未找到相关论文。{note}"
+                        f"arXiv搜索「{query}」: 未找到货架内论文。{note}{drop_note}"
                         "换用定理/对象英文名再试，或 read_arxiv 指定 id。"
                     )
                 else:
                     lines = [
-                        f"arXiv搜索「{query}」: 找到 {len(papers)} 篇。",
+                        f"arXiv搜索「{query}」: 货架内 {len(papers)} 篇。",
                         note.strip(),
+                        drop_note.strip(),
                         "只看标题会空转名词——挑一篇用 read_arxiv 读正文/公式。",
                         "",
                     ]
@@ -601,7 +632,9 @@ class ToolRegistry:
                         if len(p["authors"]) > 3:
                             authors_str += " et al."
                         abs_full = p.get("summary") or ""
-                        lines.append(f"{i}. [{p.get('arxiv_id') or '?'}] {p['title']}")
+                        cat = p.get("primary_category") or ""
+                        cat_bit = f"  cat:{cat}" if cat else ""
+                        lines.append(f"{i}. [{p.get('arxiv_id') or '?'}]{cat_bit} {p['title']}")
                         lines.append(f"   作者: {authors_str}")
                         if p.get("published"):
                             lines.append(f"   日期: {p['published']}")
@@ -617,7 +650,22 @@ class ToolRegistry:
                     success=True,
                     output=output,
                     artifact_path=str(search_path),
-                    metadata={"query": query, "result_count": len(papers), "raw_query": raw_query},
+                    metadata={
+                        "query": query,
+                        "api_query": api_q,
+                        "result_count": len(papers),
+                        "dropped_count": len(dropped),
+                        "raw_query": raw_query,
+                        "arxiv_ids": [p.get("arxiv_id") for p in papers if p.get("arxiv_id")],
+                        "hits": [
+                            {
+                                "arxiv_id": p.get("arxiv_id"),
+                                "title": p.get("title", ""),
+                                "primary_category": p.get("primary_category") or "",
+                            }
+                            for p in papers if p.get("arxiv_id")
+                        ],
+                    },
                 )
             except Exception as e:
                 return ToolResult(False, f"arXiv搜索失败: {e}")
@@ -786,15 +834,19 @@ class ToolRegistry:
                 resolve_literature_config,
             )
 
-            raw_query = params.get("query", "")
+            from engine.work_queue import agent_search_query
+
+            raw_query = agent_search_query(params.get("query", ""))
             topic = params.get("topic", raw_query)
             vernacular_zh = (params.get("vernacular_zh") or params.get("zh_query") or "").strip()
+            if not raw_query:
+                return ToolResult(False, "不会提问：没有给出可检索的 query，不代搜")
             lit = resolve_literature_config(self.world_frame, self.config)
             plan = plan_literature_search(
                 intent="mixed" if lit.get("bilingual_web") else "frontier",
                 channel="web",
-                query=str(raw_query or ""),
-                focus=str(topic or ""),
+                query=str(raw_query),
+                focus="",
                 world_or_frame=self.world_frame,
                 config=self.config,
             )
@@ -807,7 +859,7 @@ class ToolRegistry:
                         break
 
             if not query.strip():
-                return ToolResult(False, "没有提供搜索关键词")
+                return ToolResult(False, "不会提问：没有给出可检索的 query，不代搜")
 
             now = datetime.now().strftime("%Y%m%d_%H%M%S")
             safe_name = char_name.replace(" ", "_")

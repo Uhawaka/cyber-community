@@ -19,7 +19,7 @@ from engine.tools import (
 
 
 SAMPLE_ATOM = """<?xml version="1.0" encoding="UTF-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom">
+<feed xmlns="http://www.w3.org/2005/Atom" xmlns:arxiv="http://arxiv.org/schemas/atom">
   <entry>
     <id>http://arxiv.org/abs/2301.00001v1</id>
     <title>On the zeros of zeta and a test formula</title>
@@ -29,6 +29,31 @@ SAMPLE_ATOM = """<?xml version="1.0" encoding="UTF-8"?>
       |ψ(x)-x| ≪ x^{1/2} log^2 x. We prove a conditional lemma.
     </summary>
     <author><name>A. Tester</name></author>
+    <category term="math.NT" scheme="http://arxiv.org/schemas/atom"/>
+    <arxiv:primary_category term="math.NT"/>
+  </entry>
+</feed>
+"""
+
+MIXED_SHELF_ATOM = """<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom" xmlns:arxiv="http://arxiv.org/schemas/atom">
+  <entry>
+    <id>http://arxiv.org/abs/2301.00001v1</id>
+    <title>On Hodge classes</title>
+    <published>2023-01-01T00:00:00Z</published>
+    <summary>A fourfold Hodge class and a checkable cycle class map.</summary>
+    <author><name>A. Tester</name></author>
+    <category term="math.AG" scheme="http://arxiv.org/schemas/atom"/>
+    <arxiv:primary_category term="math.AG"/>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/hep-ex/9901001</id>
+    <title>A collider measurement of something</title>
+    <published>1999-01-01T00:00:00Z</published>
+    <summary>We measure a cross section at the LHC.</summary>
+    <author><name>B. Collider</name></author>
+    <category term="hep-ex" scheme="http://arxiv.org/schemas/atom"/>
+    <arxiv:primary_category term="hep-ex"/>
   </entry>
 </feed>
 """
@@ -47,7 +72,36 @@ def test_parse_atom_full_abstract_and_links():
     assert p["arxiv_id"].startswith("2301.00001")
     assert "ζ(s)" in p["summary"] or "zeta" in p["summary"].lower()
     assert "arxiv.org/abs/" in p["abs_url"]
+    assert p.get("primary_category") == "math.NT"
+    assert "math.NT" in (p.get("categories") or [])
     assert len(p["summary"]) > 50  # not the old 150-char trunc habit
+
+
+def test_search_arxiv_drops_off_shelf_hits():
+    with tempfile.TemporaryDirectory() as tmp:
+        reg = ToolRegistry(
+            [{"name": "search_arxiv", "max_results": 5}],
+            Path(tmp),
+            world_frame={
+                "literature": {
+                    "enabled": True,
+                    "frontier_language": "en",
+                    "allow_vernacular": True,
+                    "fallback_query": "open problems mathematics",
+                    "arxiv_categories": ["math.*", "hep-th"],
+                }
+            },
+        )
+        with patch("engine.tools._http_get", return_value=MIXED_SHELF_ATOM.encode()):
+            result = reg.execute("search_arxiv", "Yuki", {"query": "Hodge class"})
+        assert result.success
+        assert "2301.00001" in result.output
+        assert "hep-ex" in result.output or "货架外" in result.output
+        assert "9901001" not in (result.metadata or {}).get("arxiv_ids", [])
+        ids = [h["arxiv_id"] for h in (result.metadata or {}).get("hits") or []]
+        assert any("2301.00001" in i for i in ids)
+        assert not any("9901001" in i for i in ids)
+        assert "cat:" in ((result.metadata or {}).get("api_query") or "")
 
 
 def test_html_and_tex_math_extractors():

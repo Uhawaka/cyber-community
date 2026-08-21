@@ -18,12 +18,22 @@ class SocialMixin:
         if not initiator or not target:
             return
 
-        topic = event.data.get("topic", "")
+        from engine.work_queue import (
+            note_collision,
+            public_speech_ok,
+            public_topic,
+        )
+
+        topic = public_topic(initiator, event.data.get("topic", "")) or public_topic(target)
         if verbose:
             self._log(f"  💬 {initiator.name} ↔ {target.name}")
 
+        note_collision(initiator)
+        note_collision(target)
+
         # Run LLM-driven collision
         dialogue = run_collision(initiator, target, topic, self.llm)
+        published = public_speech_ok(dialogue, initiator, target)
         
         # Log the dialogue
         self.event_log.append({
@@ -38,6 +48,8 @@ class SocialMixin:
         if verbose:
             for line in dialogue.split("\n")[:4]:
                 self._log(f"      {line.strip()[:120]}")
+            if not published:
+                self._log("    · 对话未点名对象，不算发表")
 
         # ── Soul evolution: update both characters ──
         self._update_soul_from_collision(initiator.name, target.name, topic, dialogue)
@@ -62,8 +74,8 @@ class SocialMixin:
             self.society.record_gift(target.name, initiator.name,
                 f"深度对话", value=1.5)
 
-        # ── Spread rumor if debate is intense ──
-        if quality == "negative":
+        # ── Spread rumor if debate is intense and on an object ──
+        if quality == "negative" and published:
             self.society.spread_rumor(
                 f"{initiator.name}和{target.name}刚刚激烈争论了{topic[:30]}",
                 "observed", self.day)
@@ -85,14 +97,17 @@ class SocialMixin:
             importance=0.5 + (0.1 if len(dialogue) > 600 else 0),
             tags=[topic[:30]])
 
-        # ── Collaboration: detect shared interests after deep dialogue ──
-        if len(dialogue) > 400:
+        # ── Collaboration: detect shared interests after grounded dialogue ──
+        if published and len(dialogue) > 400:
             self._check_collaboration(initiator.name, target.name, topic, dialogue)
 
 
     def _handle_gathering_step(self, event: Event, verbose: bool):
         phase = event.data.get("phase", "call")
-        topic = event.data.get("topic", "general discussion")
+        from engine.work_queue import public_topic
+
+        caller = self.characters.get(event.actor)
+        topic = public_topic(caller, event.data.get("topic", "")) or "general discussion"
 
         if phase != "call":
             return
@@ -156,8 +171,16 @@ class SocialMixin:
 
         # Presenter's opening — what they've been working on
         system_p = presenter.build_system_prompt()
+        from engine.work_queue import format_object_reminder, public_speech_ok, public_topic
+
+        obj_line = format_object_reminder(presenter)
+        topic = public_topic(presenter)
         opening = self.llm.chat(
-            [{"role": "user", "content": f"这是社区的每周研讨会。你来做主讲。用5分钟介绍你最近最重要的工作——一个具体的发现、一个卡住的问题、或者一个你正在推的方向。给出具体内容：公式、数据、推理步骤。不要泛泛而谈。"}],
+            [{"role": "user", "content": (
+                f"{obj_line}\n这是社区的每周研讨会。你来做主讲。"
+                "介绍你正在对付的那个对象——公式、卡点、或一场具体的稿。"
+                "没有对象就只问一个问题。不要泛泛而谈。"
+            )}],
             system=system_p, temperature=0.6
         )
 
@@ -198,9 +221,13 @@ class SocialMixin:
         next_t = self.clock + 168  # 7 virtual days
         self.queue.push(Event(time=next_t, type="weekly_seminar"))
 
-        # Leave echoes in commons
-        self.environment.leave_echo(presenter.name, "commons", 
-            f"研讨会主讲: {opening[:80]}")
+        if public_speech_ok(opening, presenter):
+            self.environment.leave_echo(
+                presenter.name, "commons",
+                f"研讨会主讲: {(topic or opening)[:80]}",
+            )
+        elif verbose:
+            self._log("    · 主讲未点名对象，未上黑板")
 
 
     def _update_soul_from_collision(self, initiator_name: str, target_name: str, 

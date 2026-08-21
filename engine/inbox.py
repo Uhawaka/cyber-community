@@ -145,8 +145,25 @@ def suggest_inbox_action(engine, char_name: str, inbox: Optional[dict] = None) -
     return None
 
 
-def inbox_weight_bias(inbox: dict) -> dict[str, float]:
+def inbox_weight_bias(inbox: dict, char=None) -> dict[str, float]:
     """Nudge phase weights when inbox has unfinished social obligations."""
+    unread = getattr(getattr(char, "state", None), "unread_arxiv", None) or []
+    if unread:
+        return {
+            "tool_read_arxiv": 2.4,
+            "socialize": 0.7,
+            "gather": 0.6,
+            "tool_write_paper": 0.7,
+            "entertain": 0.5,
+        }
+    working = (getattr(getattr(char, "state", None), "working_object", None) or "").strip()
+    if working:
+        return {
+            "study": 1.5,
+            "socialize": 0.85 if inbox and inbox.get("has_priority") else 0.7,
+            "gather": 0.7,
+            "entertain": 0.5,
+        }
     if not inbox or not inbox.get("has_priority"):
         return {}
     return {

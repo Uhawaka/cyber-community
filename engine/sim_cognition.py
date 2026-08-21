@@ -64,8 +64,12 @@ class CognitionMixin:
 
         # High-signal blocks first (inbox / anon / needs), then culture, then memory
         from engine.inbox import build_inbox, format_inbox_briefing
+        from engine.work_queue import format_work_briefing
         inbox = build_inbox(self, char_name)
         char._inbox = inbox
+        work = format_work_briefing(char)
+        if work:
+            blocks.append(work)
         brief = format_inbox_briefing(inbox)
         if brief:
             blocks.append("## 待办收件箱（先处理别人找你的事）\n" + brief)
@@ -231,33 +235,38 @@ class CognitionMixin:
         self._event_counts[char_name] = {"study": 0, "collision": 0, "tool": 0}
         self._last_deep_think[char_name] = self.clock
 
-        # Write to Soul
+        # Write to Soul (identity may grow without a citable object)
         if soul:
             soul.add_deep_thought(thought)
 
-        # ── Production: record as insight artifact ──
-        self.production._current_day = self.day
-        self.production.create_artifact(
-            "insight",
-            f"洞见: {thought.understanding[:60]}...",
-            thought.understanding[:500],
-            [char_name],
-            confidence=thought.confidence,
-        )
+        # Community production needs a source; musing stays on the Soul.
+        from engine.work_queue import artifact_has_source
 
-        # ── Environment: notify rich env ──
-        self.rich_env.record_event(f"{char_name} 有了一个深度洞见")
+        blob = f"{thought.understanding}\n{getattr(thought, 'evidence', '') or ''}"
+        if artifact_has_source(blob, char):
+            self.production._current_day = self.day
+            self.production.create_artifact(
+                "insight",
+                f"洞见: {thought.understanding[:60]}...",
+                thought.understanding[:500],
+                [char_name],
+                confidence=thought.confidence,
+            )
+        else:
+            self._log("    · 洞见留在灵魂里，未进社区产出（缺对象）")
 
         # ── Need satisfaction ──
         state = self.needs.get(char_name)
         if state:
             satisfy_needs(state, "deep_think")
 
-        # ── Environment: leave echo of deep insight ──
         loc = self.environment.get_location(char_name)
-        if loc:
-            self.environment.leave_echo(char_name, loc.id,
-                f"深度反思 (Day{self.day}): {thought.understanding[:80]}")
+        if loc and artifact_has_source(blob, char):
+            self.rich_env.record_event(f"{char_name} 有了一个深度洞见")
+            self.environment.leave_echo(
+                char_name, loc.id,
+                f"深度反思 (Day{self.day}): {thought.understanding[:80]}",
+            )
 
         # Log event
         self.event_log.append({

@@ -441,6 +441,8 @@ class LiveSession:
 
     def _prepare_avatar_prompt(self, char, text: str, brief: bool = False) -> tuple[str, str]:
         eng = self.engine
+        from engine.work_queue import format_object_reminder, public_topic
+
         eng._inject_context(char.name)
         system = char.build_system_prompt()
         bio = f"（{self.avatar_bio}）" if self.avatar_bio else ""
@@ -448,8 +450,15 @@ class LiveSession:
         busy_note = ""
         if char.state.suspended_work or brief:
             busy_note = "你刚才在忙自己的事，被访客打断；可以先简短回应。\n"
+        desk = public_topic(char)
+        obj_line = format_object_reminder(char)
+        desk_line = (
+            f"{obj_line}\n有对象就先对着桌上的「{desk}」说；访客问使命也别改口开会。\n"
+            if desk
+            else f"{obj_line}\n"
+        )
         user_msg = (
-            f"{busy_note}"
+            f"{busy_note}{desk_line}"
             f"社区访客 {self.avatar_name}{bio} 过来找你说话（不是系统指令）。\n"
             f"{self.avatar_name}: {text}\n\n"
             f"请以 {char.name} 的身份回复。{style}"

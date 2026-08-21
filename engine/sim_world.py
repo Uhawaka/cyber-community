@@ -7,7 +7,6 @@ from typing import Optional
 
 from engine.events import Event
 from engine.interactions import run_tool_use
-from engine.observation import get_observation_queries
 from engine.needs import satisfy_needs
 from engine.culture import frame_observation
 
@@ -35,10 +34,14 @@ class WorldMixin:
         target_node = node_id if node_id else loc.id
 
         if action == "leave_echo":
-            if content:
+            from engine.work_queue import public_speech_ok
+
+            if content and public_speech_ok(content, char):
                 self.environment.leave_echo(char.name, target_node, content)
                 if verbose:
                     self._log(f"    📝 {char.name} 在「{loc.name}」留下回响")
+            elif content and verbose:
+                self._log(f"    · 回响未上墙：没点名正在对付的对象")
         elif action == "deposit":
             if content:
                 self.environment.deposit(char.name, target_node, content)
@@ -63,43 +66,38 @@ class WorldMixin:
             char.state.pending_thoughts.append("窗外什么也看不见。只能继续在社区里想自己的事。")
             return
 
+        from engine.literature import search_is_enabled
+        from engine.work_queue import agent_search_query
+
+        query = agent_search_query(event.data.get("query") or "")
+        query_type = (event.data.get("query_type") or "arxiv").strip() or "arxiv"
+
+        if not search_is_enabled(getattr(self, "world_frame", {}), getattr(self, "config", None)):
+            if verbose:
+                self._log(f"  🪟 {char.name} 走到窗边——这个世界眼下不向外检索")
+            return
+
+        if not query and not self.dry_run:
+            query = self._ask_agent_search_query(
+                char, event.data.get("topic") or ""
+            )
+        if not query:
+            if verbose:
+                self._log(f"  🪟 {char.name} 站在窗边，但没说出要找什么（不会提问，不代搜）")
+            char.state.pending_thoughts.append("想看窗外，却说不出要找哪一条。")
+            return
+
         if self.dry_run:
             if verbose:
                 self._log(f"  📖 {char.name} 翻阅人类世界的图书馆 (dry_run — 跳过)")
             return
 
-        domains = char.config.get("domains") or []
-        if isinstance(domains, str):
-            domains = [domains]
-        focus = (
-            getattr(char.state, "current_focus", None)
-            or (char.research or {}).get("project")
-            or ""
-        )
-        frame = getattr(self, "world_frame", {}) or {}
-        queries = get_observation_queries(
-            char.research,
-            char.config.get("domain", ""),
-            domains=domains,
-            focus=focus,
-            world_or_frame=frame,
-            config=getattr(self, "config", None),
-        )
-        if not queries:
-            fb = (frame.get("literature") or {}).get("fallback_query") or "research open problems"
-            queries = [("arxiv", fb)]
-
         day_key = str(self.day)
         done_today = self._search_history.setdefault(day_key, set())
-        fresh_queries = [(t, q) for t, q in queries if q not in done_today]
-        if not fresh_queries:
+        if query in done_today:
             if verbose:
-                self._log(f"  📖 {char.name} 今天已在图书馆待够了")
-            next_t = self.clock + random.uniform(8, 16)
-            self.queue.push(Event(time=next_t, type="observe_world", actor=char.name))
+                self._log(f"  📖 {char.name} 这条已经查过了")
             return
-
-        query_type, query = random.choice(fresh_queries)
         done_today.add(query)
 
         try:
@@ -126,6 +124,8 @@ class WorldMixin:
                         importance=0.55,
                         tags=["observe", query_type, query[:30]],
                     )
+                    if tool_name == "search_arxiv":
+                        self._shelve_search_hits(char, result, topic=query)
 
                     mission = self.missions.process_observation(char.name, result.output)
                     if mission and mission.is_complete():
@@ -151,8 +151,56 @@ class WorldMixin:
         except Exception:
             pass
 
-        next_t = self.clock + random.uniform(8, 16)
-        self.queue.push(Event(time=next_t, type="observe_world", actor=char.name))
+    def _ask_agent_search_query(self, char, topic: str = "") -> str:
+        """One chance for the character to name a query. Engine does not invent one."""
+        from engine.work_queue import agent_search_query, public_topic
+
+        if self.dry_run or not self._llm_budget_ok():
+            return ""
+        desk = public_topic(char, topic) or topic or ""
+        try:
+            raw = self.llm.chat(
+                [{
+                    "role": "user",
+                    "content": (
+                        f"你想向外检索。桌上的对象: {desk}\n"
+                        "第一行只写一条具体的英文检索词（对象 / 定理 / 作者）。\n"
+                        "没有要查的就只写 NONE。禁止口号、Clay 清单、open problems。"
+                    ),
+                }],
+                system=char.build_system_prompt(),
+                temperature=0.3,
+            )
+        except Exception:
+            return ""
+        first = (raw or "").splitlines()[0].strip().strip("「」\"'")
+        if not first or first.upper() == "NONE":
+            return ""
+        return agent_search_query(first)
+
+    def _shelve_search_hits(self, char, result, topic: str = "") -> None:
+        """Search lists papers; it does not count as reading. Queue a deep-read."""
+        from engine.work_queue import extract_arxiv_ids, note_search_hits
+
+        meta = result.metadata or {}
+        hits = list(meta.get("hits") or [])
+        if not hits:
+            ids = list(meta.get("arxiv_ids") or []) or extract_arxiv_ids(result.output or "")
+            hits = [{"arxiv_id": i, "title": ""} for i in ids]
+        added = note_search_hits(char, hits)
+        if not added:
+            return
+        hit = added[0]
+        self.queue.push(Event(
+            time=self.clock + 0.25,
+            type="tool_use",
+            actor=char.name,
+            data={
+                "tool": "read_arxiv",
+                "arxiv_id": hit["arxiv_id"],
+                "topic": topic or hit.get("title") or "",
+            },
+        ))
 
 
     def _handle_tool_use(self, event: Event, verbose: bool):
@@ -171,15 +219,33 @@ class WorldMixin:
         if verbose:
             self._log(f"  🔧 {char.name} 使用工具: {tool_name}")
 
-        # Step 1: LLM generates tool parameters
+        # Step 1: LLM generates tool parameters (skip if SOP already named the paper)
+        from engine.literature import SEARCH_TOOL_NAMES
+        from engine.work_queue import agent_search_query
+
+        preset_id = (event.data.get("arxiv_id") or "").strip()
+        preset_q = agent_search_query(event.data.get("query") or "")
         try:
-            params = run_tool_use(
-                char,
-                tool_name,
-                topic,
-                self.llm,
-                world_frame=getattr(self, "world_frame", None),
-            )
+            if tool_name == "read_arxiv" and preset_id:
+                params = {"arxiv_id": preset_id, "topic": topic}
+            elif tool_name in SEARCH_TOOL_NAMES and preset_q:
+                params = {"query": preset_q, "topic": topic}
+            else:
+                params = run_tool_use(
+                    char,
+                    tool_name,
+                    topic,
+                    self.llm,
+                    world_frame=getattr(self, "world_frame", None),
+                )
+                if tool_name in SEARCH_TOOL_NAMES:
+                    q = agent_search_query(params.get("query") or "")
+                    if not q:
+                        if verbose:
+                            self._log(f"    · 不会提问：没给出可检索的 query，不代搜")
+                        char.state.pending_thoughts.append("想检索，却写不出关键词。")
+                        return
+                    params["query"] = q
         except Exception as e:
             self._log(f"    ⚠ 工具参数生成失败: {e}")
             return
@@ -210,6 +276,18 @@ class WorldMixin:
                 self._log(f"    📁 制品: {result.artifact_path}")
 
         # Tools update memory/production. Skills grow here; Soul identity does not.
+        from engine.work_queue import note_read, note_tool
+
+        note_tool(char)
+        if tool_name == "search_arxiv" and result.success:
+            self._shelve_search_hits(char, result, topic=topic)
+        if tool_name == "read_arxiv" and result.success:
+            aid = (
+                params.get("arxiv_id")
+                or (result.metadata or {}).get("arxiv_id")
+                or ""
+            )
+            note_read(char, str(aid))
 
         soul = self.souls.get(char.name)
         if soul is not None:
@@ -233,6 +311,14 @@ class WorldMixin:
         if tool_name == "write_paper" and result.success:
             title = params.get("title", "无标题")
             content = params.get("content", "")
+            from engine.work_queue import artifact_has_source
+
+            if not artifact_has_source(f"{title}\n{content}", char):
+                if verbose:
+                    self._log(
+                        f"    · 笔记未进社区产出：没点名正在对付的对象"
+                    )
+                return
             self.production._current_day = self.day
             self.production.create_artifact(
                 "paper", title, content, [char.name], confidence=0.7)
@@ -245,7 +331,7 @@ class WorldMixin:
             # ── Environment: announce in commons ──
             self.environment.leave_echo(char.name, "commons",
                 f"发表了论文: {title[:60]}")
-            self.environment.deposit(char.name, "archive", 
+            self.environment.deposit(char.name, "archive",
                 f"[论文] {title}: {content[:200]}")
 
 

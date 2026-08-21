@@ -40,18 +40,6 @@ class LifecycleMixin:
                     type="idle_thought",
                     actor=char.name,
                 ))
-                frame = getattr(self, "world_frame", {}) or {}
-                if frame.get("permeability", "connected") != "enclosed":
-                    self.queue.push(Event(
-                        time=day_start + random.uniform(4.0, 8.0),
-                        type="observe_world",
-                        actor=char.name,
-                    ))
-                    self.queue.push(Event(
-                        time=day_start + random.uniform(15.0, 19.0),
-                        type="observe_world",
-                        actor=char.name,
-                    ))
 
     def bootstrap(self):
         """Schedule day rhythm + spontaneous for the current day; gather at commons."""
@@ -72,8 +60,10 @@ class LifecycleMixin:
         seminar = 72.0
         if seminar > self.clock:
             self.queue.push(Event(time=seminar, type="weekly_seminar"))
+        # Restore-only: drop leftover beats from before the saved clock.
+        # Fresh start is clock==0; dropping then would eat same-tick injects.
         drop = getattr(self.queue, "drop_at_or_before", None)
-        if callable(drop):
+        if callable(drop) and self.clock > 0:
             drop(self.clock)
 
 
@@ -84,7 +74,8 @@ class LifecycleMixin:
             self.bootstrap()
             self._bootstrapped = True
 
-        max_time = max_days * 24.0
+        # From the current clock, so a founded community can add days.
+        max_time = self.clock + max_days * 24.0
         self.run_slice(until_time=max_time, max_events=10_000_000, verbose=verbose)
 
         self.running = False

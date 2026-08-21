@@ -21,6 +21,8 @@ from engine.inbox import (
     inbox_weight_bias,
     consume_messages_from,
 )
+from engine.work_queue import adopt_working_object, forced_decision
+from engine.literature import SEARCH_TOOL_NAMES, search_is_enabled
 
 
 class ActivityMixin:
@@ -61,6 +63,45 @@ class ActivityMixin:
                 self._log(f"{prefix} {t.content[:100]}")
         return dialogue
 
+    def _knowledge_decision(self, decision: dict) -> dict:
+        """Search is opt-in. Without it, looking outward becomes study."""
+        if search_is_enabled(
+            getattr(self, "world_frame", {}),
+            getattr(self, "config", None),
+        ):
+            return decision
+        if decision.get("type") == "observe_world":
+            return {
+                "type": "study",
+                "label": "📖 对着自己的问题继续",
+                "topic": decision.get("topic", ""),
+            }
+        if decision.get("type") == "tool" and decision.get("tool") in SEARCH_TOOL_NAMES:
+            return {
+                "type": "study",
+                "label": "📖 先把已知的推下去",
+                "topic": decision.get("topic", ""),
+            }
+        return decision
+
+    def _ground_public_decision(self, char, decision: dict) -> dict:
+        """No working object → cannot socialize/gather as publication."""
+        from engine.work_queue import public_topic
+
+        kind = decision.get("type")
+        if kind == "socialize" and decision.get("inbox_reply"):
+            return decision
+        if kind in ("socialize", "gather") and not public_topic(char, decision.get("topic", "")):
+            return {
+                "type": "study",
+                "label": "📖 先有对象再开口",
+                "topic": decision.get("topic", "") or "",
+            }
+        if kind in ("socialize", "gather"):
+            decision = dict(decision)
+            decision["topic"] = public_topic(char, decision.get("topic", ""))
+        return decision
+
     def _handle_activate(self, event: Event, verbose: bool):
         char = self.characters.get(event.actor)
         if char is None:
@@ -77,10 +118,17 @@ class ActivityMixin:
 
         char.set_available()
 
-        # Inbox-first: reply to people who reached out before broadcasting new work
+        # SOP unfinished work beats inbox; inbox still beats broadcasting new work
         inbox = getattr(char, "_inbox", None) or {}
         inbox_decision = suggest_inbox_action(self, char.name, inbox)
-        if inbox_decision:
+        forced = forced_decision(char)
+        if forced:
+            decision = forced
+            if verbose:
+                self._log(
+                    f"  [{char.name}] {decision['label']} (E={char.state.energy}) [sop]"
+                )
+        elif inbox_decision:
             decision = inbox_decision
             if verbose:
                 self._log(
@@ -93,7 +141,7 @@ class ActivityMixin:
             if state:
                 state.decay_all(0.5)  # decay since last activation
             psych_bias = psych_action_bias(char.personality, char.drives)
-            for k, v in inbox_weight_bias(inbox).items():
+            for k, v in inbox_weight_bias(inbox, char).items():
                 psych_bias[k] = psych_bias.get(k, 1.0) * v
             phase_decision = get_phase_activity(
                 phase,
@@ -105,6 +153,8 @@ class ActivityMixin:
 
             if verbose:
                 self._log(f"  [{char.name}] {decision['label']} (E={char.state.energy})")
+
+        decision = self._ground_public_decision(char, self._knowledge_decision(decision))
 
         # Consume anon stimuli only when this action can react
         self._consume_anon_if_reactive(char.name, decision["type"])
@@ -120,7 +170,16 @@ class ActivityMixin:
                 }
             else:
                 char.spend("shallow")
-                obs_event = Event(time=self.clock, type="observe_world", actor=char.name)
+                obs_event = Event(
+                    time=self.clock,
+                    type="observe_world",
+                    actor=char.name,
+                    data={
+                        "query": decision.get("query") or "",
+                        "query_type": decision.get("query_type") or "arxiv",
+                        "topic": decision.get("topic") or "",
+                    },
+                )
                 self._handle_observe_world(obs_event, verbose)
                 return
 
@@ -167,7 +226,12 @@ class ActivityMixin:
                     time=self.clock + 0.2,
                     type="tool_use",
                     actor=char.name,
-                    data={"tool": tool_name, "topic": decision.get("topic", "")}
+                    data={
+                        "tool": tool_name,
+                        "topic": decision.get("topic", ""),
+                        "arxiv_id": decision.get("arxiv_id", ""),
+                        "query": decision.get("query") or "",
+                    },
                 ))
                 if verbose:
                     self._log(f"    🔧 准备使用工具: {tool_name}")
@@ -244,6 +308,7 @@ class ActivityMixin:
         insight = extract_insight(dialogue)
         if insight:
             self._update_soul_from_study(char.name, topic, insight)
+        adopt_working_object(char, insight or topic)
 
         project = char.scripts.get_active_project()
         if project:
@@ -315,9 +380,15 @@ class ActivityMixin:
             return
 
         self._inject_context(char.name)
-        # Inbox-first even on spontaneous ticks
         inbox = getattr(char, "_inbox", None) or {}
-        decision = suggest_inbox_action(self, char.name, inbox) or self._decide_action(char)
+        decision = self._ground_public_decision(
+            char,
+            self._knowledge_decision(
+                forced_decision(char)
+                or suggest_inbox_action(self, char.name, inbox)
+                or self._decide_action(char)
+            ),
+        )
         self._consume_anon_if_reactive(char.name, decision["type"])
 
         if verbose:
@@ -337,6 +408,7 @@ class ActivityMixin:
             insight = extract_insight(dialogue)
             if insight:
                 self._update_soul_from_study(char.name, topic, insight)
+            adopt_working_object(char, insight or topic)
             self._record_memory(
                 char.name, "study",
                 f"自发研究{len(dialogue.turns)}轮: {topic[:60]}",
@@ -361,6 +433,10 @@ class ActivityMixin:
                     consume_messages_from(char, target_name)
                 if target.can_be_interrupted("normal"):
                     char.spend("collision")
+                    from engine.work_queue import note_collision
+
+                    note_collision(char)
+                    note_collision(target)
                     dialogue = run_collision(char, target, decision.get("topic", ""), self.llm)
                     self.event_log.append({"time": self.clock, "type": "collision",
                         "initiator": char.name, "target": target_name, "dialogue": dialogue})
@@ -379,12 +455,32 @@ class ActivityMixin:
             loc = self.environment.get_location(char.name)
             if loc:
                 char.spend("shallow")
-                self.environment.leave_echo(char.name, loc.id, f"随手改动了一下空间")
+                from engine.work_queue import public_speech_ok, public_topic
+
+                obj = public_topic(char)
+                note = f"对着 {obj} 改了一下空间" if obj else ""
+                if note and public_speech_ok(note, char):
+                    self.environment.leave_echo(char.name, loc.id, note)
         elif decision["type"] == "move":
             nodes = list(self.environment.nodes.keys())
             target = random.choice(nodes)
             self.environment.move_character(char.name, target)
             char.spend("shallow")
+        elif decision["type"] == "tool":
+            tool_name = decision.get("tool", "")
+            if tool_name and self.tool_registry:
+                char.spend("medium")
+                self.queue.push(Event(
+                    time=self.clock + 0.2,
+                    type="tool_use",
+                    actor=char.name,
+                    data={
+                        "tool": tool_name,
+                        "topic": decision.get("topic", ""),
+                        "arxiv_id": decision.get("arxiv_id", ""),
+                        "query": decision.get("query") or "",
+                    },
+                ))
 
 
     def _handle_idle_thought(self, event: Event, verbose: bool):

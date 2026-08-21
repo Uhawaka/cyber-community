@@ -8,6 +8,9 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from engine.literature import (
+    category_on_shelf,
+    compose_arxiv_search_query,
+    filter_shelf_hits,
     looks_like_cjk,
     plan_literature_search,
     primary_query,
@@ -24,6 +27,7 @@ def test_default_frontier_is_english():
     assert cfg["allow_vernacular"] is True
     assert cfg["bilingual_web"] is True
     assert "open problems" in cfg["fallback_query"].lower()
+    assert cfg.get("enabled") is False
 
 
 def test_cjk_slogan_rewrites_via_focus_not_rh_default():
@@ -104,6 +108,36 @@ def test_math_commune_frame_has_literature():
     assert lit.get("frontier_language") == "en"
     assert lit.get("fallback_query")
     assert "arxiv.org" in (lit.get("en_site_hints") or [])
+    assert lit.get("enabled") is True
+    cats = lit.get("arxiv_categories") or []
+    assert any(c.startswith("math") for c in cats)
+    assert "hep-th" in cats
+    assert "hep-ex" not in cats
+
+
+def test_shelf_keeps_math_drops_hep_ex():
+    math_shelf = ["math.*", "math-ph", "cs.CC", "hep-th", "hep-lat"]
+    assert category_on_shelf("math.AG", math_shelf)
+    assert category_on_shelf("math.AP", math_shelf)
+    assert category_on_shelf("cs.CC", math_shelf)
+    assert category_on_shelf("hep-th", math_shelf)
+    assert not category_on_shelf("hep-ex", math_shelf)
+    assert not category_on_shelf("hep-ph", math_shelf)
+    assert not category_on_shelf("q-bio.GN", math_shelf)
+    kept, dropped = filter_shelf_hits(
+        [
+            {"arxiv_id": "1", "primary_category": "math.AG"},
+            {"arxiv_id": "2", "primary_category": "hep-ex"},
+            {"arxiv_id": "3", "categories": ["hep-th"]},
+        ],
+        math_shelf,
+    )
+    assert [p["arxiv_id"] for p in kept] == ["1", "3"]
+    assert [p["arxiv_id"] for p in dropped] == ["2"]
+    q = compose_arxiv_search_query("Beale Kato Majda", math_shelf)
+    assert "cat:math.*" in q
+    assert "AND all:Beale Kato Majda" in q
+    assert compose_arxiv_search_query("foo", []) == "all:foo"
 
 
 if __name__ == "__main__":

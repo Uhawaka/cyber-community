@@ -27,6 +27,11 @@ class CharacterState:
     collab_context: str = ""  # injected by engine, visible in prompts
     # One-level stack for urgent avatar interrupts (MVP)
     suspended_work: Optional[dict] = None
+    # SOP work bench (in-process; MetaGPT-style gates)
+    unread_arxiv: list = field(default_factory=list)
+    read_arxiv_ids: list = field(default_factory=list)
+    collision_streak: int = 0
+    working_object: Optional[str] = None
 
 
 class Character:

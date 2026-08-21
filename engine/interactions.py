@@ -66,7 +66,7 @@ G - 召集大家讨论
 {tool_info}M - 换个地方待着（去大厅/花园/别人那里）
 E - 放松一下，什么都不想
 D - 改造周围的空间（留下回响、装饰、整理）
-R - 休息/发呆/恢复精力"""
+X - 休息/发呆/恢复精力"""
 
     from engine.language import speech_language
     response = llm.think(char.name, prompt, temperature=0.9,
@@ -83,20 +83,26 @@ R - 休息/发呆/恢复精力"""
         'M': ('move', f"🚶 换个地方"),
         'E': ('entertain', f"🎵 放松一下"),
         'D': ('modify_env', f"🎨 改造空间"),
-        'R': ('rest', f"☕ 休息/发呆"),
+        'X': ('rest', f"☕ 休息/发呆"),
     }
-    
-    # Check tool shortcuts first
-    for key in ['C', 'P', 'A', 'R', 'W']:
-        if key in response and key in tool_shortcuts:
-            action_type, tool_name = tool_shortcuts[key]
-            return {"type": action_type, "label": f"🔧 使用工具: {tool_name}", "topic": state.current_focus or "", "tool": tool_name}
-    
-    # Check standard actions
-    for key in ['S', 'O', 'T', 'G', 'M', 'E', 'D', 'R']:
-        if key in response:
-            action_type, label = mapping[key]
-            return {"type": action_type, "label": label, "topic": state.current_focus or ""}
+
+    letter = ""
+    for ch in response:
+        if ch.isalpha():
+            letter = ch
+            break
+
+    if letter in tool_shortcuts:
+        action_type, tool_name = tool_shortcuts[letter]
+        return {
+            "type": action_type,
+            "label": f"🔧 使用工具: {tool_name}",
+            "topic": state.current_focus or "",
+            "tool": tool_name,
+        }
+    if letter in mapping:
+        action_type, label = mapping[letter]
+        return {"type": action_type, "label": label, "topic": state.current_focus or ""}
     
     # Fallback: weighted random
     r = random.random()
@@ -127,35 +133,45 @@ def run_collision(initiator: Character, target: Character, topic: str, llm: LLM)
     """Collaborative working session — deepen one step per round."""
     system_i = initiator.build_system_prompt()
     system_t = target.build_system_prompt()
+    from engine.work_queue import format_object_reminder, objects_among
+
     topic_text = topic or "你们正在一起推的问题"
-    practice = _practice_hint(initiator) or _practice_hint(target)
-    practice_line = f"\n本社区工作规范:\n{practice}\n" if practice else "\n"
+    obj_line = format_object_reminder(initiator, target) + "\n"
+    if not objects_among(initiator, target):
+        q = llm.chat(
+            [{"role": "user", "content": (
+                f"你找到了 {target.name}。{obj_line}"
+                "只问一个具体问题（一句）。不要发表见解。"
+            )}],
+            system=system_i, temperature=0.4,
+        )
+        return f"{initiator.name}: {q}"
 
     msg1 = llm.chat(
         [{"role": "user", "content": (
             f"你找到了 {target.name}。一起推进: {topic_text}\n"
-            f"{practice_line}"
+            f"{obj_line}"
             f"不要闲聊。给出一个具体出发点——你真正在推的那一步。3-6句。"
         )}],
         system=system_i, temperature=0.45,
     )
     msg2 = llm.chat(
         [{"role": "user", "content": (
-            f"{initiator.name} 说: 「{msg1}」\n{practice_line}"
+            f"{initiator.name} 说: 「{msg1}」\n{obj_line}"
             f"回应时推进或精确反驳——指出缺什么假设、哪一步站不住。不要评论风格。"
         )}],
         system=system_t, temperature=0.45,
     )
     msg3 = llm.chat(
         [{"role": "user", "content": (
-            f"你说了: 「{msg1}」\n{target.name} 回应: 「{msg2}」\n{practice_line}"
+            f"你说了: 「{msg1}」\n{target.name} 回应: 「{msg2}」\n{obj_line}"
             f"推下一步。若卡住，精确说出卡在哪里。"
         )}],
         system=system_i, temperature=0.45,
     )
     msg4 = llm.chat(
         [{"role": "user", "content": (
-            f"{initiator.name} 接着说: 「{msg3}」\n{practice_line}"
+            f"{initiator.name} 接着说: 「{msg3}」\n{obj_line}"
             f"压力测试：给一个会打破对方主张的例子/极限情形，或补上缺失的一步。"
         )}],
         system=system_t, temperature=0.45,
@@ -163,7 +179,7 @@ def run_collision(initiator: Character, target: Character, topic: str, llm: LLM)
     msg5 = llm.chat(
         [{"role": "user", "content": (
             f"对话至此:\n你: 「{msg1}」\n{target.name}: 「{msg2}」\n"
-            f"你: 「{msg3}」\n{target.name}: 「{msg4}」\n{practice_line}"
+            f"你: 「{msg3}」\n{target.name}: 「{msg4}」\n{obj_line}"
             f"收一步：写出此刻最站得住的 claim，以及下一步要做的一件事。"
         )}],
         system=system_i, temperature=0.4,
@@ -252,8 +268,15 @@ def run_gathering(characters: dict, caller_name: str, topic: str, llm: LLM) -> s
     caller = characters[caller_name]
     system_c = caller.build_system_prompt()
     
+    from engine.work_queue import format_object_reminder
+
+    obj_line = format_object_reminder(*[characters[n] for n in participants])
     opening = llm.chat(
-        [{"role": "user", "content": f"大家都在。抛出一个你正在推的具体问题——一个公式、一个可检验的断言、一个卡点。不要泛泛而谈。像工作间歇对同事说「你看这个」。专业术语保留英文。"}],
+        [{"role": "user", "content": (
+            f"{obj_line}\n大家都在。抛出一个你正在推的具体问题——"
+            "点名对象，一个公式、一个可检验的断言、或一个卡点。"
+            "没有对象就只问一句。不要泛泛而谈。专业术语保留英文。"
+        )}],
         system=system_c, temperature=0.6
     )
 
@@ -300,29 +323,15 @@ def run_gathering(characters: dict, caller_name: str, topic: str, llm: LLM) -> s
 def run_study_step(char: Character, topic: str, step: int, llm: LLM) -> str:
     """One focused working step — not a diary entry."""
     system = char.build_system_prompt()
-    practice = _practice_hint(char)
-    research = _research_hint(char, "study")
-    practice_line = f"\n本社区工作规范:\n{practice}\n" if practice else "\n"
-    grain = f"\n{research}\n" if research else ""
+    from engine.work_queue import format_object_reminder, public_topic
 
-    if step == 1:
-        prompt = (
-            f"你正在研究: {topic}\n{practice_line}{grain}"
-            f"按研究 skill：先点名 Horizon vs Working unit；新方向先 review 同行正文，"
-            f"再写下真正要推的第一步。不要开场白，不要试图今天证完地平线。"
-        )
-    elif step == 2:
-        prompt = (
-            f"你继续研究: {topic}\n{practice_line}{grain}"
-            f"推工作单元的下一步。若卡住，精确描述缺哪一步义务，不要宣判方向死亡。"
-            f"不要总结之前的。"
-        )
-    else:
-        prompt = (
-            f"你继续深入研究: {topic}\n{practice_line}{grain}"
-            f"第{step}步：推进工作单元，或写下 obstruction（下一步被点名但未做）。"
-            f"禁止用一次试探给整个方向下定论。"
-        )
+    obj = public_topic(char, topic) or topic
+    remind = format_object_reminder(char)
+    prompt = (
+        f"你正在对付: {obj}\n{remind}\n"
+        "对着这个对象写下要推的下一步：一个式子、一个假设、或精确的卡点。"
+        "不要复读工作规范、货架或使命。不要开会。不要开场白。"
+    )
 
     return llm.chat([{"role": "user", "content": prompt}], system=system, temperature=0.45)
 

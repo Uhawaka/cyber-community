@@ -20,14 +20,17 @@ Rules (default)
 
 Config shape (optional under world:)
 ------------------------------------
-  literature:
-    frontier_language: en          # en (default) | zh (rare)
-    allow_vernacular: true         # zh community may search zh for explanations
-    bilingual_web: true            # web search emits EN + ZH tracks
-    vernacular_domains: []         # domains where zh frontier is legitimate
-    fallback_query: "open problems"  # English fallback when rewrite fails
-    en_site_hints: []              # optional: ["arxiv.org", "jstor.org"]
-    zh_site_hints: []              # optional: ["zhihu.com", "cnki.net"] — soft
+    literature:
+      enabled: false               # knowledge commune default; on-demand search is opt-in
+      frontier_language: en
+      allow_vernacular: true
+      bilingual_web: true
+      vernacular_domains: []
+      fallback_query: "open problems"
+      en_site_hints: []
+      zh_site_hints: []
+      shelf:
+        arxiv_categories: []     # e.g. math.*, cs.CC — empty = no cat: filter
 """
 
 from __future__ import annotations
@@ -104,7 +107,11 @@ def resolve_literature_config(
     ):
         out = dict(lit)
         out.setdefault("world_domain", domain)
+        out.setdefault("enabled", False)
+        out.setdefault("bilingual_web", True)
+        out.setdefault("allow_vernacular", True)
         out["extra_lexicon"] = lit.get("extra_lexicon") or lit.get("lexicon") or []
+        out["arxiv_categories"] = _shelf_categories(lit)
         return out
 
     frontier = str(lit.get("frontier_language") or lit.get("frontier_lang") or "en").lower()
@@ -143,6 +150,7 @@ def resolve_literature_config(
         }.get(domain, "research open problems")
 
     return {
+        "enabled": bool(lit.get("enabled", False)),
         "frontier_language": frontier,
         "allow_vernacular": allow_vernacular,
         "bilingual_web": bilingual,
@@ -153,7 +161,102 @@ def resolve_literature_config(
         "zh_site_hints": list(lit.get("zh_site_hints") or []),
         "world_domain": domain,
         "extra_lexicon": lit.get("lexicon") or lit.get("extra_lexicon") or [],
+        "arxiv_categories": _shelf_categories(lit),
     }
+
+
+def search_is_enabled(
+    world_or_frame: Optional[dict] = None,
+    config: Optional[dict] = None,
+) -> bool:
+    """True only when the world opted into on-demand search."""
+    if isinstance(world_or_frame, dict):
+        lit = world_or_frame.get("literature")
+        if isinstance(lit, dict) and "enabled" in lit:
+            return bool(lit.get("enabled"))
+    return bool(resolve_literature_config(world_or_frame, config).get("enabled"))
+
+
+SEARCH_TOOL_NAMES = frozenset({"search_arxiv", "search_web"})
+
+
+def _shelf_categories(lit: dict) -> list[str]:
+    shelf = lit.get("shelf") if isinstance(lit.get("shelf"), dict) else {}
+    raw = (
+        lit.get("arxiv_categories")
+        or shelf.get("arxiv_categories")
+        or shelf.get("categories")
+        or []
+    )
+    if isinstance(raw, str):
+        raw = [raw]
+    out, seen = [], set()
+    for item in raw:
+        s = str(item).strip().lower()
+        if s and s not in seen:
+            seen.add(s)
+            out.append(s)
+    return out
+
+
+def category_on_shelf(cat: str, allowed: list[str]) -> bool:
+    """True if this arXiv category is on the world shelf.
+
+    Patterns: `math.ag` exact (or prefix), `math.*` / `math*` for the family.
+    Empty shelf = no filter (everything is on).
+    """
+    if not allowed:
+        return True
+    c = (cat or "").strip().lower()
+    if not c:
+        return False
+    for pat in allowed:
+        p = (pat or "").strip().lower()
+        if not p:
+            continue
+        if p.endswith(".*"):
+            family = p[:-2]
+            if c == family or c.startswith(family + "."):
+                return True
+        elif p.endswith("*"):
+            if c.startswith(p[:-1]):
+                return True
+        elif c == p or c.startswith(p + "."):
+            return True
+    return False
+
+
+def paper_on_shelf(paper: dict, allowed: list[str]) -> bool:
+    if not allowed:
+        return True
+    cats = []
+    prim = (paper or {}).get("primary_category") or ""
+    if prim:
+        cats.append(prim)
+    cats.extend((paper or {}).get("categories") or [])
+    return any(category_on_shelf(c, allowed) for c in cats)
+
+
+def filter_shelf_hits(papers: list, allowed: list[str]) -> tuple[list, list]:
+    """Split hits into (on-shelf, dropped). Empty shelf keeps all."""
+    if not allowed:
+        return list(papers or []), []
+    kept, dropped = [], []
+    for p in papers or []:
+        (kept if paper_on_shelf(p, allowed) else dropped).append(p)
+    return kept, dropped
+
+
+def compose_arxiv_search_query(agent_query: str, allowed: list[str]) -> str:
+    """`cat:` clause AND the agent's all: terms. No shelf → `all:{query}`."""
+    q = " ".join((agent_query or "").split())
+    if not q:
+        return ""
+    bits = [f"cat:{p}" for p in (allowed or []) if p]
+    if not bits:
+        return f"all:{q}"
+    clause = bits[0] if len(bits) == 1 else "(" + " OR ".join(bits) + ")"
+    return f"{clause} AND all:{q}"
 
 
 def _latin_keep(text: str) -> str:
@@ -293,8 +396,8 @@ def plan_literature_search(
 
     queries: list[SearchQuery] = []
     policy = (
-        f"frontier={cfg['frontier_language']}; vernacular_ok={cfg['allow_vernacular']}; "
-        f"bilingual_web={cfg['bilingual_web']}"
+        f"frontier={cfg.get('frontier_language')}; vernacular_ok={cfg.get('allow_vernacular')}; "
+        f"bilingual_web={cfg.get('bilingual_web', True)}"
     )
 
     if channel in ("arxiv", "observe"):

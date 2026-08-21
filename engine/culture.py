@@ -517,12 +517,12 @@ def frame_observation(
 ) -> dict[str, str]:
     """Present human-world observation as library/window, not API search."""
     place = "学术馆藏" if query_type == "arxiv" else "人类世界的图书馆"
-    verb = "翻阅了" if success else "尝试查阅"
-    summary = f"在{place}{verb}关于「{query[:60]}」的材料"
+    verb = "检索了" if success else "尝试检索"
+    summary = f"在{place}{verb}「{query[:60]}」的条目（尚未深读）"
     if success and output:
-        thought = f"窗外读到: {output[:120].replace(chr(10), ' ')}"
+        thought = f"检索命中（尚未深读）: {output[:120].replace(chr(10), ' ')}"
     elif success:
-        thought = f"在{place}找到了一些相关材料，还需要慢慢消化。"
+        thought = f"在{place}列到一些条目，还需要挑一篇深读。"
     else:
         thought = f"想在{place}查阅「{query[:40]}」，但没找到有用的东西。"
     return {

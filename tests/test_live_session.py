@@ -21,6 +21,7 @@ from engine.live_session import (
     next_wake_after,
     parse_wake_times,
 )
+from engine.work_queue import adopt_working_object
 from engine.world_builder import expand_world, load_world
 
 
@@ -96,6 +97,16 @@ def test_talk_busy_wait_message_and_urgent():
     # Memory recorded
     mem = eng.memories[target]
     assert any(e.type == "avatar_talk" for e in mem.episodes)
+
+
+def test_avatar_prompt_reminds_working_object():
+    eng = _engine()
+    session = LiveSession(eng, avatar_name="Alex")
+    char = next(iter(eng.characters.values()))
+    adopt_working_object(char, "HJB verification theorem")
+    _system, user = session._prepare_avatar_prompt(char, "社区使命是什么？")
+    assert "HJB verification theorem" in user
+    assert "桌上" in user or "对象" in user
 
 
 def test_repl_status_and_quit():
@@ -207,6 +218,17 @@ def test_batch_main_path_still_runs():
     eng = _engine()
     eng.run(max_days=1, verbose=False)
     assert eng.day >= 1
+    assert eng.running is False
+
+
+def test_run_continues_from_restored_clock():
+    """Founded worlds sit at clock=96; max_days=1 must not target t=24."""
+    eng = _engine()
+    eng.clock = 96.0
+    eng.day = 5
+    eng.run(max_days=1, verbose=False)
+    assert eng.clock >= 120.0
+    assert eng.day >= 6
     assert eng.running is False
 
 

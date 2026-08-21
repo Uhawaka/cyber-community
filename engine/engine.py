@@ -291,8 +291,8 @@ class SimulationEngine(
             echoes = " ".join(str(e.get("content") or "") for e in (commons.echoes or []))
             if "种子书架" not in echoes and "seed shelf" not in echoes.lower():
                 commons.add_echo(
-                    "白板上钉着种子书架：Clay / 顶刊入口 / 开箱数学原文。"
-                    "先读原文与链接，再谈工作。只会甩名词 = 社区无能。",
+                    "白板上钉着种子书架：方程 / 几何 / 逻辑 / 规范场 / 数论，"
+                    "加上顶刊入口。先读原文。一周只聊 zeta = 社区无能。",
                     "社区",
                 )
             if "种子书架" not in (commons.description or ""):
