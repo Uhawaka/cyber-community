@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cyber-community"
+version = "0.1.0"
+description = "用目录描述世界，让它自己运行，并把发生过的事写成可阅读的文字。"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+
+[project.scripts]
+cyber-community = "engine.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["engine*"]

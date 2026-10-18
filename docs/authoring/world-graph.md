@@ -255,21 +255,15 @@ if not result.ok:
 compiled = result.compiled
 ```
 
-CLI：
+运行一个世界包：
 
 ```bash
-python scripts/world.py validate worlds/echo-quay
-python scripts/world.py compile-inspect worlds/black-pine-ridge
-python scripts/world.py simulate worlds/echo-quay --ticks 8 --seed 17
-python scripts/world.py simulate worlds/echo-quay --ticks 8 --seed 17 \
-  --story-output-dir outputs/echo-quay/stories
-python scripts/world.py simulate worlds/black-pine-ridge --ticks 12 --seed 17 \
-  --gate-choice bank-the-embers --story-output-dir outputs/black-pine/stories
+cyber-community run worlds/echo-quay
 ```
 
-`--gate-choice` 在模拟停到 UserGate 后应用指定 choice，并继续剩余 Tick。choice
-可选的 `observation` 是选择提交后立即成为客观历史的可观察结果，不得写角色
-反应、台词、心理或后续结局。
+更多命令见 `cyber-community help`。
+
+用户选择提交后，可选的 `observation` 会立即成为客观历史。它不得写角色反应、台词、心理或后续结局。
 
 ## Tick、Avatar 与呈现
 

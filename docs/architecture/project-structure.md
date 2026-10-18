@@ -18,7 +18,8 @@ cyber-community/
 │   └── narrative/             只读叙事交付
 ├── worlds/                    可安装、编译和运行的世界包
 ├── tests/                     契约、行为、失败路径和架构测试
-├── scripts/                   面向开发者的 CLI 与 benchmark
+├── engine/cli.py              对外命令：cyber-community run
+├── scripts/                   开发与调试：校验、模拟、长篇和 benchmark
 ├── docs/                      设计蓝图、架构、规格、实验和状态
 ├── outputs/                   本地模拟与评估产物，不进入版本库
 └── README.md                  仓库入口和最短运行路径
