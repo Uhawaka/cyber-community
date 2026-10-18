@@ -29,9 +29,6 @@ Thumbs.db
 *.swo
 .cursor/
 
-# Local product design. Keep the working copy, do not publish it.
-docs/reference/生成式世界引擎_产品设计.md
-
 # Secrets — never commit real keys
 .env
 .env.*

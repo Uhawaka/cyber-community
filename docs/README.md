@@ -19,7 +19,7 @@
 - [自主世界产品规格](product/autonomous-world-spec.md)：当前 Runtime 纵切的产品契约。
 - [叙事交付规格](product/narrative-delivery-spec.md)：历史如何转化为只读 Presentation。
 
-[设计蓝图](design.md) 可以随开源分支发布。当前完成度以状态文档和可执行规格为准。未纳入版本库的愿景笔记只留在本地，不作为开发依据，也不进入开源分支。
+[设计蓝图](design.md) 说明权威链和主要机制。当前完成度以状态文档和可执行规格为准。
 
 ### 架构层
 
@@ -74,27 +74,6 @@ ADR 记录当时为什么做决定；如果当前实现改变，应新增 ADR �
 - **废弃**：不再使用，但保留历史原因和替代方案。
 
 “已实现”不得简写成“已完成”，除非上下文已经明确完成的是哪一层。
-
-## 哪些文档可以公开
-
-开源分支发布当前引擎和下面这些文档：
-
-- `docs/design.md`，以及 `docs/architecture/`、`docs/authoring/`、`docs/contracts/`、`docs/development/`、`docs/experiments/`、`docs/status/`
-- `docs/product/` 里的三份规格。它们写的是运行边界和质量口径，可以公开
-- `README.md`、`engine/`、`worlds/`、`tests/`、`scripts/`
-
-只留在本机、不进入开源分支：
-
-- `docs/reference/生成式世界引擎_产品设计.md` 已在 `.gitignore` 中
-- `.env`、`outputs/`、编辑器目录
-
-本地开发用 `dev`。`open` 从远端 `main` 拉出，树与 `dev` 的公开内容一致，但历史里不含上述本地笔记。发布时只推这条分支：
-
-```bash
-git push origin open:main
-```
-
-不要推送 `main` 或 `dev`。那两条本地历史里曾经出现过未公开笔记，推上去会把笔记带进开源仓库。
 
 ## 维护规则
 

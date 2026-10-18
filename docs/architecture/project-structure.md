@@ -190,8 +190,7 @@ ActorPolicy、NarrativeRenderer、TextModel、存储端口及 Experience 子契�
 - `contracts/`：跨领域数据语义；
 - `authoring/`：世界包作者格式；
 - `experiments/`：可复现实验与技术证据；
-- `status/`：当前进度、已知缺口和下一阶段；
-- `reference/`：长期产品愿景和历史输入，不直接覆盖当前实现契约。
+- `status/`：当前进度、已知缺口和下一阶段。
 
 ### `outputs`
 
