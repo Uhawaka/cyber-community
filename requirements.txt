@@ -1,1 +1,2 @@
-pytest>=7.0
+# 运行不需要第三方包。这一行安装的是 cyber-community 命令本身。
+-e .
