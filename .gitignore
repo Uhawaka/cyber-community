@@ -29,6 +29,7 @@ Thumbs.db
 *.swo
 .cursor/
 
+
 # Secrets — never commit real keys
 .env
 .env.*
