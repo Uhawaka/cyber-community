@@ -1,0 +1,260 @@
+{
+  "locations": [
+    {
+      "id": "ruined-temple",
+      "name": "黑松岭破庙",
+      "description": "漏雨的大殿里残火将熄，梁柱间偶尔映出形状古怪的影子。",
+      "tags": ["shelter", "public", "avatar-entry"],
+      "capacity": 4,
+      "access_tags": [],
+      "allowed_roles": [],
+      "affordances": {"observe": true, "rest": true, "gather": true, "social": true},
+      "danger": 24,
+      "metadata": {"sheltered": true}
+      ,"scene_seeds": [
+        {
+          "key": "default",
+          "name": "漏雨大殿",
+          "premise": "漏雨大殿只有将熄的残火和梁上的影子。这里看不见铃的含义、粉的去向、号牌、窑、索桥、铜衡或灰库。",
+          "tags": ["public", "shelter"],
+          "dramatic_question": "残火熄灭前，众人是借它看清大殿里的影子，还是带着还没看清的事离开？",
+          "failure_pressure": "残火正在熄灭，留下争论的人会连影子也看不见。",
+          "closure_signals": ["角色借残火看清一项只属于大殿的现象并离开", "角色放弃残火并离开大殿"]
+        },
+        {
+          "key": "side-shrine",
+          "name": "偏殿神龛",
+          "premise": "偏殿神龛上有一份旧供名，只写香火名目，不写户数，不写送去哪里。要有人决定推开侧门才进得来。",
+          "tags": ["interior", "discoverable"],
+          "dramatic_question": "漏水浸没纸页前，谁抄下一份香火名目并离开偏殿？",
+          "failure_pressure": "漏水正浸向旧纸，停下来争论会让名目消失。",
+          "closure_signals": ["角色抄下一项香火名目并离开偏殿", "角色放弃旧纸并离开偏殿"]
+        }
+      ]
+    },
+    {
+      "id": "back-door",
+      "name": "破庙后门",
+      "description": "半扇木门被风吹动，檐角下传来忽近忽远的细铃声。",
+      "tags": ["threshold", "exposed"],
+      "capacity": 4,
+      "access_tags": [],
+      "allowed_roles": [],
+      "affordances": {"observe": true, "rest": false, "gather": true, "social": true},
+      "danger": 46,
+      "metadata": {"sheltered": false}
+      ,"scene_seeds": [
+        {
+          "key": "default",
+          "name": "半扇后门",
+          "premise": "后门只有被掰下的铃片、空着的铃位，和可能从庙里传来的一声响。这里看不见印记的含义、粉的方向、号牌、窑、索桥、铜衡或灰库。",
+          "tags": ["threshold", "public"],
+          "dramatic_question": "下一阵铃声前，谁带着断铃离开后门？",
+          "failure_pressure": "暴雨正在冲掉门外还能走的痕迹，留下听第二声的人会错过路。",
+          "closure_signals": ["角色带着或放下断铃离开后门", "角色因无法同行而分开离开"]
+        },
+        {
+          "key": "bell-corridor",
+          "name": "悬铃夹廊",
+          "premise": "夹廊只回答哪一枚铃先响、声音朝庙外的哪一边。它不解释征供，也看不见号牌、窑、索桥、铜衡或灰库。要循那一声响进来才进得了这里。",
+          "tags": ["interior", "discoverable", "bell"],
+          "dramatic_question": "听见哪一枚先响之后，谁沿那个方向离开夹廊？",
+          "failure_pressure": "再看第二枚绳，穿堂风就会把先响的那一枚混进其余的铃里。",
+          "closure_signals": ["角色按先响的方向离开夹廊", "角色放弃这一声并离开夹廊"]
+        }
+      ]
+    },
+    {
+      "id": "forest-path",
+      "name": "林间小路",
+      "description": "积水漫过石路，黑松根旁留着尚未被雨冲净的浅白粉末。",
+      "tags": ["forest", "road"],
+      "capacity": 3,
+      "access_tags": [],
+      "allowed_roles": [],
+      "affordances": {"observe": true, "rest": false, "gather": true, "social": true},
+      "danger": 61,
+      "metadata": {"terrain": "wet"}
+      ,"scene_seeds": [
+        {
+          "key": "default",
+          "name": "积水石路",
+          "premise": "林间小路只看得见浅白粉末还留在哪一侧，以及雨还能让它存在多久。这里不知道粉通向哪一家官署。",
+          "tags": ["road", "public"],
+          "dramatic_question": "雨把粉泡软之前，众人沿哪一侧离开小路？",
+          "failure_pressure": "雨水正在漫过石路，停下来做标记会让两侧都看不清。",
+          "closure_signals": ["角色沿粉还在的一侧离开小路", "角色放弃粉痕并离开小路"]
+        },
+        {
+          "key": "pine-hollow",
+          "name": "倒松洼地",
+          "premise": "倒松洼地只有一串朝旧驿道去的拖痕，看不出是官署还是山民。要离开主路才进得来。这里没有户数，也没有窑。",
+          "tags": ["forest", "discoverable"],
+          "dramatic_question": "积水淹没拖痕前，谁记下它指向驿道并离开洼地？",
+          "failure_pressure": "洼地积水正在上涨，留下分辨拖痕的人会把方向一起淹没。",
+          "closure_signals": ["角色记下拖痕指向并离开洼地", "角色放弃拖痕并回到主路"]
+        }
+      ]
+    },
+    {
+      "id": "levy-outpost",
+      "name": "征供废驿",
+      "description": "倾斜的木栅拦着旧驿道，檐下号牌被刮去官署名号，只剩按户计数的刻痕。",
+      "tags": ["outpost", "road", "abandoned"],
+      "capacity": 4,
+      "access_tags": [],
+      "allowed_roles": [],
+      "affordances": {"observe": true, "rest": true, "gather": true, "social": true},
+      "danger": 66,
+      "metadata": {"former_use": "levy-registration"},
+      "scene_seeds": [
+        {
+          "key": "default",
+          "name": "刮名木栅",
+          "premise": "废驿木栅只有按户计数的刻痕，官署的名字被刮掉。过路看得见。这里不知道东西送去哪里，也看不见窑。",
+          "tags": ["threshold", "public"],
+          "dramatic_question": "车辙赶到前，谁对上户数或绕开木栅，然后离开废驿？",
+          "failure_pressure": "驿道上已有新的车辙，留下对第二遍的人会被征供的队伍遇见。",
+          "closure_signals": ["角色对上或放弃户数并离开木栅", "角色绕开木栅并离开废驿"]
+        },
+        {
+          "key": "ledger-room",
+          "name": "封账小屋",
+          "premise": "封账小屋的残页只有一个编号指向一座窑，不写姓名。要有人打开铁丝门才进得来。这里看不见窑里正在做什么。",
+          "tags": ["interior", "discoverable", "ledger"],
+          "dramatic_question": "账页烧尽前，谁带走那个窑的编号并离开小屋？",
+          "failure_pressure": "屋角余火正沿账页蔓延，停下来会把编号一起烧掉。",
+          "closure_signals": ["角色带走一条指向窑的编号并离开账房", "角色放弃残页并离开账房"]
+        }
+      ]
+    },
+    {
+      "id": "ash-kiln",
+      "name": "弃丹窑",
+      "description": "山坳里的窑门已被泥封过一次，灰沟却仍有温水流出，水面浮着细碎金箔。",
+      "tags": ["kiln", "industrial", "hidden"],
+      "capacity": 4,
+      "access_tags": [],
+      "allowed_roles": [],
+      "affordances": {"observe": true, "rest": false, "gather": true, "social": true},
+      "danger": 74,
+      "metadata": {"former_use": "refinement"},
+      "scene_seeds": [
+        {
+          "key": "default",
+          "name": "温灰窑口",
+          "premise": "窑口只看得见窑还是热的，灰沟仍有温水。这里不知道是谁下的令，也看不见天上的衡。",
+          "tags": ["threshold", "evidence"],
+          "dramatic_question": "泥封裂开前，谁确认窑仍在工作并离开窑口？",
+          "failure_pressure": "泥封受热后正在开裂，巡查声已经近了，留下的人会被堵在门口。",
+          "closure_signals": ["角色确认窑仍在工作并离开窑口", "角色放弃窑口并离开"]
+        },
+        {
+          "key": "sorting-cellar",
+          "name": "分拣地窖",
+          "premise": "分拣地窖的石槽按骨重、灵性和来处编号分类，不分善恶。要沿灰沟下去才进得来。这里看不见下令的人。",
+          "tags": ["interior", "discoverable", "dark"],
+          "dramatic_question": "水位淹没石槽前，谁记下分类方式并离开地窖？",
+          "failure_pressure": "地窖水位正在上涨，通风孔外已经有灯，留下核对的人出不去。",
+          "closure_signals": ["角色记下分类方式并离开地窖", "角色放弃石槽并离开地窖"]
+        }
+      ]
+    },
+    {
+      "id": "cloud-chain-gorge",
+      "name": "锁云涧",
+      "description": "两壁铁索没入云层，索上挂的不是经幡，而是一枚枚磨去名字的木牌。",
+      "tags": ["gorge", "route", "celestial"],
+      "capacity": 4,
+      "access_tags": [],
+      "allowed_roles": [],
+      "affordances": {"observe": true, "rest": false, "gather": true, "social": true},
+      "danger": 82,
+      "metadata": {"route": "upper-transfer"},
+      "scene_seeds": [
+        {
+          "key": "default",
+          "name": "无名索桥",
+          "premise": "无名索桥上挂着磨去名字的木牌，铁索只通向云。这里不知道天上拿这些名字做什么。",
+          "tags": ["bridge", "public", "high-risk"],
+          "dramatic_question": "下一声钟响、索桥收起前，谁沿铁索上去或退回？",
+          "failure_pressure": "云中铜钟正在报更，下一次报更后索桥就被收起。",
+          "closure_signals": ["角色在索桥收起前沿铁索离开或退回", "角色留下木牌并离开桥头"]
+        },
+        {
+          "key": "name-vault",
+          "name": "藏名石龛",
+          "premise": "藏名石龛里保存着被木牌磨掉的名字。要有人离开桥面才进得来。这里只有名字，没有功德如何保持干净。",
+          "tags": ["interior", "discoverable", "names"],
+          "dramatic_question": "石龛闭合前，谁抄下一个名字并离开？",
+          "failure_pressure": "石龛封印正随钟声闭合，抄录、带走与毁去只能做一件。",
+          "closure_signals": ["角色带走或放弃一个名字并离开石龛", "角色毁去石龛中的一处并离开"]
+        }
+      ]
+    },
+    {
+      "id": "celestial-weighhouse",
+      "name": "天衡所",
+      "description": "云路尽头立着一座无匾石署，三架铜衡只称灵性、功德与可炼成数，不问来者姓名。",
+      "tags": ["celestial", "bureaucracy", "transfer"],
+      "capacity": 4,
+      "access_tags": [],
+      "allowed_roles": [],
+      "affordances": {"observe": true, "rest": false, "gather": true, "social": true},
+      "danger": 86,
+      "metadata": {"function": "valuation"},
+      "scene_seeds": [
+        {
+          "key": "default",
+          "name": "三衡庭",
+          "premise": "三衡庭只把人或物称成炼成数，不问姓名。这里看不见功德簿如何把名字烧掉。",
+          "tags": ["court", "public", "bureaucratic"],
+          "dramatic_question": "下一轮称量封门前，谁记下一项炼成数并离开庭院？",
+          "failure_pressure": "值守铜偶已开始校准空衡，下一轮称量将封闭所有出口。",
+          "closure_signals": ["角色记下一项炼成数并离开三衡庭", "角色在封门前离开，不接受被称"]
+        },
+        {
+          "key": "seal-office",
+          "name": "换印房",
+          "premise": "换印房只看得见地方编号被改盖成另一批印。要进入庭院之后才找得到这间房。这里还看不见姓名被烧掉。",
+          "tags": ["interior", "discoverable", "seals"],
+          "dramatic_question": "印模丢进熔盂前，谁带走一枚旧印或看着它被毁，然后离开？",
+          "failure_pressure": "旧印模正在被投入熔盂，房外的路也在关上。",
+          "closure_signals": ["角色带走或看着毁掉一枚旧印并离开换印房", "角色放弃印模并离开换印房"]
+        }
+      ]
+    },
+    {
+      "id": "merit-ash-archive",
+      "name": "功簿灰库",
+      "description": "石库里没有完整功簿，只有被裁去姓名的页角和按炉次封存的灰样，墙上却挂着慈悲济世的金字匾。",
+      "tags": ["archive", "celestial", "concealed"],
+      "capacity": 4,
+      "access_tags": [],
+      "allowed_roles": [],
+      "affordances": {"observe": true, "rest": true, "gather": true, "social": true},
+      "danger": 90,
+      "metadata": {"function": "record-erasure"},
+      "scene_seeds": [
+        {
+          "key": "default",
+          "name": "裁名书架",
+          "premise": "裁名书架上功德数字还在，姓名被裁下焚毁。这是整条链第一次把数字和消失的名字放在一起。",
+          "tags": ["archive", "evidence", "public"],
+          "dramatic_question": "火吏烧到这一架前，谁带走一页留下数字、失去姓名的纸，然后离开？",
+          "failure_pressure": "巡库火吏正逐架焚烧页角，留下拼完整名册的人会什么都带不走。",
+          "closure_signals": ["角色带走一页数字与残名并离开书架", "角色放弃残页并离开灰库"]
+        },
+        {
+          "key": "witness-vault",
+          "name": "留声灰龛",
+          "premise": "留声灰龛里只有炼化前的一句口供。要走过书架才进得来。打开它会让仍活着的亲人被听见。",
+          "tags": ["interior", "discoverable", "testimony"],
+          "dramatic_question": "灰龛自封前，谁决定带走一句口供或让它封上，然后离开？",
+          "failure_pressure": "灰龛随晨钟逐一自封，强行多开一龛会把这里的路一起暴露。",
+          "closure_signals": ["角色带走或放弃一句口供并离开灰龛", "角色让灰龛封闭并离开"]
+        }
+      ]
+    }
+  ]
+}

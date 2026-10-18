@@ -1,0 +1,24 @@
+{
+  "resources": [
+    {
+      "id": "signal-oil",
+      "name": "信号灯油",
+      "location_id": "glass-market",
+      "quantity": 6,
+      "owner_id": "glass-market",
+      "container_id": "glass-market",
+      "required_skills": [],
+      "properties": {"portable": true}
+    },
+    {
+      "id": "hemp-rope",
+      "name": "浸蜡麻绳",
+      "location_id": "tide-workshop",
+      "quantity": 3,
+      "owner_id": "tide-workshop",
+      "container_id": "tide-workshop",
+      "required_skills": ["修补浮标"],
+      "properties": {"length": "long"}
+    }
+  ]
+}

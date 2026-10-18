@@ -1,0 +1,12 @@
+[
+  {
+    "kind": "experience",
+    "summary": "他认定同一处痕迹只查一次，查完就走在别人前面。",
+    "confidence": 0.9
+  },
+  {
+    "kind": "observation",
+    "summary": "破庙残火旁没有新鲜湿脚印。",
+    "confidence": 0.8
+  }
+]

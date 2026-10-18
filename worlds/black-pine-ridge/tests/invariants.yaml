@@ -1,0 +1,13 @@
+{
+  "schema_version": "world-package-tests/v1",
+  "seeds": [3, 7, 11, 17, 23, 29, 31, 37],
+  "tick_budget": 20,
+  "minimum_unique_history_hashes": 4,
+  "checks": {
+    "replay": true,
+    "knowledge_sources": true,
+    "map_integrity": true,
+    "resources_non_negative": true,
+    "dialogue_colocated": true
+  }
+}

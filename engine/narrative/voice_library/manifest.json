@@ -1,0 +1,8 @@
+{
+  "schema_version": "world-voice-library/v1",
+  "voices": [
+    {"id": "clear-observer-v1", "resource": "clear-observer-v1.json"},
+    {"id": "restrained-mystery-v1", "resource": "restrained-mystery-v1.json"},
+    {"id": "demythologized-dark-myth-v1", "resource": "demythologized-dark-myth-v1.json"}
+  ]
+}

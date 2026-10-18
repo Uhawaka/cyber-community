@@ -1,0 +1,45 @@
+{
+  "schema_version": "literary-skill-library/v1",
+  "skills": [
+    {
+      "id": "mythic-intrigue-editor-v1",
+      "version": 1,
+      "stage": "developmental_edit",
+      "input_schema": "narrative-material/v1",
+      "output_schema": "editorial-brief/v1",
+      "resource": "mythic-intrigue-editor-v1/SKILL.md"
+    },
+    {
+      "id": "developmental-editor-v1",
+      "version": 1,
+      "stage": "developmental_edit",
+      "input_schema": "narrative-material/v1",
+      "output_schema": "editorial-brief/v1",
+      "resource": "developmental-editor-v1/SKILL.md"
+    },
+    {
+      "id": "scene-writer-v1",
+      "version": 1,
+      "stage": "scene_draft",
+      "input_schema": "editorial-brief/v1",
+      "output_schema": "sourced-draft/v1",
+      "resource": "scene-writer-v1/SKILL.md"
+    },
+    {
+      "id": "line-editor-v1",
+      "version": 1,
+      "stage": "line_edit",
+      "input_schema": "sourced-draft/v1",
+      "output_schema": "sourced-draft/v1",
+      "resource": "line-editor-v1/SKILL.md"
+    },
+    {
+      "id": "fact-continuity-editor-v1",
+      "version": 1,
+      "stage": "fact_continuity",
+      "input_schema": "sourced-draft/v1",
+      "output_schema": "sourced-draft/v1",
+      "resource": "fact-continuity-editor-v1/SKILL.md"
+    }
+  ]
+}

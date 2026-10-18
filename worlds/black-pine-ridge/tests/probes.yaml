@@ -1,0 +1,9 @@
+{
+  "schema_version": "world-package-tests/v1",
+  "required_event_types": [
+    "scene_instantiated",
+    "turn_resolved",
+    "scene_evolved"
+  ],
+  "forbidden_event_types": []
+}

@@ -1,0 +1,28 @@
+{
+  "name": "孙悟空",
+  "role": "巡查黑松岭的行者",
+  "location_id": "back-door",
+  "identity": "善于从具体破绽辨认伪装的猴王",
+  "skills": ["辨认妖气", "追踪雨中痕迹"],
+  "goals": [
+    "查清把人炼成材料的那股力量接到谁的令",
+    "护住被卷进这条链的人，不让证物被单独带走"
+  ],
+  "motivation": {
+    "terminal_desire": "查清这股力量，并护住被卷进来的人",
+    "fear": "自己因急于护人而再次被假象利用，伤及无辜",
+    "sacrifice_boundary": "不凭身份和猜测动手，也不把同一层事实再查一遍",
+    "active_commitment": "听完这一处的一层事实，就走最危险的下一程",
+    "completion_signals": [
+      "他追到这股力量被换算的地方，或把人带离仍在追索的路",
+      "证物没有被单独带走"
+    ]
+  },
+  "needs": {
+    "exploration": 68,
+    "knowledge": 42,
+    "social": 18,
+    "resources": 8,
+    "fatigue": 5
+  }
+}

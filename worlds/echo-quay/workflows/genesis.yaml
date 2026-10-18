@@ -1,0 +1,12 @@
+{
+  "schema_version": "world-workflow/v1alpha1",
+  "kind": "genesis",
+  "steps": [
+    {"op": "load_world"},
+    {"op": "load_locations"},
+    {"op": "load_characters"},
+    {"op": "load_resources"},
+    {"op": "load_passages"}
+  ],
+  "policy": {}
+}

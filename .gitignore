@@ -1,6 +1,7 @@
 # Runtime / local simulation state (may contain private run logs)
 outputs/*
 !outputs/.gitkeep
+.cyber-community/
 *.log
 tmp/
 /tmp/
@@ -27,6 +28,9 @@ Thumbs.db
 *.swp
 *.swo
 .cursor/
+
+# Local product design. Keep the working copy, do not publish it.
+docs/reference/生成式世界引擎_产品设计.md
 
 # Secrets — never commit real keys
 .env

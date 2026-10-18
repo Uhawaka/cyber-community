@@ -1,0 +1,5 @@
+{
+  "schema_version": "world-package-tests/v1",
+  "required_event_types": ["moved", "gathered", "dialogue"],
+  "forbidden_event_types": []
+}

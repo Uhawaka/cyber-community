@@ -1,0 +1,38 @@
+{
+  "resources": [
+    {
+      "id": "dry-kindling",
+      "name": "干燥松枝",
+      "location_id": "ruined-temple",
+      "quantity": 3,
+      "owner_id": "ruined-temple",
+      "container_id": "ruined-temple",
+      "required_skills": [],
+      "properties": {"portable": true, "use": "fire"}
+    },
+    {
+      "id": "bell-fragment",
+      "name": "断裂铜铃片",
+      "location_id": "back-door",
+      "quantity": 1,
+      "owner_id": "back-door",
+      "container_id": "back-door",
+      "required_skills": [],
+      "properties": {
+        "portable": true,
+        "mark": "bone-white-powder-trace",
+        "inspection": "断裂铜铃片内侧留着一道骨白粉痕，凹槽里还压着少量未被雨水触及的粉末；粉痕旁有一道磨损铸印，只能辨出“入供”二字。后门只能看见这道印，不能说明它的含义，也不能说明别处的粉末或号牌。"
+      }
+    },
+    {
+      "id": "bitter-herb",
+      "name": "苦叶草",
+      "location_id": "forest-path",
+      "quantity": 4,
+      "owner_id": "forest-path",
+      "container_id": "forest-path",
+      "required_skills": ["辨认药草"],
+      "properties": {"portable": true, "use": "medicine"}
+    }
+  ]
+}

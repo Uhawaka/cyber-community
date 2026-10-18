@@ -1,0 +1,28 @@
+{
+  "schema_version": "world-package/v1alpha2",
+  "package_id": "black-pine-ridge",
+  "revision": 1,
+  "capabilities": [
+    "world.core.v1",
+    "world.characters.v1",
+    "world.memory-seed.v1",
+    "world.resources.v1",
+    "world.topology.v1",
+    "world.incidents.v1",
+    "world.user-gates.v1",
+    "world.fate-interventions.v1"
+  ],
+  "assets": {
+    "world": "world.yaml",
+    "locations": "locations.yaml",
+    "characters": "characters",
+    "resources": "resources.yaml",
+    "passages": "passages.yaml"
+  },
+  "workflows": {
+    "genesis": "workflows/genesis.yaml",
+    "evolution": "workflows/evolution.yaml",
+    "intervention": "workflows/intervention.yaml",
+    "presentation": "workflows/presentation.yaml"
+  }
+}

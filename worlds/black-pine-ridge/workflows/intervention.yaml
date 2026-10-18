@@ -1,0 +1,11 @@
+{
+  "schema_version": "world-workflow/v1alpha1",
+  "kind": "intervention",
+  "steps": [{"op": "incident"}, {"op": "user_gate"}, {"op": "fate"}],
+  "policy": {
+    "avatar_offline_policy": "pause",
+    "allow_incidents": true,
+    "allow_gates": true,
+    "allow_fate": true
+  }
+}

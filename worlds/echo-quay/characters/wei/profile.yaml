@@ -1,0 +1,21 @@
+{
+  "name": "魏澄",
+  "role": "集市记录员",
+  "location_id": "glass-market",
+  "skills": ["清点物资", "辨认航标"],
+  "goals": ["清点 signal-oil", "与到访者交换观察"],
+  "motivation": {
+    "terminal_desire": "让雾港的公共决定都有可追溯的事实与同意",
+    "fear": "旧账的权威掩盖错误，使无辜者替错误记录承担损失",
+    "sacrifice_boundary": "不替当事人伪造同意，也不销毁不利于自己的原始记录",
+    "active_commitment": "在灯油分配前公开比对航标记录与现场证词",
+    "completion_signals": ["一项信号试验留下参与者认可的公开记录", "灯油去向与责任人被明确登记"]
+  },
+  "needs": {
+    "resources": 34,
+    "knowledge": 24,
+    "social": 20,
+    "exploration": 10,
+    "fatigue": 8
+  }
+}

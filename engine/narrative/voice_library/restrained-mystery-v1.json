@@ -1,0 +1,22 @@
+{
+  "id": "restrained-mystery-v1",
+  "version": 1,
+  "instruction": "采用克制的当代悬疑声音；线索先于解释，留白先于结论。",
+  "pov_rules": ["观察者视角", "只呈现可见动作、原话与已提交结果"],
+  "first_attentions": ["异常次序", "人物回避之处", "来源中已有的物件"],
+  "voice_exemplars": [
+    "<角色>没有替线索下结论。<原话>之后，局势停在新的问题上。",
+    "短句给出线索，较长句只连接已提交的因果。"
+  ],
+  "banned_constructions": ["命中注定", "显而易见", "线索由此向前一步", "发生关系变化"],
+  "title_pattern": "{focus}·{location}",
+  "lexicon": {
+    "gathered": "取走了",
+    "movement_origin": "从",
+    "movement_destination": "来到",
+    "observed": "查看了"
+  },
+  "quality_gates": {
+    "mechanical_openings": []
+  }
+}

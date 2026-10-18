@@ -1,0 +1,19 @@
+{
+  "id": "clear-observer-v1",
+  "version": 1,
+  "instruction": "使用清楚、节制的现代中文；不把事件日志术语写进正文。",
+  "pov_rules": ["仅写观察者可知内容", "不代角色断言未提交的心理"],
+  "first_attentions": ["行动", "位置变化", "可见后果"],
+  "voice_exemplars": ["<角色>来到<地点>。原话与动作交代了其余变化。"],
+  "banned_constructions": ["这使关系发生变化", "任务完成", "数值变化"],
+  "title_pattern": "{focus}在{location}",
+  "lexicon": {
+    "gathered": "取得了",
+    "movement_origin": "从",
+    "movement_destination": "来到",
+    "observed": "查看了"
+  },
+  "quality_gates": {
+    "mechanical_openings": []
+  }
+}

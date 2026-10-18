@@ -1,0 +1,141 @@
+{
+  "world_id": "black-pine-ridge",
+  "title": "黑松岭雨夜",
+  "premise": "黑松岭是一条尚未闭合的征供之路。地方的人、香火与骨血被收成可以称量的材料，姓名要到很远的灰库才被烧掉。每一处只看得见这条链的一层。",
+  "experience_profile": {
+    "schema_version": "experience-profile/v1",
+    "genre_id": "demythologized-dark-myth",
+    "runtime": {
+      "mode_id": "scene-pressure-v1"
+    },
+    "editorial": {
+      "bundle_id": "demythologized-dark-myth-v1",
+      "style_overrides": {
+        "imagery_domains": ["松涛", "破庙", "雨夜", "铜铃", "名册与供奉"],
+        "forbidden_phrases": ["系统", "任务完成", "数值变化"]
+      },
+      "episode_overrides": {
+        "max_events": 36,
+        "max_world_time_span": 24,
+        "min_narrative_events": 5,
+        "max_repeated_action": 1,
+        "min_arc_events": 12
+      },
+      "character_voice_registers": {
+        "wukong": {
+          "first_attentions": ["力量的下一程", "同行者是否被单独留下", "这一处还没说完的那一层"],
+          "diction": "具体、直接，不用空泛玄理替代证据",
+          "syntax": "短句先断风险，追问紧跟其后",
+          "withheld": ["无证据的天命判断"]
+        },
+        "bailing": {
+          "first_attentions": ["自己会不会被交出去", "退路", "这一处与名册有关的一层"],
+          "diction": "礼貌克制，避免主动命名自己的恐惧",
+          "syntax": "先交付一项事实，再用反问保留余地",
+          "withheld": ["真实身份", "旧主姓名"]
+        },
+        "traveler": {
+          "first_attentions": ["路还通不通", "抄样该不该亮", "留下要付的代价"],
+          "diction": "常识性词汇，不使用妖术术语作确定判断",
+          "syntax": "因果清楚的中短句，疑问落在可验证之处",
+          "withheld": ["未经核实的悬赏结论"]
+        }
+      }
+    }
+  },
+  "dramatic_horizon": {
+    "central_question": "被写进名册的人，能否在姓名烧掉之前自己选定去向？",
+    "success_conditions": [
+      "主要角色沿征供链走到自己的志向真正用得上的那一层",
+      "同行或分开都留下可以承担的后果"
+    ],
+    "failure_conditions": [
+      "角色在同一层事实上反复停留，错过下一处的时限",
+      "角色在证据不足时相互伤害，或替别人被留下"
+    ],
+    "invariants": [
+      "真相必须通过角色承担风险或交换可信事实获得",
+      "任何结盟、分裂或追踪决定都必须保留物件与空间连续性"
+    ]
+  },
+  "rules": [
+    {
+      "id": "grounded-signs",
+      "statement": "异象先表现为可观察的铃声、骨影、气味或痕迹。"
+    },
+    {
+      "id": "ordinary-traveler",
+      "statement": "普通行脚人不能施展法术。"
+    },
+    {
+      "id": "sacred-ledger",
+      "statement": "岭上旧制用香火、妖籍与丹材名目登记地方供奉；名册只证明征收名义，不证明征收者善恶。"
+    },
+    {
+      "id": "institutional-traces",
+      "statement": "铜铃、粉末、号牌、账页、窑、铁索、铜衡与灰库属于同一条征供链，但每一处只能证明肉眼能看见的那一层，不能代替下一处。"
+    },
+    {
+      "id": "bell-in-crosswind",
+      "type": "incident",
+      "location_id": "back-door",
+      "trigger": {"tick": 3},
+      "summary": "一阵逆风撞上后门，细铃声反而从破庙深处响了一次。",
+      "cost": 1,
+      "effects": [
+        {"type": "global_need", "need": "knowledge", "amount": 4}
+      ]
+    },
+    {
+      "id": "temple-ember-choice",
+      "type": "user_gate",
+      "location_id": "back-door",
+      "trigger": {"tick": 4},
+      "prompt": "是否拨拢残火，只看清铃片上这一处铸印？这里还不能判断它与别处是否相同。",
+      "deadline_ticks": 2,
+      "choices": [
+        {
+          "id": "bank-the-embers",
+          "label": "消耗干燥松枝，拨亮残火",
+          "observation": "干燥松枝压进灰白余烬，火光重新攀上梁柱。铃片内侧能辨出“入供”二字，火光照不见这印记的含义，也照不见别处的粉末。",
+          "costs": [
+            {"type": "resource", "resource_id": "dry-kindling", "amount": 1}
+          ],
+          "effects": [
+            {"type": "global_need", "need": "knowledge", "amount": -6}
+          ]
+        },
+        {
+          "id": "leave-the-dark",
+          "label": "不动残火，保留黑暗",
+          "observation": "无人去碰那簇残火；火星缩进灰里，门内的人脸与各自带回的痕迹一同隐没。",
+          "costs": [],
+          "effects": []
+        }
+      ]
+    },
+    {
+      "id": "bank-temple-embers",
+      "type": "fate_intervention",
+      "summary": "拨拢破庙残火，让雨夜中的环境短暂缓和。",
+      "conditions": {
+        "tick_gte": 0,
+        "resources": [
+          {"resource_id": "dry-kindling", "minimum": 1}
+        ]
+      },
+      "once": false,
+      "cooldown_ticks": 3,
+      "costs": [
+        {"type": "resource", "resource_id": "dry-kindling", "amount": 1}
+      ],
+      "effects": [
+        {"type": "global_need", "need": "fatigue", "amount": -4}
+      ]
+    }
+  ],
+  "metadata": {
+    "language": "zh-CN",
+    "mode": "autonomous"
+  }
+}
