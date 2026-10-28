@@ -1,0 +1,48 @@
+{
+  "name": "陆余",
+  "role": "炊事者",
+  "location_id": "shared-court",
+  "skills": [
+    "炉灶维护"
+  ],
+  "goals": [
+    "在院内真正轮一次休"
+  ],
+  "needs": {
+    "resources": 28,
+    "knowledge": 18,
+    "social": 30,
+    "exploration": 16,
+    "fatigue": 12
+  },
+  "responsibilities": [],
+  "learning_interests": [
+    "磨机维护"
+  ],
+  "stocking_interests": [
+    "seal-clay"
+  ],
+  "home_location_id": "terrace-homes",
+  "routine_locations": [
+    "terrace-homes",
+    "shared-court",
+    "shared-court",
+    "archive-room"
+  ],
+  "known_routes": [
+    "shared-court-to-print-room",
+    "print-room-to-shared-court",
+    "shared-court-to-spring-room",
+    "spring-room-to-shared-court",
+    "shared-court-to-archive-room",
+    "archive-room-to-shared-court",
+    "shared-court-to-terrace-homes",
+    "terrace-homes-to-shared-court",
+    "shared-court-to-ridge-gate",
+    "ridge-gate-to-shared-court",
+    "print-room-to-archive-room",
+    "archive-room-to-print-room",
+    "spring-room-to-ridge-gate",
+    "ridge-gate-to-spring-room"
+  ]
+}

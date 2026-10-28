@@ -1,0 +1,50 @@
+{
+  "name": "陶芩",
+  "role": "磨坊工",
+  "location_id": "shared-court",
+  "skills": [
+    "磨机维护"
+  ],
+  "goals": [
+    "把父亲留下的磨坊变成可以轮休的共同生意"
+  ],
+  "needs": {
+    "resources": 32,
+    "knowledge": 18,
+    "social": 28,
+    "exploration": 15,
+    "fatigue": 8
+  },
+  "responsibilities": [
+    "grain-mill"
+  ],
+  "learning_interests": [
+    "校记档案"
+  ],
+  "stocking_interests": [
+    "bearing-grease"
+  ],
+  "home_location_id": "terrace-homes",
+  "routine_locations": [
+    "terrace-homes",
+    "shared-court",
+    "shared-court",
+    "archive-room"
+  ],
+  "known_routes": [
+    "shared-court-to-print-room",
+    "print-room-to-shared-court",
+    "shared-court-to-spring-room",
+    "spring-room-to-shared-court",
+    "shared-court-to-archive-room",
+    "archive-room-to-shared-court",
+    "shared-court-to-terrace-homes",
+    "terrace-homes-to-shared-court",
+    "shared-court-to-ridge-gate",
+    "ridge-gate-to-shared-court",
+    "print-room-to-archive-room",
+    "archive-room-to-print-room",
+    "spring-room-to-ridge-gate",
+    "ridge-gate-to-spring-room"
+  ]
+}

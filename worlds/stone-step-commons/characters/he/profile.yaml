@@ -1,0 +1,48 @@
+{
+  "name": "贺晴",
+  "role": "旅居写字人",
+  "location_id": "print-room",
+  "skills": [
+    "校记档案"
+  ],
+  "goals": [
+    "写下可以带走但不夺走别人的院内故事"
+  ],
+  "needs": {
+    "resources": 24,
+    "knowledge": 32,
+    "social": 24,
+    "exploration": 32,
+    "fatigue": 5
+  },
+  "responsibilities": [],
+  "learning_interests": [
+    "制纸维护"
+  ],
+  "stocking_interests": [
+    "wooden-wedges"
+  ],
+  "home_location_id": "terrace-homes",
+  "routine_locations": [
+    "terrace-homes",
+    "print-room",
+    "shared-court",
+    "archive-room"
+  ],
+  "known_routes": [
+    "shared-court-to-print-room",
+    "print-room-to-shared-court",
+    "shared-court-to-spring-room",
+    "spring-room-to-shared-court",
+    "shared-court-to-archive-room",
+    "archive-room-to-shared-court",
+    "shared-court-to-terrace-homes",
+    "terrace-homes-to-shared-court",
+    "shared-court-to-ridge-gate",
+    "ridge-gate-to-shared-court",
+    "print-room-to-archive-room",
+    "archive-room-to-print-room",
+    "spring-room-to-ridge-gate",
+    "ridge-gate-to-spring-room"
+  ]
+}

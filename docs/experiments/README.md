@@ -4,21 +4,17 @@
 
 本文件模板适合验证单项机制与契约。需要评估多个机制组合后的行为、叙事和追更质量时，使用[世界整体质量评审模板](quality-review-template.md)，评分口径见[设计理念与整体质量模型](../product/design-principles-and-quality.md)。
 
-当前质量纵切见[雨夜破庙单场景文学纵切](single-scene-literary-vertical-v1.md)；
-冻结素材与可执行编辑阶段见[文学 Skill 管线 v1](literary-skill-pipeline-v1.md)；
-机制分层诊断与循环结果见[文学质量循环 v1](literary-quality-loop-v1.md)；
-长篇自主探索、离场寻路与 20 章交付证据见
-[长篇自主世界验证 v1](longform-autonomous-world-v1.md)；
-按需调度与章节装配见
-[调度驱动章节 v1](dispatch-driven-chapters-v1.md)；
-线索分层与离场见
-[2026-10-18 征供链](2026-10-18-dispersed-levy-chain.md)；
-前序管线实验见[场景写作 Skill 与世界声音 v2](narrative-scene-craft-v2.md)和
-[叙事策展与世界文风 v1](narrative-curation-literary-skills-v1.md)。
-
 ## 使用规则
 
-1. 先复制下方模板，文件名使用 `YYYY-MM-DD-短名称.md`。
+实验报告、探针 JSON、运行日志及测试报告统一放在 `outputs/`，不要写入 `docs/`。
+本目录只保留实验规范、评审模板和索引；开发检查点仍保存在 `docs/development/`。
+`outputs/` 沿用本地忽略规则，不进入版本库；正式回归依赖的冻结输入放在
+`tests/fixtures/`，不得依赖可清理的实验产物。
+
+当前结果及未验收项见[开发检查点](../development/autonomous-community-tasks.md)。
+本地 `outputs/` 中的报告和私人日志不属于版本库，不能作为检出后的固定文档链接。
+
+1. 将下方模板复制到 `outputs/experiments/`，文件名使用 `YYYY-MM-DD-短名称.md`。
 2. 固定世界包 revision、Execution IR hash、种子、Workflow/模型版本和命令。
 3. 至少记录一次成功路径和一次预期失败路径。
 4. 结论必须引用事件 id、诊断或可重复输出，不能只评价文本“好不好”。

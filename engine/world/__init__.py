@@ -1,11 +1,15 @@
 """Public contracts for directory-authored world packages."""
 
+from engine.world.community_authoring import (
+    AUTHOR_SCHEMA_VERSION,
+    build_community_package,
+    load_community_source,
+)
 from engine.world.package_compiler import (
     SUPPORTED_PACKAGE_CAPABILITIES,
     compile_package,
 )
 from engine.world.package_spec import (
-    PACKAGE_SCHEMA_VERSION,
     AutonomousWorldSpec,
     CapabilityHandshake,
     CompiledWorld,
@@ -25,7 +29,9 @@ from engine.world.package_spec import (
 )
 
 __all__ = [
-    "PACKAGE_SCHEMA_VERSION",
+    "AUTHOR_SCHEMA_VERSION",
+    "build_community_package",
+    "load_community_source",
     "SUPPORTED_PACKAGE_CAPABILITIES",
     "AutonomousWorldSpec",
     "CapabilityHandshake",

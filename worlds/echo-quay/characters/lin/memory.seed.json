@@ -1,7 +1,12 @@
 [
   {
     "kind": "experience",
-    "summary": "曾在钟栈桥用回声找回一枚漂走的浮标。",
-    "confidence": 0.8
+    "summary": "十九岁第一次独自修好旧泵时，母亲没夸手艺，只说以后有事终于不用求人。那句话既让她骄傲，也让她觉得不能再走。",
+    "visibility": "private"
+  },
+  {
+    "kind": "experience",
+    "summary": "去年工坊漏雨，魏澄送来一块新篷布，没有让她签任何收据。她替他修了父亲留下的钟作为还礼。",
+    "visibility": "public"
   }
 ]

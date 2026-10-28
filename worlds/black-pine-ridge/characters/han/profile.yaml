@@ -1,0 +1,45 @@
+{
+  "goals": [
+    "让普通陶器养活自己",
+    "不替旧窑的用途担保"
+  ],
+  "home_location_id": "levy-outpost",
+  "known_routes": [
+    "temple-to-door",
+    "door-to-temple",
+    "door-to-path",
+    "path-to-door",
+    "path-to-outpost",
+    "outpost-to-path",
+    "outpost-to-kiln",
+    "kiln-to-outpost",
+    "kiln-to-gorge",
+    "gorge-to-kiln"
+  ],
+  "learning_interests": [
+    "校记档案"
+  ],
+  "location_id": "ash-kiln",
+  "name": "韩迟",
+  "needs": {
+    "fatigue": 18,
+    "knowledge": 32,
+    "resources": 40,
+    "social": 28
+  },
+  "responsibilities": [
+    "hand-kiln"
+  ],
+  "role": "居民窑工",
+  "routine_locations": [
+    "levy-outpost",
+    "ash-kiln",
+    "ruined-temple"
+  ],
+  "skills": [
+    "修补风门"
+  ],
+  "stocking_interests": [
+    "clay-bowl"
+  ]
+}

@@ -1,0 +1,54 @@
+{
+  "name": "苏禾",
+  "role": "商贩",
+  "location_id": "glass-market",
+  "skills": [
+    "清点物资",
+    "搬运物资"
+  ],
+  "goals": [
+    "稳定每周的供货",
+    "把弟弟留下的旧仓重新用起来"
+  ],
+  "needs": {
+    "resources": 42,
+    "knowledge": 18,
+    "social": 22,
+    "exploration": 20,
+    "fatigue": 14
+  },
+  "responsibilities": [],
+  "learning_interests": [
+    "辨认航标"
+  ],
+  "known_routes": [
+    "pier-to-market",
+    "market-to-pier",
+    "market-to-workshop",
+    "workshop-to-market",
+    "pier-to-bank",
+    "bank-to-pier",
+    "glass-market-to-living-row",
+    "living-row-to-glass-market",
+    "glass-market-to-common-house",
+    "common-house-to-glass-market",
+    "glass-market-to-garden",
+    "garden-to-glass-market",
+    "glass-market-to-storehouse",
+    "storehouse-to-glass-market",
+    "tide-workshop-to-storehouse",
+    "storehouse-to-tide-workshop",
+    "bell-pier-to-storehouse",
+    "storehouse-to-bell-pier"
+  ],
+  "home_location_id": "living-row",
+  "routine_locations": [
+    "living-row",
+    "storehouse",
+    "glass-market",
+    "common-house"
+  ],
+  "stocking_interests": [
+    "wire"
+  ]
+}

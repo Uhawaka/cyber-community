@@ -1,23 +1,24 @@
 {
-  "schema_version": "world-package/v1alpha2",
-  "package_id": "echo-quay",
-  "revision": 1,
+  "schema_version": "world-package/v1alpha3",
+  "package_id": "echo-quay-v2",
+  "revision": 3,
   "capabilities": [
     "world.core.v1",
     "world.characters.v1",
     "world.memory-seed.v1",
     "world.resources.v1",
     "world.topology.v1",
-    "world.incidents.v1",
-    "world.user-gates.v1",
-    "world.fate-interventions.v1"
+    "world.relationships.v1",
+    "world.community.v1"
   ],
   "assets": {
     "world": "world.yaml",
     "locations": "locations.yaml",
     "characters": "characters",
     "resources": "resources.yaml",
-    "passages": "passages.yaml"
+    "passages": "passages.yaml",
+    "relationships": "relationships.yaml",
+    "community": "community.yaml"
   },
   "workflows": {
     "genesis": "workflows/genesis.yaml",

@@ -1,12 +1,12 @@
 [
   {
     "kind": "experience",
-    "summary": "他认定同一处痕迹只查一次，查完就走在别人前面。",
-    "confidence": 0.9
+    "summary": "曾把走在别人前面当成保护，后来有人告诉他，被保护的人也需要拒绝的余地。",
+    "visibility": "private"
   },
   {
+    "confidence": 0.8,
     "kind": "observation",
-    "summary": "破庙残火旁没有新鲜湿脚印。",
-    "confidence": 0.8
+    "summary": "在破庙残火旁没有看见新鲜湿脚印。"
   }
 ]

@@ -1,0 +1,54 @@
+{
+  "name": "乔岚",
+  "role": "照料者",
+  "location_id": "glass-market",
+  "skills": [
+    "照料病人",
+    "调配食物"
+  ],
+  "goals": [
+    "留出不被求助占满的下午",
+    "建立轮流照料的邻里小组"
+  ],
+  "needs": {
+    "resources": 25,
+    "knowledge": 16,
+    "social": 30,
+    "exploration": 8,
+    "fatigue": 22
+  },
+  "responsibilities": [],
+  "learning_interests": [
+    "清点物资"
+  ],
+  "known_routes": [
+    "pier-to-market",
+    "market-to-pier",
+    "market-to-workshop",
+    "workshop-to-market",
+    "pier-to-bank",
+    "bank-to-pier",
+    "glass-market-to-living-row",
+    "living-row-to-glass-market",
+    "glass-market-to-common-house",
+    "common-house-to-glass-market",
+    "glass-market-to-garden",
+    "garden-to-glass-market",
+    "glass-market-to-storehouse",
+    "storehouse-to-glass-market",
+    "tide-workshop-to-storehouse",
+    "storehouse-to-tide-workshop",
+    "bell-pier-to-storehouse",
+    "storehouse-to-bell-pier"
+  ],
+  "home_location_id": "living-row",
+  "routine_locations": [
+    "living-row",
+    "glass-market",
+    "glass-market",
+    "common-house"
+  ],
+  "stocking_interests": [
+    "garden-wire"
+  ]
+}

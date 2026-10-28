@@ -1,87 +1,87 @@
 {
   "passages": [
     {
+      "destination_id": "back-door",
       "id": "temple-to-door",
       "origin_id": "ruined-temple",
-      "destination_id": "back-door",
       "travel_time": 1
     },
     {
+      "destination_id": "ruined-temple",
       "id": "door-to-temple",
       "origin_id": "back-door",
-      "destination_id": "ruined-temple",
       "travel_time": 1
     },
     {
+      "destination_id": "forest-path",
       "id": "door-to-path",
       "origin_id": "back-door",
-      "destination_id": "forest-path",
       "travel_time": 1
     },
     {
+      "destination_id": "back-door",
       "id": "path-to-door",
       "origin_id": "forest-path",
-      "destination_id": "back-door",
       "travel_time": 1
     },
     {
+      "destination_id": "levy-outpost",
       "id": "path-to-outpost",
       "origin_id": "forest-path",
-      "destination_id": "levy-outpost",
       "travel_time": 2
     },
     {
+      "destination_id": "forest-path",
       "id": "outpost-to-path",
       "origin_id": "levy-outpost",
-      "destination_id": "forest-path",
       "travel_time": 2
     },
     {
+      "destination_id": "ash-kiln",
       "id": "outpost-to-kiln",
       "origin_id": "levy-outpost",
-      "destination_id": "ash-kiln",
       "travel_time": 2
     },
     {
+      "destination_id": "levy-outpost",
       "id": "kiln-to-outpost",
       "origin_id": "ash-kiln",
-      "destination_id": "levy-outpost",
       "travel_time": 2
     },
     {
+      "destination_id": "cloud-chain-gorge",
       "id": "kiln-to-gorge",
       "origin_id": "ash-kiln",
-      "destination_id": "cloud-chain-gorge",
       "travel_time": 3
     },
     {
+      "destination_id": "ash-kiln",
       "id": "gorge-to-kiln",
       "origin_id": "cloud-chain-gorge",
-      "destination_id": "ash-kiln",
       "travel_time": 3
     },
     {
+      "destination_id": "celestial-weighhouse",
       "id": "gorge-to-weighhouse",
       "origin_id": "cloud-chain-gorge",
-      "destination_id": "celestial-weighhouse",
       "travel_time": 3
     },
     {
+      "destination_id": "cloud-chain-gorge",
       "id": "weighhouse-to-gorge",
       "origin_id": "celestial-weighhouse",
-      "destination_id": "cloud-chain-gorge",
       "travel_time": 3
     },
     {
+      "destination_id": "merit-ash-archive",
       "id": "weighhouse-to-archive",
       "origin_id": "celestial-weighhouse",
-      "destination_id": "merit-ash-archive",
       "travel_time": 2
     },
     {
+      "destination_id": "celestial-weighhouse",
       "id": "archive-to-weighhouse",
       "origin_id": "merit-ash-archive",
-      "destination_id": "celestial-weighhouse",
       "travel_time": 2
     }
   ]

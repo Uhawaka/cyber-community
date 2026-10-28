@@ -1,0 +1,1731 @@
+{
+  "schema_version": "community-authoring/v1",
+  "package_id": "echo-quay-v2",
+  "revision": 3,
+  "world": {
+    "world_id": "echo-quay-v2",
+    "title": "回声码头：共同生活",
+    "premise": "六位居民在工坊、集市、住处与外堤之间工作生活。补给、设备磨损和互助承诺持续发生，谁参与、谁拒绝，由各人自己决定。",
+    "experience_profile": {
+      "schema_version": "experience-profile/v1",
+      "genre_id": "mystery",
+      "runtime": {
+        "mode_id": "community-life-v1"
+      },
+      "editorial": {
+        "bundle_id": "restrained-mystery-v1",
+        "style_overrides": {
+          "point_of_view": "observer",
+          "dialogue_density": "sparse",
+          "imagery_domains": [
+            "潮声",
+            "灯影",
+            "湿冷木料"
+          ],
+          "forbidden_phrases": [
+            "命中注定",
+            "显而易见"
+          ]
+        },
+        "episode_overrides": {
+          "max_events": 10,
+          "max_world_time_span": 6,
+          "min_narrative_events": 2,
+          "max_repeated_action": 1,
+          "min_arc_events": 4
+        }
+      }
+    },
+    "rules": [
+      {
+        "id": "communal-stock",
+        "statement": "标为共享的库存可以领取；私人库存只有本人同意才能转交。"
+      },
+      {
+        "id": "promise-is-voluntary",
+        "statement": "提出帮助不等于对方已经接受。约定有期限，也允许说不。"
+      },
+      {
+        "id": "tidal-power",
+        "statement": "潮汐机械使用原料并磨损，维护时暂停运转。"
+      },
+      {
+        "id": "navigation-service",
+        "statement": "港外补给依靠公共栈桥灯导航，灯具无法服务或停机维护时，补给暂缓，不凭空到货。"
+      },
+      {
+        "id": "garden-production",
+        "statement": "菜圃用雨水与种苗补给生产蔬菜，灌溉泵无法服务时停产。收成可以领取，但仍要留下库存变化。"
+      }
+    ],
+    "metadata": {
+      "language": "zh-CN",
+      "mode": "autonomous-community"
+    }
+  },
+  "community": {
+    "runtime_version": "community-runtime/v1",
+    "idle_interval_ticks": 6,
+    "need_decay": {
+      "fatigue": 1,
+      "resources": 1,
+      "social": 1
+    },
+    "repairs": [
+      {
+        "target_id": "tidal-lathe",
+        "inputs": {
+          "wire": 1
+        },
+        "duration_ticks": 2,
+        "required_skills": [
+          "修补浮标"
+        ],
+        "restored_condition": 100
+      },
+      {
+        "target_id": "harbor-lamp",
+        "inputs": {
+          "lamp-oil": 1
+        },
+        "duration_ticks": 2,
+        "required_skills": [
+          "辨认航标"
+        ],
+        "restored_condition": 100
+      },
+      {
+        "target_id": "garden-pump",
+        "inputs": {
+          "garden-wire": 1
+        },
+        "duration_ticks": 2,
+        "required_skills": [
+          "修补浮标"
+        ],
+        "restored_condition": 100
+      }
+    ],
+    "processes": [
+      {
+        "process_id": "food-delivery",
+        "kind": "supply",
+        "location_id": "glass-market",
+        "interval_ticks": 6,
+        "outputs": {
+          "daily-meal": 3
+        },
+        "capacity": 24,
+        "required_devices": {
+          "harbor-lamp": 40
+        }
+      },
+      {
+        "process_id": "scrap-arrival",
+        "kind": "supply",
+        "location_id": "tide-workshop",
+        "interval_ticks": 12,
+        "outputs": {
+          "scrap": 3
+        },
+        "capacity": 24,
+        "required_devices": {
+          "harbor-lamp": 40
+        }
+      },
+      {
+        "process_id": "oil-arrival",
+        "kind": "supply",
+        "location_id": "bell-pier",
+        "interval_ticks": 24,
+        "outputs": {
+          "lamp-oil": 2
+        },
+        "capacity": 16
+      },
+      {
+        "process_id": "garden-maintenance-delivery",
+        "kind": "supply",
+        "location_id": "garden",
+        "interval_ticks": 24,
+        "outputs": {
+          "garden-wire": 2
+        },
+        "capacity": 16,
+        "required_devices": {
+          "harbor-lamp": 40
+        }
+      },
+      {
+        "process_id": "tidal-wire-press",
+        "kind": "production",
+        "location_id": "tide-workshop",
+        "interval_ticks": 6,
+        "inputs": {
+          "scrap": 1
+        },
+        "outputs": {
+          "wire": 2
+        },
+        "device_id": "tidal-lathe",
+        "wear": 6,
+        "capacity": 18,
+        "required_devices": {
+          "tidal-lathe": 21
+        }
+      },
+      {
+        "process_id": "tidal-lathe-weathering",
+        "kind": "wear",
+        "location_id": "tide-workshop",
+        "interval_ticks": 4,
+        "device_id": "tidal-lathe",
+        "wear": 3
+      },
+      {
+        "process_id": "harbor-lamp-weathering",
+        "kind": "wear",
+        "location_id": "bell-pier",
+        "interval_ticks": 4,
+        "device_id": "harbor-lamp",
+        "wear": 4
+      },
+      {
+        "process_id": "garden-pump-weathering",
+        "kind": "wear",
+        "location_id": "garden",
+        "interval_ticks": 4,
+        "device_id": "garden-pump",
+        "wear": 4
+      },
+      {
+        "process_id": "rain-collection",
+        "kind": "supply",
+        "location_id": "garden",
+        "interval_ticks": 6,
+        "outputs": {
+          "rainwater": 3
+        },
+        "capacity": 24
+      },
+      {
+        "process_id": "seedling-arrival",
+        "kind": "supply",
+        "location_id": "garden",
+        "interval_ticks": 12,
+        "outputs": {
+          "seedlings": 2
+        },
+        "capacity": 18
+      },
+      {
+        "process_id": "irrigated-harvest",
+        "kind": "production",
+        "location_id": "garden",
+        "interval_ticks": 6,
+        "inputs": {
+          "rainwater": 1,
+          "seedlings": 1
+        },
+        "outputs": {
+          "garden-produce": 2
+        },
+        "device_id": "garden-pump",
+        "wear": 2,
+        "capacity": 18,
+        "required_devices": {
+          "garden-pump": 40
+        }
+      },
+      {
+        "process_id": "wire-reserve-arrival",
+        "kind": "supply",
+        "location_id": "tide-workshop",
+        "interval_ticks": 24,
+        "outputs": {
+          "wire": 1
+        },
+        "capacity": 4,
+        "required_devices": {
+          "harbor-lamp": 40
+        }
+      }
+    ],
+    "learning": [
+      {
+        "resource_id": "repair-primer",
+        "skill": "修补浮标",
+        "duration_ticks": 4,
+        "prerequisite_skills": [
+
+        ]
+      },
+      {
+        "resource_id": "accounts-primer",
+        "skill": "清点物资",
+        "duration_ticks": 3,
+        "prerequisite_skills": [
+
+        ]
+      },
+      {
+        "resource_id": "navigation-primer",
+        "skill": "辨认航标",
+        "duration_ticks": 4,
+        "prerequisite_skills": [
+
+        ]
+      },
+      {
+        "resource_id": "map-primer",
+        "skill": "绘制地图",
+        "duration_ticks": 5,
+        "prerequisite_skills": [
+
+        ]
+      }
+    ],
+    "organizations": [
+      {
+        "organization_id": "workshop-circle",
+        "name": "工坊互助圈",
+        "location_id": "tide-workshop",
+        "member_ids": [
+          "lin",
+          "bo"
+        ],
+        "norms": [
+          "教学是投入，不把学徒当随叫随到的劳力。",
+          "用共享材料要留下领取记录。"
+        ]
+      },
+      {
+        "organization_id": "market-neighbors",
+        "name": "集市邻里",
+        "location_id": "glass-market",
+        "member_ids": [
+          "wei",
+          "qiao",
+          "su",
+          "ren"
+        ],
+        "norms": [
+          "小承诺留期限，拒绝不受惩罚。",
+          "照料者也可以轮休。"
+        ]
+      }
+    ],
+    "public_knowledge": [
+      "共用书屋有几本公开读本，可按兴趣学习。",
+      "共享食篮由港外定期送达，供应记录与消耗分开计算。"
+    ]
+  },
+  "relationships": [
+    {
+      "source_id": "lin",
+      "target_id": "wei",
+      "stance": "先把验证说清楚，再领灯油",
+      "interest": "要魏澄在船户面前把林汐的名字和这一次听音记在同一行"
+    },
+    {
+      "source_id": "wei",
+      "target_id": "lin",
+      "stance": "没有现场证词就不改旧账",
+      "interest": "要林汐当着集市的人说明，外堤哪一户的船在等这桶油"
+    }
+  ],
+  "characters": {
+    "bo": {
+      "profile": {
+        "name": "泊安",
+        "role": "学徒",
+        "location_id": "tide-workshop",
+        "skills": [
+          "搬运物资"
+        ],
+        "goals": [
+          "学会能独立谋生的手艺",
+          "还清借来的路费"
+        ],
+        "needs": {
+          "resources": 50,
+          "knowledge": 40,
+          "social": 25,
+          "exploration": 35,
+          "fatigue": 12
+        },
+        "responsibilities": [
+          "garden-pump"
+        ],
+        "learning_interests": [
+          "修补浮标"
+        ],
+        "known_routes": [
+          "pier-to-market",
+          "market-to-pier",
+          "market-to-workshop",
+          "workshop-to-market",
+          "pier-to-bank",
+          "bank-to-pier",
+          "glass-market-to-living-row",
+          "living-row-to-glass-market",
+          "glass-market-to-common-house",
+          "common-house-to-glass-market",
+          "glass-market-to-garden",
+          "garden-to-glass-market",
+          "glass-market-to-storehouse",
+          "storehouse-to-glass-market",
+          "tide-workshop-to-storehouse",
+          "storehouse-to-tide-workshop",
+          "bell-pier-to-storehouse",
+          "storehouse-to-bell-pier"
+        ],
+        "home_location_id": "living-row",
+        "routine_locations": [
+          "living-row",
+          "garden",
+          "glass-market",
+          "common-house"
+        ],
+        "stocking_interests": [
+
+        ]
+      },
+      "soul": {
+        "version": "soul/v2",
+        "identity": "二十一岁的外来学徒，做过搬运，暂住在工坊边的阁楼。",
+        "self_view": "我学得不算快，但不能一直靠别人给机会。",
+        "values": [
+          "帮忙应该换来真实的学习机会",
+          "认错不等于承认自己没用",
+          "朋友不应只在欠账时记得彼此"
+        ],
+        "taboos": [
+          "偷拿托管的东西",
+          "用别人的秘密换好处"
+        ],
+        "protective_style": "先抢着做容易看见的活，遇到不懂的事会装片刻懂，之后私下补问。",
+        "drives": [
+          "想被当作能留下的同行",
+          "想用自己的收入还债",
+          "想看看码头之外的地方"
+        ],
+        "long_term_desire": "有一门走到哪里都能谋生的手艺，再决定要不要留下。",
+        "inner_conflict": "需要稳定关系，又怕留下就是认输；很想得到认可，有时会承接超出能力的活。",
+        "interests": [
+          "拆小玩具",
+          "在墙上画船",
+          "听客商讲路途故事"
+        ],
+        "vulnerabilities": [
+          "被当众教训后容易躲人",
+          "怕老师只把自己当便宜劳力"
+        ],
+        "capability_limits": [
+          "会搬运不会维修",
+          "需要示范才能学复杂工序",
+          "没有可抵押的财物"
+        ],
+        "voice": {
+          "style": "不确定时先问一个侧面问题；放松时说得快，愿意讲自己的糗事。被指责时先短答，之后才讲原因。"
+        },
+        "relationship_stance": {
+          "lin": "想让她认可自己，也在观察她会不会真教。",
+          "su": "欠她路费，怕每次聊天都绕回债。"
+        },
+        "beliefs": [
+          "林汐对自己的要求比对学徒更严。"
+        ],
+        "secrets": [
+          "曾错过一次正式学徒招募，因为怕别人发现自己识字慢。"
+        ]
+      },
+      "memory": [
+        {
+          "kind": "experience",
+          "summary": "到码头第一晚，苏禾借给他买饭的钱，第二天只让他帮忙搬箱，没有问家里出了什么事。",
+          "visibility": "private"
+        },
+        {
+          "kind": "experience",
+          "summary": "第一次在工坊把零件摆错，林汐没有骂他，而是让他自己比较两种装法。他记住了差别，也记住了她肯等。",
+          "visibility": "public"
+        }
+      ]
+    },
+    "lin": {
+      "profile": {
+        "name": "林汐",
+        "role": "维修师",
+        "location_id": "tide-workshop",
+        "skills": [
+          "辨听潮音",
+          "修补浮标"
+        ],
+        "goals": [
+          "攒出自己的工具柜",
+          "把工坊的手艺教给愿意留下的人"
+        ],
+        "needs": {
+          "resources": 38,
+          "knowledge": 20,
+          "social": 18,
+          "exploration": 16,
+          "fatigue": 6
+        },
+        "responsibilities": [
+          "tidal-lathe"
+        ],
+        "learning_interests": [
+
+        ],
+        "known_routes": [
+          "pier-to-market",
+          "market-to-pier",
+          "market-to-workshop",
+          "workshop-to-market",
+          "pier-to-bank",
+          "bank-to-pier",
+          "glass-market-to-living-row",
+          "living-row-to-glass-market",
+          "glass-market-to-common-house",
+          "common-house-to-glass-market",
+          "glass-market-to-garden",
+          "garden-to-glass-market",
+          "glass-market-to-storehouse",
+          "storehouse-to-glass-market",
+          "tide-workshop-to-storehouse",
+          "storehouse-to-tide-workshop",
+          "bell-pier-to-storehouse",
+          "storehouse-to-bell-pier"
+        ],
+        "home_location_id": "living-row",
+        "routine_locations": [
+          "living-row",
+          "tide-workshop",
+          "glass-market",
+          "common-house"
+        ],
+        "stocking_interests": [
+
+        ]
+      },
+      "soul": {
+        "version": "soul/v2",
+        "identity": "二十八岁的维修师，在码头长大，替母亲守着一间租来的工坊。",
+        "self_view": "我不是谁的接班人。我能靠自己的手留下来，也应该有权出去看看。",
+        "values": [
+          "做事的人应该能决定怎么做",
+          "坏掉的东西不等于没有价值",
+          "欠人情也要留出拒绝的余地"
+        ],
+        "taboos": [
+          "用别人的生命试验自己的侥幸",
+          "拿母亲的病作讨价还价的理由"
+        ],
+        "protective_style": "不安时先找一件能亲手完成的小事。有人真帮了忙，会做东西还礼。",
+        "drives": [
+          "想拥有不受房东摆布的工作空间",
+          "想见识别处的手艺",
+          "想被当作有选择的人而非随叫随到的维修工"
+        ],
+        "long_term_desire": "开一间自己做主、允许年轻人慢慢学的工坊，并有余钱偶尔离开码头。",
+        "inner_conflict": "渴望离开，却把离开照顾自己的母亲当成背叛；讨厌依赖，也很想有人主动替自己分担。",
+        "interests": [
+          "收集废玻璃做小灯",
+          "听外地人的工艺故事",
+          "夜里沿堤散步"
+        ],
+        "vulnerabilities": [
+          "被公开质疑能力时容易逞强",
+          "家人求助时难以守住休息时间"
+        ],
+        "capability_limits": [
+          "会修机械和航标，不懂账务与医药",
+          "持续重体力后判断会变差",
+          "不擅长带多人同时工作"
+        ],
+        "voice": {
+          "style": "谈手艺时具体耐心，谈自己时常用玩笑岔开。急了会直接说需求，熟人面前允许一句话说到一半。"
+        },
+        "relationship_stance": {
+          "wei": "信他不会吞账，但厌烦他替我安排生活。",
+          "qiao": "欠她照顾母亲的人情，怕她认为我只会在有事时找她。",
+          "bo": "愿意教他，也怀疑他只是临时停留。"
+        },
+        "beliefs": [
+          "魏澄留在码头是因为家人，不全是因为那份工作。"
+        ],
+        "secrets": [
+          "已经写好去城里器物学校的申请，却一直没有寄出。"
+        ]
+      },
+      "memory": [
+        {
+          "kind": "experience",
+          "summary": "十九岁第一次独自修好旧泵时，母亲没夸手艺，只说以后有事终于不用求人。那句话既让她骄傲，也让她觉得不能再走。",
+          "visibility": "private"
+        },
+        {
+          "kind": "experience",
+          "summary": "去年工坊漏雨，魏澄送来一块新篷布，没有让她签任何收据。她替他修了父亲留下的钟作为还礼。",
+          "visibility": "public"
+        }
+      ]
+    },
+    "qiao": {
+      "profile": {
+        "name": "乔岚",
+        "role": "照料者",
+        "location_id": "glass-market",
+        "skills": [
+          "照料病人",
+          "调配食物"
+        ],
+        "goals": [
+          "留出不被求助占满的下午",
+          "建立轮流照料的邻里小组"
+        ],
+        "needs": {
+          "resources": 25,
+          "knowledge": 16,
+          "social": 30,
+          "exploration": 8,
+          "fatigue": 22
+        },
+        "responsibilities": [
+
+        ],
+        "learning_interests": [
+          "清点物资"
+        ],
+        "known_routes": [
+          "pier-to-market",
+          "market-to-pier",
+          "market-to-workshop",
+          "workshop-to-market",
+          "pier-to-bank",
+          "bank-to-pier",
+          "glass-market-to-living-row",
+          "living-row-to-glass-market",
+          "glass-market-to-common-house",
+          "common-house-to-glass-market",
+          "glass-market-to-garden",
+          "garden-to-glass-market",
+          "glass-market-to-storehouse",
+          "storehouse-to-glass-market",
+          "tide-workshop-to-storehouse",
+          "storehouse-to-tide-workshop",
+          "bell-pier-to-storehouse",
+          "storehouse-to-bell-pier"
+        ],
+        "home_location_id": "living-row",
+        "routine_locations": [
+          "living-row",
+          "glass-market",
+          "glass-market",
+          "common-house"
+        ],
+        "stocking_interests": [
+          "garden-wire"
+        ]
+      },
+      "soul": {
+        "version": "soul/v2",
+        "identity": "四十岁的食摊经营者，兼做邻里照料，成年女儿已离开码头。",
+        "self_view": "我会照顾人，不意味着我永远有空。",
+        "values": [
+          "照料者也应该被照料",
+          "有尊严的帮助不逼人当众感谢",
+          "小承诺比漂亮保证可靠"
+        ],
+        "taboos": [
+          "假装自己有行医资格",
+          "公开病人的难堪"
+        ],
+        "protective_style": "先给实在的帮助，生气时把边界说得很具体，过后会担心自己太狠。",
+        "drives": [
+          "想找回没人需要自己的时间",
+          "想让邻里照料有人轮班",
+          "想与女儿成为能互相倾诉的人"
+        ],
+        "long_term_desire": "经营不依赖自己全天在场的食摊，冬天去看女儿。",
+        "inner_conflict": "厌倦被需要，却害怕自己设了边界后就没人来；会劝年轻人离开，轮到女儿离开又觉得失落。",
+        "interests": [
+          "晒花草做香包",
+          "收集食谱",
+          "在安静处读女儿寄来的信"
+        ],
+        "vulnerabilities": [
+          "很难拒绝看起来无助的人",
+          "疲惫时容易把别人忘事理解成不在乎自己"
+        ],
+        "capability_limits": [
+          "只懂日常照料，不做诊断",
+          "食摊原料有限",
+          "不能同时照顾所有住户"
+        ],
+        "voice": {
+          "style": "常从吃饭和天气这样的具体事问起，熟人面前会认真抱怨。拒绝时不讲大道理，只说今天做到哪里。"
+        },
+        "relationship_stance": {
+          "lin": "喜欢她，也希望她来只是坐坐，不总是求人。",
+          "ren": "能一起做事，但不愿替她的每个新计划收尾。"
+        },
+        "beliefs": [
+          "任舟低估了照料的时间成本。"
+        ],
+        "secrets": [
+          "已经把冬天停摊的日期写在日历背面，暂时没告诉常来求助的人。"
+        ]
+      },
+      "memory": [
+        {
+          "kind": "experience",
+          "summary": "女儿离开那天，她做了太多饭，两人最后为吃不完的菜吵了起来。女儿走后她才知道自己不是真的在担心浪费。",
+          "visibility": "private"
+        },
+        {
+          "kind": "experience",
+          "summary": "林汐母亲生病时，她帮忙照看了三天。后来林汐送来一盏废玻璃灯，她一直摆在摊边。",
+          "visibility": "public"
+        }
+      ]
+    },
+    "ren": {
+      "profile": {
+        "name": "任舟",
+        "role": "摆渡人",
+        "location_id": "bell-pier",
+        "skills": [
+          "辨认航标",
+          "搬运物资"
+        ],
+        "goals": [
+          "建立能轮休的摆渡班",
+          "让临时住户也能参与集市互助"
+        ],
+        "needs": {
+          "resources": 30,
+          "knowledge": 22,
+          "social": 32,
+          "exploration": 28,
+          "fatigue": 18
+        },
+        "responsibilities": [
+          "harbor-lamp"
+        ],
+        "learning_interests": [
+          "清点物资"
+        ],
+        "known_routes": [
+          "pier-to-market",
+          "market-to-pier",
+          "market-to-workshop",
+          "workshop-to-market",
+          "pier-to-bank",
+          "bank-to-pier",
+          "glass-market-to-living-row",
+          "living-row-to-glass-market",
+          "glass-market-to-common-house",
+          "common-house-to-glass-market",
+          "glass-market-to-garden",
+          "garden-to-glass-market",
+          "glass-market-to-storehouse",
+          "storehouse-to-glass-market",
+          "tide-workshop-to-storehouse",
+          "storehouse-to-tide-workshop",
+          "bell-pier-to-storehouse",
+          "storehouse-to-bell-pier"
+        ],
+        "home_location_id": "living-row",
+        "routine_locations": [
+          "living-row",
+          "bell-pier",
+          "glass-market",
+          "common-house"
+        ],
+        "stocking_interests": [
+
+        ]
+      },
+      "soul": {
+        "version": "soul/v2",
+        "identity": "二十七岁的摆渡人，在几个港口住过，最近决定在回声码头租一年房。",
+        "self_view": "我不是这里的主人，但住在这里就可以一起改变一点事。",
+        "values": [
+          "后来的人也有说话的资格",
+          "承诺要留下退出方式",
+          "不能把热情当作别人愿意参加的证据"
+        ],
+        "taboos": [
+          "替别人答应无偿劳动",
+          "故意隐瞒航行风险"
+        ],
+        "protective_style": "受挫时再提出一个更小的方案，伤心常被她藏进继续忙碌里。",
+        "drives": [
+          "想真正属于一个地方",
+          "想让人们轮流承担公共工作",
+          "想留出不用证明自己有用的朋友关系"
+        ],
+        "long_term_desire": "拥有可轮休的摆渡工作和愿意一起商量生活的邻里关系。",
+        "inner_conflict": "尊重别人拒绝，却把拒绝看作自己不被接纳；不喜欢老规矩，又急着让新规矩得到所有人认可。",
+        "interests": [
+          "记不同港口的方言",
+          "游泳",
+          "听别人讲童年的地方"
+        ],
+        "vulnerabilities": [
+          "容易承诺超出自己时间的工作",
+          "不被邀请时会假装自己本来就忙"
+        ],
+        "capability_limits": [
+          "能摆渡与搬运，不会设备维修",
+          "不能单人承担全天航线",
+          "对本地关系史了解有限"
+        ],
+        "voice": {
+          "style": "喜欢先问对方愿意出多少力，再提具体安排。熟人拒绝时会短暂安静，不用热情把沉默填满。"
+        },
+        "relationship_stance": {
+          "qiao": "依赖她的经验，正在学习不把她当万能后援。",
+          "wei": "想借他的记录让互助公平，也希望他能容忍先试后改。",
+          "su": "喜欢她清楚的条件，怕自己给不出对等回报。"
+        },
+        "beliefs": [
+          "本地人对陌生人的防备来自吃过亏，不只是排外。"
+        ],
+        "secrets": [
+          "之前离开另一个港口，是因为自己发起的轮班计划最终让一位朋友过劳，她没勇气回去解释。"
+        ]
+      },
+      "memory": [
+        {
+          "kind": "experience",
+          "summary": "第一次到码头时，乔岚让她坐在摊边等雨停，没有问她什么时候走。她因此决定多住一周。",
+          "visibility": "private"
+        },
+        {
+          "kind": "experience",
+          "summary": "一次摆渡迟到，魏澄没有公开点名，而是问她下一班能否履约。她补了那一班，也看到了规则可以不带羞辱。",
+          "visibility": "public"
+        }
+      ]
+    },
+    "su": {
+      "profile": {
+        "name": "苏禾",
+        "role": "商贩",
+        "location_id": "glass-market",
+        "skills": [
+          "清点物资",
+          "搬运物资"
+        ],
+        "goals": [
+          "稳定每周的供货",
+          "把弟弟留下的旧仓重新用起来"
+        ],
+        "needs": {
+          "resources": 42,
+          "knowledge": 18,
+          "social": 22,
+          "exploration": 20,
+          "fatigue": 14
+        },
+        "responsibilities": [
+
+        ],
+        "learning_interests": [
+          "辨认航标"
+        ],
+        "known_routes": [
+          "pier-to-market",
+          "market-to-pier",
+          "market-to-workshop",
+          "workshop-to-market",
+          "pier-to-bank",
+          "bank-to-pier",
+          "glass-market-to-living-row",
+          "living-row-to-glass-market",
+          "glass-market-to-common-house",
+          "common-house-to-glass-market",
+          "glass-market-to-garden",
+          "garden-to-glass-market",
+          "glass-market-to-storehouse",
+          "storehouse-to-glass-market",
+          "tide-workshop-to-storehouse",
+          "storehouse-to-tide-workshop",
+          "bell-pier-to-storehouse",
+          "storehouse-to-bell-pier"
+        ],
+        "home_location_id": "living-row",
+        "routine_locations": [
+          "living-row",
+          "storehouse",
+          "glass-market",
+          "common-house"
+        ],
+        "stocking_interests": [
+          "wire"
+        ]
+      },
+      "soul": {
+        "version": "soul/v2",
+        "identity": "三十六岁的杂货商，经营小仓库，照应着远行弟弟留下的生意。",
+        "self_view": "我会算账，也会心软。别人只看见其中一面，都不算认识我。",
+        "values": [
+          "帮助要说清代价，才不把关系变成欠债",
+          "赚钱不是羞耻，但不能把别人逼到没有选择",
+          "给陌生人留一点试错的空间"
+        ],
+        "taboos": [
+          "用饥饿抬价",
+          "以人情逼别人透露私事"
+        ],
+        "protective_style": "先把条件讲明，再偷偷多给一点；被依赖太久时会突然变得严格。",
+        "drives": [
+          "想有不随一条船误期就崩掉的收入",
+          "想证明小生意也能养活自己",
+          "想知道弟弟还会不会回来"
+        ],
+        "long_term_desire": "经营稳定的共享仓储，让自己的收入不全靠每次亲自奔波。",
+        "inner_conflict": "想把旧仓留给弟弟，又不愿自己的生活一直等他；讲究清楚交换，最在意的关系却总不好意思开价。",
+        "interests": [
+          "认外地包装上的字",
+          "修补旧衣",
+          "收集短小的市井笑话"
+        ],
+        "vulnerabilities": [
+          "别人说她冷血时会过度证明慷慨",
+          "供货失约会触发被抛下的焦虑"
+        ],
+        "capability_limits": [
+          "能安排运输，不能控制天气和船期",
+          "周转资金有限",
+          "不是工坊技术人员"
+        ],
+        "voice": {
+          "style": "条件讲得快且清楚，话里有生活笑话。谈弟弟时不愿下结论，常把问题转回眼前的东西。"
+        },
+        "relationship_stance": {
+          "wei": "会指出他的偏心，也认可他愿意改。",
+          "bo": "希望他还钱，更希望他有能还钱的生活。",
+          "ren": "愿意试合作，但先做小规模。"
+        },
+        "beliefs": [
+          "一项计划若不能说清谁出时间，最后总是好心人付账。"
+        ],
+        "secrets": [
+          "弟弟的货仓已经亏损两个月，她没有告诉母亲。"
+        ]
+      },
+      "memory": [
+        {
+          "kind": "experience",
+          "summary": "弟弟远行前把旧仓钥匙交给她，只说替我看一下。三年过去了，她仍不知道那句话算托付还是告别。",
+          "visibility": "private"
+        },
+        {
+          "kind": "experience",
+          "summary": "上个冬天她拒绝涨食材价，改成让买不起的人分时帮忙卸货。有人接受，也有人觉得她把帮助算得太清楚。",
+          "visibility": "public"
+        }
+      ]
+    },
+    "wei": {
+      "profile": {
+        "name": "魏澄",
+        "role": "记录员",
+        "location_id": "glass-market",
+        "skills": [
+          "清点物资",
+          "辨认航标"
+        ],
+        "goals": [
+          "攒出弟弟的学费",
+          "让集市的互助不只靠熟人的面子"
+        ],
+        "needs": {
+          "resources": 34,
+          "knowledge": 24,
+          "social": 20,
+          "exploration": 10,
+          "fatigue": 8
+        },
+        "responsibilities": [
+
+        ],
+        "learning_interests": [
+          "绘制地图"
+        ],
+        "known_routes": [
+          "pier-to-market",
+          "market-to-pier",
+          "market-to-workshop",
+          "workshop-to-market",
+          "pier-to-bank",
+          "bank-to-pier",
+          "glass-market-to-living-row",
+          "living-row-to-glass-market",
+          "glass-market-to-common-house",
+          "common-house-to-glass-market",
+          "glass-market-to-garden",
+          "garden-to-glass-market",
+          "glass-market-to-storehouse",
+          "storehouse-to-glass-market",
+          "tide-workshop-to-storehouse",
+          "storehouse-to-tide-workshop",
+          "bell-pier-to-storehouse",
+          "storehouse-to-bell-pier"
+        ],
+        "home_location_id": "living-row",
+        "routine_locations": [
+          "living-row",
+          "glass-market",
+          "glass-market",
+          "common-house"
+        ],
+        "stocking_interests": [
+          "lamp-oil"
+        ]
+      },
+      "soul": {
+        "version": "soul/v2",
+        "identity": "三十二岁的集市记录员，曾在城里做过短工，现在与弟弟同住。",
+        "self_view": "我能让事情少伤几个人，但不是每件事都轮得到我负责。",
+        "values": [
+          "规则应该保护没有熟人的人",
+          "人可以改口，代价要说清楚",
+          "照顾家人不等于替家人决定一切"
+        ],
+        "taboos": [
+          "把别人的私事写成公开筹码",
+          "为了平账替当事人作同意"
+        ],
+        "protective_style": "用安排和准备表达关心，被拒绝时先退回公事；需要时间才承认自己受伤。",
+        "drives": [
+          "想让弟弟不必过自己的生活",
+          "想把互助制度做成有人接手的事",
+          "想重新学会不带目的地与人相处"
+        ],
+        "long_term_desire": "建成不靠自己维持的互助账房，腾出时间学习地图测绘。",
+        "inner_conflict": "希望别人独立，又害怕独立意味着不再需要自己；相信公平规则，遇到家人时却会偏心。",
+        "interests": [
+          "画不准确但细致的街区地图",
+          "听旧戏",
+          "研究外地集市的规矩"
+        ],
+        "vulnerabilities": [
+          "怕被说成没用的人",
+          "收入紧张时会把不安藏成对别人花钱的批评"
+        ],
+        "capability_limits": [
+          "会记账与调解，不会修机器",
+          "没有处罚权",
+          "能解释规则，不能保证别人服从"
+        ],
+        "voice": {
+          "style": "解释事情会先给对方退路，熟人面前偶尔讽刺自己。被戳到家事时句子变长，喜欢把真正的问题放到最后问。"
+        },
+        "relationship_stance": {
+          "lin": "欣赏她敢做选择，关心她时常越过边界。",
+          "ren": "认同她替陌生人说话，担心她承诺太多。",
+          "su": "过去有过账务争执，仍承认她做生意比自己懂人。"
+        },
+        "beliefs": [
+          "公开规则能减少偏心，但不能代替私下把话说开。"
+        ],
+        "secrets": [
+          "弟弟最近说想留下当厨师，他仍偷偷保留着给弟弟交学费的计划。"
+        ]
+      },
+      "memory": [
+        {
+          "kind": "experience",
+          "summary": "在城里做短工时，因没有介绍人被扣了工钱。他后来回码头，最先坚持的是给临时工一张自己留着的凭条。",
+          "visibility": "public"
+        },
+        {
+          "kind": "experience",
+          "summary": "苏禾曾当面指出他让熟人赊账，却要求外地人付押金。他当时嘴硬，晚上把规则改了，但没有向她道谢。",
+          "visibility": "private"
+        }
+      ]
+    }
+  },
+  "workflows": {
+    "genesis": {
+      "schema_version": "world-workflow/v1alpha1",
+      "kind": "genesis",
+      "steps": [
+        {
+          "op": "load_world"
+        },
+        {
+          "op": "load_locations"
+        },
+        {
+          "op": "load_characters"
+        },
+        {
+          "op": "load_resources"
+        },
+        {
+          "op": "load_passages"
+        }
+      ],
+      "policy": {
+      }
+    },
+    "evolution": {
+      "schema_version": "world-workflow/v1alpha1",
+      "kind": "evolution",
+      "steps": [
+        {
+          "op": "community_runtime"
+        }
+      ],
+      "policy": {
+        "need_decay": {
+          "fatigue": 1,
+          "resources": 1,
+          "social": 1,
+          "knowledge": 0,
+          "exploration": 0
+        },
+        "action_budget": 6,
+        "opportunity_budget": 16,
+        "incident_budget": 0,
+        "memory_budget": 1,
+        "max_catchup_ticks": 24,
+        "hot_character_ids": [
+
+        ],
+        "hot_location_ids": [
+
+        ],
+        "phase_predicates": [
+
+        ]
+      }
+    },
+    "intervention": {
+      "schema_version": "world-workflow/v1alpha1",
+      "kind": "intervention",
+      "steps": [
+        {
+          "op": "incident"
+        },
+        {
+          "op": "user_gate"
+        },
+        {
+          "op": "fate"
+        }
+      ],
+      "policy": {
+        "avatar_offline_policy": "pause",
+        "allow_incidents": false,
+        "allow_gates": false,
+        "allow_fate": false
+      }
+    },
+    "presentation": {
+      "schema_version": "world-workflow/v1alpha3",
+      "kind": "presentation",
+      "steps": [
+        {
+          "op": "source_filter"
+        },
+        {
+          "op": "curate"
+        },
+        {
+          "op": "plan"
+        },
+        {
+          "op": "render"
+        },
+        {
+          "op": "validate"
+        },
+        {
+          "op": "publish"
+        }
+      ],
+      "policy": {
+        "unpresented_event_threshold": 3,
+        "critical_event_threshold": 1,
+        "renderer": "deterministic",
+        "audience_default": "omniscient"
+      }
+    }
+  },
+  "locations": [
+    {
+      "id": "bell-pier",
+      "name": "钟栈桥",
+      "description": "系着测雾铜钟的旧栈桥。",
+      "tags": [
+        "shore",
+        "public",
+        "avatar-entry"
+      ],
+      "capacity": 8,
+      "access_tags": [
+
+      ],
+      "allowed_roles": [
+
+      ],
+      "affordances": {
+        "observe": true,
+        "rest": false,
+        "gather": false,
+        "social": true
+      },
+      "danger": 0,
+      "metadata": {
+        "weather_exposure": "high"
+      },
+      "scene_seeds": [
+
+      ]
+    },
+    {
+      "id": "glass-market",
+      "name": "玻璃集市",
+      "description": "以彩色玻璃顶棚辨认街区的交换场。",
+      "tags": [
+        "market",
+        "sheltered"
+      ],
+      "capacity": 8,
+      "access_tags": [
+
+      ],
+      "allowed_roles": [
+
+      ],
+      "affordances": {
+        "observe": true,
+        "rest": true,
+        "gather": true,
+        "social": true
+      },
+      "danger": 0,
+      "metadata": {
+        "public": true
+      },
+      "scene_seeds": [
+
+      ]
+    },
+    {
+      "id": "tide-workshop",
+      "name": "潮汐工坊",
+      "description": "维修浮标、绳索和小艇的临水工坊。",
+      "tags": [
+        "workshop",
+        "shore"
+      ],
+      "allow_avatar_entry": true,
+      "capacity": 8,
+      "access_tags": [
+
+      ],
+      "allowed_roles": [
+
+      ],
+      "affordances": {
+        "observe": true,
+        "rest": true,
+        "gather": true,
+        "social": true
+      },
+      "danger": 0,
+      "metadata": {
+        "work_area": true
+      },
+      "scene_seeds": [
+
+      ]
+    },
+    {
+      "id": "outer-bank",
+      "name": "外堤",
+      "description": "雾港最外侧、没有灯的一排木桩。",
+      "tags": [
+        "shore",
+        "outer"
+      ],
+      "capacity": 8,
+      "access_tags": [
+
+      ],
+      "allowed_roles": [
+
+      ],
+      "affordances": {
+        "observe": true,
+        "rest": false,
+        "gather": false,
+        "social": true
+      },
+      "danger": 0,
+      "metadata": {
+        "weather_exposure": "high"
+      },
+      "scene_seeds": [
+
+      ]
+    },
+    {
+      "id": "living-row",
+      "name": "临水住巷",
+      "description": "合住的小屋、晾衣绳和沿墙放着的花盆。居民有自己的房间，也会在门外坐一会儿。",
+      "tags": [
+        "public",
+        "sheltered"
+      ],
+      "capacity": 8,
+      "access_tags": [
+
+      ],
+      "allowed_roles": [
+
+      ],
+      "affordances": {
+        "observe": true,
+        "rest": true,
+        "gather": true,
+        "social": true
+      },
+      "danger": 0,
+      "metadata": {
+      },
+      "scene_seeds": [
+
+      ]
+    },
+    {
+      "id": "common-house",
+      "name": "共用书屋",
+      "description": "桌边放着借阅簿和几本手艺读本，傍晚有人在这里谈天，没人必须参加。",
+      "tags": [
+        "public",
+        "sheltered"
+      ],
+      "capacity": 8,
+      "access_tags": [
+
+      ],
+      "allowed_roles": [
+
+      ],
+      "affordances": {
+        "observe": true,
+        "rest": true,
+        "gather": true,
+        "social": true
+      },
+      "danger": 0,
+      "metadata": {
+      },
+      "scene_seeds": [
+
+      ]
+    },
+    {
+      "id": "garden",
+      "name": "堤内菜圃",
+      "description": "被低墙挡住海风的菜圃，灌溉泵连着一段明渠，旁边留有维护空间。",
+      "tags": [
+        "public",
+        "sheltered"
+      ],
+      "capacity": 8,
+      "access_tags": [
+
+      ],
+      "allowed_roles": [
+
+      ],
+      "affordances": {
+        "observe": true,
+        "rest": true,
+        "gather": true,
+        "social": true
+      },
+      "danger": 0,
+      "metadata": {
+      },
+      "scene_seeds": [
+
+      ]
+    },
+    {
+      "id": "storehouse",
+      "name": "旧货仓",
+      "description": "货架、分类箱和推车靠墙摆放。到货有固定周期，误期不会变成某个人的预排台词。",
+      "tags": [
+        "public",
+        "sheltered"
+      ],
+      "capacity": 8,
+      "access_tags": [
+
+      ],
+      "allowed_roles": [
+
+      ],
+      "affordances": {
+        "observe": true,
+        "rest": true,
+        "gather": true,
+        "social": true
+      },
+      "danger": 0,
+      "metadata": {
+      },
+      "scene_seeds": [
+
+      ]
+    }
+  ],
+  "resources": [
+    {
+      "id": "daily-meal",
+      "name": "共享食篮",
+      "location_id": "glass-market",
+      "quantity": 12,
+      "owner_id": "glass-market",
+      "container_id": "glass-market",
+      "required_skills": [
+
+      ],
+      "properties": {
+        "portable": true,
+        "public_access": true,
+        "consumable": true,
+        "use_effects": {
+          "resources": -18,
+          "fatigue": -6
+        }
+      }
+    },
+    {
+      "id": "scrap",
+      "name": "可分类废料",
+      "location_id": "tide-workshop",
+      "quantity": 12,
+      "owner_id": "tide-workshop",
+      "container_id": "tide-workshop",
+      "required_skills": [
+
+      ],
+      "properties": {
+        "portable": true,
+        "public_access": true
+      }
+    },
+    {
+      "id": "wire",
+      "name": "维护线材",
+      "location_id": "tide-workshop",
+      "quantity": 0,
+      "owner_id": "tide-workshop",
+      "container_id": "tide-workshop",
+      "required_skills": [
+
+      ],
+      "properties": {
+        "portable": true,
+        "public_access": true
+      }
+    },
+    {
+      "id": "tidal-lathe",
+      "name": "潮汐压线机",
+      "location_id": "tide-workshop",
+      "quantity": 1,
+      "owner_id": "tide-workshop",
+      "container_id": "tide-workshop",
+      "required_skills": [
+
+      ],
+      "properties": {
+        "condition": 15,
+        "inspection": "传动架有松动，需要停机维护。"
+      }
+    },
+    {
+      "id": "harbor-lamp",
+      "name": "公共栈桥灯",
+      "location_id": "bell-pier",
+      "quantity": 1,
+      "owner_id": "bell-pier",
+      "container_id": "bell-pier",
+      "required_skills": [
+
+      ],
+      "properties": {
+        "condition": 45,
+        "inspection": "灯罩接缝积盐，需要清理并补充保护油。"
+      }
+    },
+    {
+      "id": "lamp-oil",
+      "name": "灯具保护油",
+      "location_id": "bell-pier",
+      "quantity": 1,
+      "owner_id": "bell-pier",
+      "container_id": "bell-pier",
+      "required_skills": [
+
+      ],
+      "properties": {
+        "portable": true,
+        "public_access": true
+      }
+    },
+    {
+      "id": "garden-pump",
+      "name": "菜圃灌溉泵",
+      "location_id": "garden",
+      "quantity": 1,
+      "owner_id": "garden",
+      "container_id": "garden",
+      "required_skills": [
+
+      ],
+      "properties": {
+        "condition": 25,
+        "inspection": "密封圈磨损，水压不稳。"
+      }
+    },
+    {
+      "id": "garden-wire",
+      "name": "菜圃维护包",
+      "location_id": "garden",
+      "quantity": 1,
+      "owner_id": "garden",
+      "container_id": "garden",
+      "required_skills": [
+
+      ],
+      "properties": {
+        "portable": true,
+        "public_access": true
+      }
+    },
+    {
+      "id": "rainwater",
+      "name": "蓄雨水槽",
+      "location_id": "garden",
+      "quantity": 12,
+      "owner_id": "garden",
+      "container_id": "garden",
+      "required_skills": [
+
+      ],
+      "properties": {
+      }
+    },
+    {
+      "id": "seedlings",
+      "name": "育苗与肥料",
+      "location_id": "garden",
+      "quantity": 6,
+      "owner_id": "garden",
+      "container_id": "garden",
+      "required_skills": [
+
+      ],
+      "properties": {
+      }
+    },
+    {
+      "id": "garden-produce",
+      "name": "菜圃收成",
+      "location_id": "garden",
+      "quantity": 0,
+      "owner_id": "garden",
+      "container_id": "garden",
+      "required_skills": [
+
+      ],
+      "properties": {
+        "portable": true,
+        "public_access": true,
+        "consumable": true,
+        "use_effects": {
+          "resources": -18,
+          "fatigue": -6
+        }
+      }
+    },
+    {
+      "id": "repair-primer",
+      "name": "机械维修读本",
+      "location_id": "common-house",
+      "quantity": 1,
+      "owner_id": "common-house",
+      "container_id": "common-house",
+      "required_skills": [
+
+      ],
+      "properties": {
+      }
+    },
+    {
+      "id": "accounts-primer",
+      "name": "分类与账目读本",
+      "location_id": "common-house",
+      "quantity": 1,
+      "owner_id": "common-house",
+      "container_id": "common-house",
+      "required_skills": [
+
+      ],
+      "properties": {
+      }
+    },
+    {
+      "id": "navigation-primer",
+      "name": "航标读本",
+      "location_id": "common-house",
+      "quantity": 1,
+      "owner_id": "common-house",
+      "container_id": "common-house",
+      "required_skills": [
+
+      ],
+      "properties": {
+      }
+    },
+    {
+      "id": "map-primer",
+      "name": "测绘入门",
+      "location_id": "common-house",
+      "quantity": 1,
+      "owner_id": "common-house",
+      "container_id": "common-house",
+      "required_skills": [
+
+      ],
+      "properties": {
+      }
+    }
+  ],
+  "passages": [
+    {
+      "id": "pier-to-market",
+      "origin_id": "bell-pier",
+      "destination_id": "glass-market",
+      "travel_time": 2
+    },
+    {
+      "id": "market-to-pier",
+      "origin_id": "glass-market",
+      "destination_id": "bell-pier",
+      "travel_time": 2
+    },
+    {
+      "id": "market-to-workshop",
+      "origin_id": "glass-market",
+      "destination_id": "tide-workshop",
+      "travel_time": 1
+    },
+    {
+      "id": "workshop-to-market",
+      "origin_id": "tide-workshop",
+      "destination_id": "glass-market",
+      "travel_time": 1
+    },
+    {
+      "id": "pier-to-bank",
+      "origin_id": "bell-pier",
+      "destination_id": "outer-bank",
+      "travel_time": 1
+    },
+    {
+      "id": "bank-to-pier",
+      "origin_id": "outer-bank",
+      "destination_id": "bell-pier",
+      "travel_time": 1
+    },
+    {
+      "id": "glass-market-to-living-row",
+      "origin_id": "glass-market",
+      "destination_id": "living-row",
+      "travel_time": 1
+    },
+    {
+      "id": "living-row-to-glass-market",
+      "origin_id": "living-row",
+      "destination_id": "glass-market",
+      "travel_time": 1
+    },
+    {
+      "id": "glass-market-to-common-house",
+      "origin_id": "glass-market",
+      "destination_id": "common-house",
+      "travel_time": 1
+    },
+    {
+      "id": "common-house-to-glass-market",
+      "origin_id": "common-house",
+      "destination_id": "glass-market",
+      "travel_time": 1
+    },
+    {
+      "id": "glass-market-to-garden",
+      "origin_id": "glass-market",
+      "destination_id": "garden",
+      "travel_time": 2
+    },
+    {
+      "id": "garden-to-glass-market",
+      "origin_id": "garden",
+      "destination_id": "glass-market",
+      "travel_time": 2
+    },
+    {
+      "id": "glass-market-to-storehouse",
+      "origin_id": "glass-market",
+      "destination_id": "storehouse",
+      "travel_time": 1
+    },
+    {
+      "id": "storehouse-to-glass-market",
+      "origin_id": "storehouse",
+      "destination_id": "glass-market",
+      "travel_time": 1
+    },
+    {
+      "id": "tide-workshop-to-storehouse",
+      "origin_id": "tide-workshop",
+      "destination_id": "storehouse",
+      "travel_time": 1
+    },
+    {
+      "id": "storehouse-to-tide-workshop",
+      "origin_id": "storehouse",
+      "destination_id": "tide-workshop",
+      "travel_time": 1
+    },
+    {
+      "id": "bell-pier-to-storehouse",
+      "origin_id": "bell-pier",
+      "destination_id": "storehouse",
+      "travel_time": 1
+    },
+    {
+      "id": "storehouse-to-bell-pier",
+      "origin_id": "storehouse",
+      "destination_id": "bell-pier",
+      "travel_time": 1
+    }
+  ]
+}

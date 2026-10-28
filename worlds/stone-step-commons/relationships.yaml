@@ -1,0 +1,40 @@
+{
+  "edges": [
+    {
+      "source_id": "tao",
+      "target_id": "lu",
+      "stance": "信任她，但需要练习不把帮忙当成默认",
+      "interest": "希望有人能共同安排轮休，而不失去磨坊的自主权"
+    },
+    {
+      "source_id": "lu",
+      "target_id": "tao",
+      "stance": "愿意共事，也坚持自己的离开计划",
+      "interest": "希望陶芩愿意实际分担，而不是再说院里离不开自己"
+    },
+    {
+      "source_id": "mei",
+      "target_id": "he",
+      "stance": "欣赏她的文字，回避问她归期",
+      "interest": "想共同做一本册子，也希望合作不依赖挽留"
+    },
+    {
+      "source_id": "he",
+      "target_id": "mei",
+      "stance": "愿意学习他的手艺，不接受被代定未来",
+      "interest": "想知道自己被欢迎是否不以留下为条件"
+    },
+    {
+      "source_id": "an",
+      "target_id": "tao",
+      "stance": "愿意谈维护，但需要能说不",
+      "interest": "希望交接成为真实能力而不是新的口头承诺"
+    },
+    {
+      "source_id": "du",
+      "target_id": "lu",
+      "stance": "记得她问过自己何时有空",
+      "interest": "愿意帮桌边的小修理，也希望明确期限"
+    }
+  ]
+}

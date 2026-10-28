@@ -7,9 +7,6 @@ import os
 from pathlib import Path
 from typing import Any
 
-from engine.contracts import IntentPolicy, SceneGenerator, WorldAdjudicator
-from engine.runtime.character import MemoryProjection
-from engine.runtime.character.policy import ActorPolicy, DeterministicActorPolicy
 from engine.runtime.kernel.events import EventLog, EventPersistenceError, EventType, WorldEvent, event_record
 from engine.runtime.kernel.state import WorldState
 from engine.runtime.simulation.run import AutonomousRun, event_history_hash
@@ -25,16 +22,21 @@ def create_run(
     seed: int,
     path: str | Path | None = None,
     *,
-    actor_policy: ActorPolicy | None = None,
-    scene_generator: SceneGenerator | None = None,
-    intent_policy: IntentPolicy | None = None,
-    world_adjudicator: WorldAdjudicator | None = None,
+    community_config: dict | None = None,
 ) -> AutonomousRun:
+    if compiled.community is None:
+        raise ValueError("run creation requires a versioned community package")
+    if community_config is not None:
+        from engine.runtime.simulation.community_config import decode_community_config
+        from dataclasses import asdict
+        if compiled.community is None:
+            raise ValueError("community configuration requires a community package")
+        community_config = asdict(decode_community_config(community_config))
     destination = Path(path) if path is not None else None
     if destination is not None and destination.exists() and destination.stat().st_size:
         raise EventPersistenceError("refusing to append a new run to a non-empty log")
     initial = _initial_state(compiled, seed)
-    log = EventLog(initial, destination)
+    log = EventLog(initial, destination, community=compiled.community, world=compiled.world)
     initial_hash = initial.state_hash()
     with workflow_step_scope("genesis", "load_passages"):
         log.append(WorldEvent(
@@ -45,6 +47,9 @@ def create_run(
             observers=tuple(initial.characters),
             data={
                 "world_hash": compiled.content_hash,
+                **({"runtime_version": compiled.community.runtime_version}
+                   if compiled.community is not None else {}),
+                **({"community_config": community_config} if community_config is not None else {}),
                 "seed": int(seed),
                 "pre_state_hash": initial_hash,
                 "deterministic_cursor": 0,
@@ -61,11 +66,6 @@ def create_run(
         compiled=compiled,
         initial_state=initial,
         log=log,
-        memory=MemoryProjection(compiled.world.characters),
-        actor_policy=actor_policy or DeterministicActorPolicy(),
-        scene_generator=scene_generator,
-        intent_policy=intent_policy,
-        world_adjudicator=world_adjudicator,
     )
     return run
 
@@ -75,39 +75,35 @@ def load_run(
     path: str | Path,
     *,
     recover_tail: bool = False,
-    actor_policy: ActorPolicy | None = None,
-    scene_generator: SceneGenerator | None = None,
-    intent_policy: IntentPolicy | None = None,
-    world_adjudicator: WorldAdjudicator | None = None,
 ) -> AutonomousRun:
+    if compiled.community is None:
+        raise ValueError("run loading requires a versioned community package")
     events = EventLog.read_events(
         path, world_hash=compiled.content_hash, recover_tail=recover_tail
     )
     if not events or events[0].event_type is not EventType.RUN_CREATED:
         raise EventPersistenceError("event log must begin with run_created")
+    if compiled.community is not None and events[0].data.get("runtime_version") != compiled.community.runtime_version:
+        raise EventPersistenceError("cannot resume a log under another runtime version")
+    if "community_config" in events[0].data:
+        from engine.runtime.simulation.community_config import decode_community_config
+        try:
+            decode_community_config(events[0].data["community_config"])
+        except (TypeError, ValueError) as exc:
+            raise EventPersistenceError("invalid persisted community configuration") from exc
     seed = events[0].data.get("seed")
     if isinstance(seed, bool) or not isinstance(seed, int):
         raise EventPersistenceError("run_created event has no valid seed")
     initial = _initial_state(compiled, seed)
-    log = EventLog.replay(initial, events, path=path)
+    log = EventLog.replay(initial, events, path=path, community=compiled.community, world=compiled.world)
     metadata = _read_run_metadata(path)
     run = AutonomousRun(
         compiled=compiled,
         initial_state=initial,
         log=log,
-        memory=MemoryProjection(compiled.world.characters),
         parent_history_hash=metadata.get("parent_history_hash"),
         fork_sequence=metadata.get("fork_sequence"),
-        actor_policy=actor_policy or DeterministicActorPolicy(),
-        scene_generator=scene_generator,
-        intent_policy=intent_policy,
-        world_adjudicator=world_adjudicator,
     )
-    for event in events:
-        if event.event_type is EventType.AVATAR_JOINED:
-            run.memory.register_avatar(
-                str(event.data["avatar_id"]), event.data.get("memory_seed", ())
-            )
     return run
 
 
@@ -149,10 +145,11 @@ def export_run(run: AutonomousRun, path: str | Path) -> Path:
 
 def _read_run_metadata(path: str | Path) -> dict[str, Any]:
     try:
-        first = Path(path).read_text(encoding="utf-8").splitlines()[0]
+        with Path(path).open("rb") as stream:
+            first = stream.readline().decode("utf-8")
         value = json.loads(first).get("run_metadata", {})
         return value if isinstance(value, dict) else {}
-    except (OSError, UnicodeError, json.JSONDecodeError, IndexError):
+    except (OSError, UnicodeError, json.JSONDecodeError):
         return {}
 
 
@@ -173,23 +170,12 @@ def fork_run(
     if prefix_length < 0 or prefix_length > len(run.events):
         raise ValueError("event prefix is outside the run history")
     prefix = run.events[:prefix_length]
-    log = EventLog.replay(run.initial_state, prefix)
+    log = EventLog.replay(run.initial_state, prefix, community=run.compiled.community, world=run.compiled.world)
     branch = AutonomousRun(
         compiled=run.compiled,
         initial_state=run.initial_state,
         log=log,
-        memory=MemoryProjection(run.compiled.world.characters),
         parent_history_hash=event_history_hash(prefix),
         fork_sequence=prefix_length - 1,
-        actor_policy=run.actor_policy,
-        scene_generator=run.scene_generator,
-        intent_policy=run.intent_policy,
-        world_adjudicator=run.world_adjudicator,
     )
-    for event in prefix:
-        if event.event_type is EventType.AVATAR_JOINED:
-            branch.memory.register_avatar(
-                str(event.data["avatar_id"]), event.data.get("memory_seed", ())
-            )
     return branch
-

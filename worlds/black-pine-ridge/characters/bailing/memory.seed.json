@@ -1,13 +1,13 @@
 [
   {
-    "kind": "experience",
-    "summary": "旧主的铃会在逆风里指向她停留的地方，同一处多停一刻就多一次暴露。",
     "confidence": 0.85,
+    "kind": "experience",
+    "summary": "旧主的铃曾在逆风里指向她停留的地方；这是她的旧经历，不证明现在每次铃声都如此。",
     "visibility": "private"
   },
   {
+    "confidence": 0.95,
     "kind": "observation",
-    "summary": "她在林间见过浅白粉末，但还不知道那和铃片上的粉末是不是同一层。",
-    "confidence": 0.95
+    "summary": "曾在林间看过浅白粉末，没有核对它与铃片粉末是否相同。"
   }
 ]

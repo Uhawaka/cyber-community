@@ -1,12 +1,12 @@
 [
   {
     "kind": "experience",
-    "summary": "雨再大，石路就会断；他此行是为了在天黑前离开黑松岭。",
-    "confidence": 0.9
+    "summary": "曾因雨夜赶路摔坏行囊，后来学会先修袋口再动身。",
+    "visibility": "private"
   },
   {
+    "confidence": 0.8,
     "kind": "observation",
-    "summary": "后门铜铃碎片内侧留着一道骨白粉痕。",
-    "confidence": 0.8
+    "summary": "后门铜片内侧留着一道骨白粉痕。"
   }
 ]

@@ -1,0 +1,47 @@
+{
+  "name": "梅直",
+  "role": "排印师",
+  "location_id": "print-room",
+  "skills": [
+    "制纸维护",
+    "校记档案"
+  ],
+  "goals": [
+    "有一张可以拒绝急单的工作桌"
+  ],
+  "needs": {
+    "resources": 30,
+    "knowledge": 24,
+    "social": 18,
+    "exploration": 20,
+    "fatigue": 6
+  },
+  "responsibilities": [
+    "paper-press"
+  ],
+  "learning_interests": [],
+  "stocking_interests": [],
+  "home_location_id": "terrace-homes",
+  "routine_locations": [
+    "terrace-homes",
+    "print-room",
+    "shared-court",
+    "archive-room"
+  ],
+  "known_routes": [
+    "shared-court-to-print-room",
+    "print-room-to-shared-court",
+    "shared-court-to-spring-room",
+    "spring-room-to-shared-court",
+    "shared-court-to-archive-room",
+    "archive-room-to-shared-court",
+    "shared-court-to-terrace-homes",
+    "terrace-homes-to-shared-court",
+    "shared-court-to-ridge-gate",
+    "ridge-gate-to-shared-court",
+    "print-room-to-archive-room",
+    "archive-room-to-print-room",
+    "spring-room-to-ridge-gate",
+    "ridge-gate-to-spring-room"
+  ]
+}

@@ -1,0 +1,249 @@
+{
+  "runtime_version": "community-runtime/v1",
+  "idle_interval_ticks": 6,
+  "need_decay": {
+    "fatigue": 1,
+    "resources": 1,
+    "social": 1
+  },
+  "repairs": [
+    {
+      "target_id": "tidal-lathe",
+      "inputs": {
+        "wire": 1
+      },
+      "duration_ticks": 2,
+      "required_skills": [
+        "修补浮标"
+      ],
+      "restored_condition": 100
+    },
+    {
+      "target_id": "harbor-lamp",
+      "inputs": {
+        "lamp-oil": 1
+      },
+      "duration_ticks": 2,
+      "required_skills": [
+        "辨认航标"
+      ],
+      "restored_condition": 100
+    },
+    {
+      "target_id": "garden-pump",
+      "inputs": {
+        "garden-wire": 1
+      },
+      "duration_ticks": 2,
+      "required_skills": [
+        "修补浮标"
+      ],
+      "restored_condition": 100
+    }
+  ],
+  "processes": [
+    {
+      "process_id": "food-delivery",
+      "kind": "supply",
+      "location_id": "glass-market",
+      "interval_ticks": 6,
+      "outputs": {
+        "daily-meal": 3
+      },
+      "capacity": 24,
+      "required_devices": {
+        "harbor-lamp": 40
+      }
+    },
+    {
+      "process_id": "scrap-arrival",
+      "kind": "supply",
+      "location_id": "tide-workshop",
+      "interval_ticks": 12,
+      "outputs": {
+        "scrap": 3
+      },
+      "capacity": 24,
+      "required_devices": {
+        "harbor-lamp": 40
+      }
+    },
+    {
+      "process_id": "oil-arrival",
+      "kind": "supply",
+      "location_id": "bell-pier",
+      "interval_ticks": 24,
+      "outputs": {
+        "lamp-oil": 2
+      },
+      "capacity": 16
+    },
+    {
+      "process_id": "garden-maintenance-delivery",
+      "kind": "supply",
+      "location_id": "garden",
+      "interval_ticks": 24,
+      "outputs": {
+        "garden-wire": 2
+      },
+      "capacity": 16,
+      "required_devices": {
+        "harbor-lamp": 40
+      }
+    },
+    {
+      "process_id": "tidal-wire-press",
+      "kind": "production",
+      "location_id": "tide-workshop",
+      "interval_ticks": 6,
+      "inputs": {
+        "scrap": 1
+      },
+      "outputs": {
+        "wire": 2
+      },
+      "device_id": "tidal-lathe",
+      "wear": 6,
+      "capacity": 18,
+      "required_devices": {
+        "tidal-lathe": 21
+      }
+    },
+    {
+      "process_id": "tidal-lathe-weathering",
+      "kind": "wear",
+      "location_id": "tide-workshop",
+      "interval_ticks": 4,
+      "device_id": "tidal-lathe",
+      "wear": 3
+    },
+    {
+      "process_id": "harbor-lamp-weathering",
+      "kind": "wear",
+      "location_id": "bell-pier",
+      "interval_ticks": 4,
+      "device_id": "harbor-lamp",
+      "wear": 4
+    },
+    {
+      "process_id": "garden-pump-weathering",
+      "kind": "wear",
+      "location_id": "garden",
+      "interval_ticks": 4,
+      "device_id": "garden-pump",
+      "wear": 4
+    },
+    {
+      "process_id": "rain-collection",
+      "kind": "supply",
+      "location_id": "garden",
+      "interval_ticks": 6,
+      "outputs": {
+        "rainwater": 3
+      },
+      "capacity": 24
+    },
+    {
+      "process_id": "seedling-arrival",
+      "kind": "supply",
+      "location_id": "garden",
+      "interval_ticks": 12,
+      "outputs": {
+        "seedlings": 2
+      },
+      "capacity": 18
+    },
+    {
+      "process_id": "irrigated-harvest",
+      "kind": "production",
+      "location_id": "garden",
+      "interval_ticks": 6,
+      "inputs": {
+        "rainwater": 1,
+        "seedlings": 1
+      },
+      "outputs": {
+        "garden-produce": 2
+      },
+      "device_id": "garden-pump",
+      "wear": 2,
+      "capacity": 18,
+      "required_devices": {
+        "garden-pump": 40
+      }
+    },
+    {
+      "process_id": "wire-reserve-arrival",
+      "kind": "supply",
+      "location_id": "tide-workshop",
+      "interval_ticks": 24,
+      "outputs": {
+        "wire": 1
+      },
+      "capacity": 4,
+      "required_devices": {
+        "harbor-lamp": 40
+      }
+    }
+  ],
+  "learning": [
+    {
+      "resource_id": "repair-primer",
+      "skill": "修补浮标",
+      "duration_ticks": 4,
+      "prerequisite_skills": []
+    },
+    {
+      "resource_id": "accounts-primer",
+      "skill": "清点物资",
+      "duration_ticks": 3,
+      "prerequisite_skills": []
+    },
+    {
+      "resource_id": "navigation-primer",
+      "skill": "辨认航标",
+      "duration_ticks": 4,
+      "prerequisite_skills": []
+    },
+    {
+      "resource_id": "map-primer",
+      "skill": "绘制地图",
+      "duration_ticks": 5,
+      "prerequisite_skills": []
+    }
+  ],
+  "organizations": [
+    {
+      "organization_id": "workshop-circle",
+      "name": "工坊互助圈",
+      "location_id": "tide-workshop",
+      "member_ids": [
+        "lin",
+        "bo"
+      ],
+      "norms": [
+        "教学是投入，不把学徒当随叫随到的劳力。",
+        "用共享材料要留下领取记录。"
+      ]
+    },
+    {
+      "organization_id": "market-neighbors",
+      "name": "集市邻里",
+      "location_id": "glass-market",
+      "member_ids": [
+        "wei",
+        "qiao",
+        "su",
+        "ren"
+      ],
+      "norms": [
+        "小承诺留期限，拒绝不受惩罚。",
+        "照料者也可以轮休。"
+      ]
+    }
+  ],
+  "public_knowledge": [
+    "共用书屋有几本公开读本，可按兴趣学习。",
+    "共享食篮由港外定期送达，供应记录与消耗分开计算。"
+  ]
+}

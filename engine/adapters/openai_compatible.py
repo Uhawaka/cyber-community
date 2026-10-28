@@ -90,6 +90,10 @@ class OpenAICompatibleTextModel:
             timeout_seconds=timeout_seconds,
         )
 
+    def complete_once(self, prompt: str, timeout_seconds: float | None = None) -> str:
+        return self.chat([{"role": "user", "content": prompt}],
+                         timeout_seconds=timeout_seconds, max_attempts=1)
+
     def chat(
         self,
         messages: list[dict[str, str]],
@@ -98,7 +102,10 @@ class OpenAICompatibleTextModel:
         temperature: float | None = None,
         think: bool | None = None,
         timeout_seconds: float | None = None,
+        max_attempts: int = 3,
     ) -> str:
+        if isinstance(max_attempts, bool) or not isinstance(max_attempts, int) or not 1 <= max_attempts <= 3:
+            raise ValueError("transport attempts must be an integer from 1 to 3")
         full_messages: list[dict[str, str]] = []
         if system:
             full_messages.append({"role": "system", "content": system})
@@ -117,7 +124,7 @@ class OpenAICompatibleTextModel:
         timeout = timeout_seconds or (300.0 if self.provider in _LOCAL_PROVIDERS else 120.0)
         last_error: Exception | None = None
         self.request_count += 1
-        for attempt in range(3):
+        for attempt in range(max_attempts):
             request = urllib.request.Request(
                 f"{self.base_url}/chat/completions",
                 data=json.dumps(body).encode("utf-8"),
@@ -134,13 +141,13 @@ class OpenAICompatibleTextModel:
             except urllib.error.HTTPError as exc:
                 error_body = exc.read().decode() if exc.fp else str(exc)
                 last_error = RuntimeError(f"LLM API error {exc.code}: {error_body[:500]}")
-                if exc.code in (429, 500, 502, 503) and attempt < 2:
+                if exc.code in (429, 500, 502, 503) and attempt < max_attempts - 1:
                     time.sleep(1.5 * (attempt + 1))
                     continue
                 break
             except Exception as exc:
                 last_error = RuntimeError(f"LLM request failed: {exc}")
-                if attempt < 2:
+                if attempt < max_attempts - 1:
                     time.sleep(1.0 * (attempt + 1))
                     continue
                 break

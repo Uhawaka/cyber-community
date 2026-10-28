@@ -7,9 +7,7 @@ from dataclasses import asdict, dataclass, field
 from typing import Any
 
 from engine.contracts.experience import CompiledExperienceContract
-
-
-PACKAGE_SCHEMA_VERSION = "world-package/v1alpha2"
+from engine.contracts.ecology import CommunityDefinition
 
 
 @dataclass(frozen=True)
@@ -137,6 +135,20 @@ class PackageCharacter:
 
 
 @dataclass(frozen=True)
+class RelationshipEdge:
+    """One character's stance and interest toward another.
+
+    The reverse view is a separate edge. Nothing on the edge says that a
+    conflict must occur.
+    """
+
+    source_id: str
+    target_id: str
+    stance: str
+    interest: str
+
+
+@dataclass(frozen=True)
 class DramaticHorizon:
     central_question: str
     success_conditions: tuple[str, ...]
@@ -156,6 +168,7 @@ class AutonomousWorldSpec:
     rules: tuple[dict[str, Any], ...] = ()
     metadata: tuple[tuple[str, Any], ...] = ()
     dramatic_horizon: DramaticHorizon | None = None
+    relationships: tuple[RelationshipEdge, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -165,6 +178,7 @@ class CompiledWorld:
     world: AutonomousWorldSpec
     experience: CompiledExperienceContract
     content_hash: str
+    community: CommunityDefinition | None = None
 
 
 @dataclass(frozen=True)

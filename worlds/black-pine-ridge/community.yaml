@@ -1,0 +1,220 @@
+{
+  "idle_interval_ticks": 6,
+  "learning": [
+    {
+      "duration_ticks": 4,
+      "resource_id": "records-handbook",
+      "skill": "校记档案"
+    },
+    {
+      "duration_ticks": 4,
+      "resource_id": "repair-handbook",
+      "skill": "修补风门"
+    },
+    {
+      "duration_ticks": 3,
+      "resource_id": "herb-handbook",
+      "skill": "辨认药草"
+    }
+  ],
+  "need_decay": {
+    "fatigue": 1,
+    "resources": 1,
+    "social": 1
+  },
+  "organizations": [
+    {
+      "location_id": "ruined-temple",
+      "member_ids": [
+        "wukong",
+        "bailing",
+        "traveler",
+        "tao",
+        "han"
+      ],
+      "name": "庙灶邻里",
+      "norms": [
+        "求助不替别人许诺，拒绝不等于恶意。",
+        "公共领取留下账目，不用岗位名义收缴私人材料。"
+      ],
+      "organization_id": "temple-neighbors",
+      "roles": [
+        {
+          "name": "邻里记录人",
+          "permissions": [
+            "censure"
+          ],
+          "required_skills": [
+            "校记档案"
+          ],
+          "role_id": "steward"
+        }
+      ]
+    },
+    {
+      "location_id": "merit-ash-archive",
+      "member_ids": [
+        "bailing",
+        "traveler",
+        "zhu"
+      ],
+      "name": "留名校记小组",
+      "norms": [
+        "说过的话只证明有人如此说，秘密不因归档变成公共事实。",
+        "保存姓名不能替姓名的主人选去向。"
+      ],
+      "organization_id": "name-keepers",
+      "roles": [
+        {
+          "initial_holder_id": "zhu",
+          "name": "校记值守",
+          "permissions": [
+            "censure"
+          ],
+          "required_skills": [
+            "校记档案"
+          ],
+          "role_id": "archivist"
+        }
+      ]
+    }
+  ],
+  "processes": [
+    {
+      "capacity": 32,
+      "interval_ticks": 12,
+      "kind": "supply",
+      "location_id": "ruined-temple",
+      "outputs": {
+        "dry-kindling": 4,
+        "grain": 4
+      },
+      "process_id": "grain-arrival"
+    },
+    {
+      "capacity": 32,
+      "device_id": "stove",
+      "inputs": {
+        "dry-kindling": 1,
+        "grain": 2
+      },
+      "interval_ticks": 6,
+      "kind": "production",
+      "location_id": "ruined-temple",
+      "outputs": {
+        "daily-meal": 4
+      },
+      "process_id": "temple-meals",
+      "required_devices": {
+        "stove": 40
+      },
+      "wear": 6
+    },
+    {
+      "capacity": 12,
+      "interval_ticks": 24,
+      "kind": "supply",
+      "location_id": "ruined-temple",
+      "outputs": {
+        "stove-wire": 2
+      },
+      "process_id": "temple-repair-stock"
+    },
+    {
+      "capacity": 24,
+      "interval_ticks": 12,
+      "kind": "supply",
+      "location_id": "levy-outpost",
+      "outputs": {
+        "paper-pulp": 3,
+        "rack-wire": 1
+      },
+      "process_id": "pulp-arrival"
+    },
+    {
+      "capacity": 24,
+      "device_id": "paper-rack",
+      "inputs": {
+        "paper-pulp": 2
+      },
+      "interval_ticks": 12,
+      "kind": "production",
+      "location_id": "levy-outpost",
+      "outputs": {
+        "blank-paper": 3
+      },
+      "process_id": "paper-drying",
+      "required_devices": {
+        "paper-rack": 40
+      },
+      "wear": 7
+    },
+    {
+      "capacity": 24,
+      "interval_ticks": 12,
+      "kind": "supply",
+      "location_id": "ash-kiln",
+      "outputs": {
+        "clay": 3,
+        "kiln-fuel": 3,
+        "kiln-wire": 1
+      },
+      "process_id": "kiln-arrival"
+    },
+    {
+      "capacity": 24,
+      "device_id": "hand-kiln",
+      "inputs": {
+        "clay": 2,
+        "kiln-fuel": 1
+      },
+      "interval_ticks": 12,
+      "kind": "production",
+      "location_id": "ash-kiln",
+      "outputs": {
+        "clay-bowl": 2
+      },
+      "process_id": "ordinary-pottery",
+      "required_devices": {
+        "hand-kiln": 40
+      },
+      "wear": 8
+    }
+  ],
+  "public_knowledge": [
+    "破庙、废驿和灰库有公开读本，读本位置不证明远处库存或设备状态。"
+  ],
+  "repairs": [
+    {
+      "duration_ticks": 2,
+      "inputs": {
+        "stove-wire": 1
+      },
+      "required_skills": [
+        "修补风门"
+      ],
+      "target_id": "stove"
+    },
+    {
+      "duration_ticks": 2,
+      "inputs": {
+        "rack-wire": 1
+      },
+      "required_skills": [
+        "修补风门"
+      ],
+      "target_id": "paper-rack"
+    },
+    {
+      "duration_ticks": 3,
+      "inputs": {
+        "kiln-wire": 1
+      },
+      "required_skills": [
+        "修补风门"
+      ],
+      "target_id": "hand-kiln"
+    }
+  ],
+  "runtime_version": "community-runtime/v1"
+}

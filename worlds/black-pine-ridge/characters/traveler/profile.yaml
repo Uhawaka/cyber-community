@@ -1,28 +1,40 @@
 {
-  "name": "沈砚",
-  "role": "避雨的行脚药材商",
-  "location_id": "back-door",
-  "identity": "凭常识和多年行路经验判断风险的普通人",
-  "skills": ["辨认常见药材", "修补行囊"],
   "goals": [
-    "活着走完黑松岭，并知道自己帮的是人还是名册",
-    "找到一条还走得通的路，并判断抄样算不算一户"
+    "活着离开黑松岭",
+    "在事实清楚后决定与谁同行"
   ],
-  "motivation": {
-    "terminal_desire": "活着离开黑松岭，并站在自己选的一边",
-    "fear": "因反复停留错过还能走的路",
-    "sacrifice_boundary": "不替事实不明的人担保，抄样只亮一次",
-    "active_commitment": "拿到一个能走路的答案就动身，没问完的留到下一处",
-    "completion_signals": [
-      "他离开黑松岭时已经做出帮人或帮名册的选择",
-      "抄样只亮过一次"
-    ]
-  },
+  "home_location_id": "ruined-temple",
+  "known_routes": [
+    "temple-to-door",
+    "door-to-temple",
+    "door-to-path",
+    "path-to-door",
+    "path-to-outpost",
+    "outpost-to-path",
+    "outpost-to-kiln",
+    "kiln-to-outpost"
+  ],
+  "learning_interests": [
+    "辨认药草"
+  ],
+  "location_id": "back-door",
+  "name": "沈砚",
   "needs": {
-    "exploration": 62,
+    "exploration": 35,
+    "fatigue": 14,
     "knowledge": 38,
-    "social": 25,
-    "resources": 9,
-    "fatigue": 14
-  }
+    "resources": 35,
+    "social": 25
+  },
+  "responsibilities": [],
+  "role": "行脚药材商",
+  "routine_locations": [
+    "ruined-temple",
+    "forest-path",
+    "levy-outpost"
+  ],
+  "skills": [
+    "辨认常见药材",
+    "修补行囊"
+  ]
 }

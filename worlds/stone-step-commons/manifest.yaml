@@ -1,0 +1,29 @@
+{
+  "schema_version": "world-package/v1alpha3",
+  "package_id": "stone-step-commons",
+  "revision": 2,
+  "capabilities": [
+    "world.core.v1",
+    "world.characters.v1",
+    "world.memory-seed.v1",
+    "world.resources.v1",
+    "world.topology.v1",
+    "world.relationships.v1",
+    "world.community.v1"
+  ],
+  "assets": {
+    "world": "world.yaml",
+    "locations": "locations.yaml",
+    "resources": "resources.yaml",
+    "passages": "passages.yaml",
+    "relationships": "relationships.yaml",
+    "community": "community.yaml",
+    "characters": "characters"
+  },
+  "workflows": {
+    "genesis": "workflows/genesis.yaml",
+    "evolution": "workflows/evolution.yaml",
+    "intervention": "workflows/intervention.yaml",
+    "presentation": "workflows/presentation.yaml"
+  }
+}

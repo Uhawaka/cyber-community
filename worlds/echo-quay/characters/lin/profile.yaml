@@ -1,21 +1,52 @@
 {
   "name": "林汐",
-  "role": "浮标维修师",
+  "role": "维修师",
   "location_id": "tide-workshop",
-  "skills": ["辨听潮音", "修补浮标"],
-  "goals": ["补充维修资源", "去 glass-market 交换现场信息"],
-  "motivation": {
-    "terminal_desire": "让码头依靠可复核的航标重新安全通行",
-    "fear": "一次未经验证的修复把船引向比浓雾更危险的水域",
-    "sacrifice_boundary": "不把猜测当作维修结论，也不让别人独自承担自己的试验风险",
-    "active_commitment": "亲自验证受损浮标并说明每项零件取舍",
-    "completion_signals": ["一处浮标通过现场回声验证", "维修取舍及其风险被同行者明确知晓"]
-  },
+  "skills": [
+    "辨听潮音",
+    "修补浮标"
+  ],
+  "goals": [
+    "攒出自己的工具柜",
+    "把工坊的手艺教给愿意留下的人"
+  ],
   "needs": {
     "resources": 38,
     "knowledge": 20,
     "social": 18,
     "exploration": 16,
     "fatigue": 6
-  }
+  },
+  "responsibilities": [
+    "tidal-lathe"
+  ],
+  "learning_interests": [],
+  "known_routes": [
+    "pier-to-market",
+    "market-to-pier",
+    "market-to-workshop",
+    "workshop-to-market",
+    "pier-to-bank",
+    "bank-to-pier",
+    "glass-market-to-living-row",
+    "living-row-to-glass-market",
+    "glass-market-to-common-house",
+    "common-house-to-glass-market",
+    "glass-market-to-garden",
+    "garden-to-glass-market",
+    "glass-market-to-storehouse",
+    "storehouse-to-glass-market",
+    "tide-workshop-to-storehouse",
+    "storehouse-to-tide-workshop",
+    "bell-pier-to-storehouse",
+    "storehouse-to-bell-pier"
+  ],
+  "home_location_id": "living-row",
+  "routine_locations": [
+    "living-row",
+    "tide-workshop",
+    "glass-market",
+    "common-house"
+  ],
+  "stocking_interests": []
 }

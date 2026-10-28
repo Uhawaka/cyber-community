@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from enum import Enum
 import json
 from pathlib import Path
 from types import MappingProxyType
@@ -12,6 +11,7 @@ from contextvars import ContextVar, Token
 
 from engine.contracts import ComponentPatch
 from engine.contracts import EntityKind
+from engine.runtime.kernel.event_types import EventType
 from engine.runtime.kernel.event_persistence import (
     EventPersistenceIOError,
     append_record,
@@ -32,42 +32,6 @@ def set_workflow_provenance(kind: str, step: str) -> Token:
 
 def reset_workflow_provenance(token: Token) -> None:
     _WORKFLOW_PROVENANCE.reset(token)
-class EventType(str, Enum):
-    RUN_CREATED = "run_created"
-    RUN_FORKED = "run_forked"
-    AVATAR_JOINED = "avatar_joined"
-    AVATAR_LEFT = "avatar_left"
-    AVATAR_REJOINED = "avatar_rejoined"
-    MOVED = "moved"
-    GATHERED = "gathered"
-    INSPECTED = "inspected"
-    OBSERVED = "observed"
-    DIALOGUE = "dialogue"
-    RESTED = "rested"
-    WAITED = "waited"
-    ENVIRONMENT_DECAYED = "environment_decayed"
-    INCIDENT_OCCURRED = "incident_occurred"
-    INCIDENT_RESTED = "incident_rested"
-    GATE_OPENED = "gate_opened"
-    GATE_WAITED = "gate_waited"
-    USER_INTERVENTION = "user_intervention"
-    FATE_INTERVENTION = "fate_intervention"
-    COARSE_TICK_SUMMARY = "coarse_tick_summary"
-    SCHEME_CREATED = "scheme_created"
-    SCHEME_ADVANCED = "scheme_advanced"
-    SCHEME_COMPLETED = "scheme_completed"
-    SCHEME_INVALIDATED = "scheme_invalidated"
-    MEMORY_CONSOLIDATED = "memory_consolidated"
-    SOUL_EVOLUTION_PROPOSED = "soul_evolution_proposed"
-    SOUL_EVOLUTION_APPROVED = "soul_evolution_approved"
-    SOUL_EVOLUTION_REJECTED = "soul_evolution_rejected"
-    ACTION_REJECTED = "action_rejected"
-    ACTION_REPLANNED = "action_replanned"
-    PHASE_SNAPSHOT = "phase_snapshot"
-    SCENE_INSTANTIATED = "scene_instantiated"
-    SCENE_ENTERED = "scene_entered"
-    SCENE_EVOLVED = "scene_evolved"
-    TURN_RESOLVED = "turn_resolved"
 
 @dataclass(frozen=True)
 class MoveDelta:
@@ -197,6 +161,13 @@ class WorldEvent:
         object.__setattr__(self, "observers", tuple(sorted(set(self.observers))))
         object.__setattr__(self, "data", MappingProxyType(dict(self.data)))
         object.__setattr__(self, "rule_basis", tuple(self.rule_basis))
+def _mask_speaker(event: WorldEvent) -> bool:
+    """A mask speaks in a stage without becoming a world character."""
+
+    kind = event.event_type is EventType.DIALOGUE and event.data.get("speaker_kind") == "mask"
+    return bool(kind and event.actor_id)
+
+
 class EventValidationError(ValueError):
     pass
 class EventPersistenceError(EventValidationError):
@@ -205,10 +176,14 @@ EVENT_LOG_SCHEMA_VERSION = "autonomous-event-log.v1"
 class EventLog:
     """The only mutation gateway for objective world state."""
 
-    def __init__(self, state: "WorldState", path: str | Path | None = None) -> None:
+    def __init__(self, state: "WorldState", path: str | Path | None = None, *, community=None, world=None) -> None:
         self._state = state
         self._events: list[WorldEvent] = []
         self._path = Path(path) if path is not None else None
+        self._community = community
+        self._world = world
+        from engine.runtime.kernel.community_validation_index import CommunityValidationIndex
+        self._validation_index = CommunityValidationIndex()
 
     @property
     def path(self) -> Path | None:
@@ -221,6 +196,24 @@ class EventLog:
     @property
     def events(self) -> tuple[WorldEvent, ...]:
         return tuple(self._events)
+
+    def event_at(self, sequence):
+        """Read one committed event without copying the complete history."""
+        return self._events[sequence]
+
+    def current_tick_events(self):
+        """Return committed events for the current tick, newest first."""
+        result = []
+        for event in reversed(self._events):
+            if event.tick < self._state.tick:
+                break
+            if event.tick == self._state.tick:
+                result.append(event)
+        return tuple(result)
+
+    def activity_start(self, activity_id):
+        """Return the committed start event for a unique activity."""
+        return self._validation_index.activity_starts[activity_id]
 
     def append(self, event: WorldEvent) -> WorldEvent:
         provenance = _WORKFLOW_PROVENANCE.get()
@@ -287,7 +280,7 @@ class EventLog:
         if len(additions) != len(event.delta.characters):
             raise EventValidationError("duplicate character addition")
         allowed = known | additions
-        if event.actor_id is not None and event.actor_id not in allowed:
+        if event.actor_id not in allowed and event.actor_id and not _mask_speaker(event):
             raise EventValidationError("unknown event actor")
         if not set(event.observers).issubset(allowed):
             raise EventValidationError("unknown event observer")
@@ -347,6 +340,8 @@ class EventLog:
             raise EventValidationError("event world hash does not match current world")
         if event.event_type is EventType.DIALOGUE and not event.data.get("utterance"):
             raise EventValidationError("dialogue must preserve the actual utterance")
+        if _mask_speaker(event) and event.data.get("speaker_id") != event.actor_id:
+            raise EventValidationError("a mask line must be spoken by that mask")
         if event.delta.souls and event.event_type is not EventType.SOUL_EVOLUTION_APPROVED:
             raise EventValidationError("soul deltas require an approved evolution event")
         if event.event_type is EventType.SOUL_EVOLUTION_APPROVED:
@@ -369,38 +364,20 @@ class EventLog:
             raise EventValidationError("rejected soul evolution cannot change soul state")
         if event.event_type is EventType.MEMORY_CONSOLIDATED:
             self._validate_memory_consolidation(event)
+        from engine.runtime.kernel.event_validation import validate_versioned_event
+        validate_versioned_event(event, self._events, self._state, self._community, self._world,
+                                 index=self._validation_index)
         candidate = self._state.apply(event.delta)
         if self._path is not None:
             self._append_record(self._path, event)
         self._state = candidate
         self._events.append(event)
+        self._validation_index.add(event)
         return event
 
     def _validate_memory_consolidation(self, event: WorldEvent) -> None:
-        required = {"source_sequences", "target_tier", "belief_type", "confidence", "summary"}
-        if not required.issubset(event.data):
-            raise EventValidationError("memory consolidation is missing typed fields")
-        sources = tuple(event.data["source_sequences"])
-        if not sources or any(
-            isinstance(sequence, bool) or not isinstance(sequence, int)
-            for sequence in sources
-        ):
-            raise EventValidationError("memory consolidation requires source sequences")
-        if event.data["target_tier"] not in {"semantic", "core"}:
-            raise EventValidationError("memory target tier must be semantic or core")
-        if event.data["belief_type"] not in {"fact", "inference", "misbelief"}:
-            raise EventValidationError("memory belief type is invalid")
-        confidence = event.data["confidence"]
-        if isinstance(confidence, bool) or not isinstance(confidence, (int, float)) or not 0 <= confidence <= 1:
-            raise EventValidationError("memory confidence must be between zero and one")
-        if not isinstance(event.data["summary"], str) or not event.data["summary"].strip():
-            raise EventValidationError("memory consolidation requires a summary")
-        for sequence in sources:
-            if sequence < 0 or sequence >= len(self._events):
-                raise EventValidationError("memory source must reference a prior event")
-            source = self._events[sequence]
-            if not set(event.observers).issubset(set(source.observers)):
-                raise EventValidationError("memory source must be visible to every observer")
+        from engine.runtime.kernel.event_validation import validate_memory_consolidation
+        validate_memory_consolidation(event, tuple(self._events))
 
     def _append_record(self, path: Path, event: WorldEvent) -> None:
         try:
@@ -423,8 +400,10 @@ class EventLog:
         events: Iterable[WorldEvent],
         *,
         path: str | Path | None = None,
+        community=None,
+        world=None,
     ) -> "EventLog":
-        log = cls(initial_state)
+        log = cls(initial_state, community=community, world=world)
         for event in events:
             log.append(event)
         log._path = Path(path) if path is not None else None
@@ -484,5 +463,3 @@ def event_from_record(record: Mapping[str, Any], *, world_hash: str) -> WorldEve
     from engine.runtime.kernel.event_codec import event_from_record as decode
 
     return decode(record, world_hash=world_hash)
-
-

@@ -1,24 +1,191 @@
 {
   "resources": [
     {
-      "id": "signal-oil",
-      "name": "信号灯油",
+      "id": "daily-meal",
+      "name": "共享食篮",
       "location_id": "glass-market",
-      "quantity": 6,
+      "quantity": 12,
       "owner_id": "glass-market",
       "container_id": "glass-market",
       "required_skills": [],
-      "properties": {"portable": true}
+      "properties": {
+        "portable": true,
+        "public_access": true,
+        "consumable": true,
+        "use_effects": {
+          "resources": -18,
+          "fatigue": -6
+        }
+      }
     },
     {
-      "id": "hemp-rope",
-      "name": "浸蜡麻绳",
+      "id": "scrap",
+      "name": "可分类废料",
       "location_id": "tide-workshop",
-      "quantity": 3,
+      "quantity": 12,
       "owner_id": "tide-workshop",
       "container_id": "tide-workshop",
-      "required_skills": ["修补浮标"],
-      "properties": {"length": "long"}
+      "required_skills": [],
+      "properties": {
+        "portable": true,
+        "public_access": true
+      }
+    },
+    {
+      "id": "wire",
+      "name": "维护线材",
+      "location_id": "tide-workshop",
+      "quantity": 0,
+      "owner_id": "tide-workshop",
+      "container_id": "tide-workshop",
+      "required_skills": [],
+      "properties": {
+        "portable": true,
+        "public_access": true
+      }
+    },
+    {
+      "id": "tidal-lathe",
+      "name": "潮汐压线机",
+      "location_id": "tide-workshop",
+      "quantity": 1,
+      "owner_id": "tide-workshop",
+      "container_id": "tide-workshop",
+      "required_skills": [],
+      "properties": {
+        "condition": 15,
+        "inspection": "传动架有松动，需要停机维护。"
+      }
+    },
+    {
+      "id": "harbor-lamp",
+      "name": "公共栈桥灯",
+      "location_id": "bell-pier",
+      "quantity": 1,
+      "owner_id": "bell-pier",
+      "container_id": "bell-pier",
+      "required_skills": [],
+      "properties": {
+        "condition": 45,
+        "inspection": "灯罩接缝积盐，需要清理并补充保护油。"
+      }
+    },
+    {
+      "id": "lamp-oil",
+      "name": "灯具保护油",
+      "location_id": "bell-pier",
+      "quantity": 1,
+      "owner_id": "bell-pier",
+      "container_id": "bell-pier",
+      "required_skills": [],
+      "properties": {
+        "portable": true,
+        "public_access": true
+      }
+    },
+    {
+      "id": "garden-pump",
+      "name": "菜圃灌溉泵",
+      "location_id": "garden",
+      "quantity": 1,
+      "owner_id": "garden",
+      "container_id": "garden",
+      "required_skills": [],
+      "properties": {
+        "condition": 25,
+        "inspection": "密封圈磨损，水压不稳。"
+      }
+    },
+    {
+      "id": "garden-wire",
+      "name": "菜圃维护包",
+      "location_id": "garden",
+      "quantity": 1,
+      "owner_id": "garden",
+      "container_id": "garden",
+      "required_skills": [],
+      "properties": {
+        "portable": true,
+        "public_access": true
+      }
+    },
+    {
+      "id": "rainwater",
+      "name": "蓄雨水槽",
+      "location_id": "garden",
+      "quantity": 12,
+      "owner_id": "garden",
+      "container_id": "garden",
+      "required_skills": [],
+      "properties": {}
+    },
+    {
+      "id": "seedlings",
+      "name": "育苗与肥料",
+      "location_id": "garden",
+      "quantity": 6,
+      "owner_id": "garden",
+      "container_id": "garden",
+      "required_skills": [],
+      "properties": {}
+    },
+    {
+      "id": "garden-produce",
+      "name": "菜圃收成",
+      "location_id": "garden",
+      "quantity": 0,
+      "owner_id": "garden",
+      "container_id": "garden",
+      "required_skills": [],
+      "properties": {
+        "portable": true,
+        "public_access": true,
+        "consumable": true,
+        "use_effects": {
+          "resources": -18,
+          "fatigue": -6
+        }
+      }
+    },
+    {
+      "id": "repair-primer",
+      "name": "机械维修读本",
+      "location_id": "common-house",
+      "quantity": 1,
+      "owner_id": "common-house",
+      "container_id": "common-house",
+      "required_skills": [],
+      "properties": {}
+    },
+    {
+      "id": "accounts-primer",
+      "name": "分类与账目读本",
+      "location_id": "common-house",
+      "quantity": 1,
+      "owner_id": "common-house",
+      "container_id": "common-house",
+      "required_skills": [],
+      "properties": {}
+    },
+    {
+      "id": "navigation-primer",
+      "name": "航标读本",
+      "location_id": "common-house",
+      "quantity": 1,
+      "owner_id": "common-house",
+      "container_id": "common-house",
+      "required_skills": [],
+      "properties": {}
+    },
+    {
+      "id": "map-primer",
+      "name": "测绘入门",
+      "location_id": "common-house",
+      "quantity": 1,
+      "owner_id": "common-house",
+      "container_id": "common-house",
+      "required_skills": [],
+      "properties": {}
     }
   ]
 }

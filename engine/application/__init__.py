@@ -1,77 +1,12 @@
-from engine.application.autonomous import (
-    AutonomousRun,
-    CausalTrace,
-    SimulationPolicy,
-    TickReport,
-    create_run,
-    explain_event,
-    export_run,
-    load_run,
-    run_catchup,
-    run_ticks,
-)
-from engine.application.story_delivery import (
-    ObserverHome,
-    ObserverWorldSummary,
-    get_observer_home,
-    publish_due_episode,
-    publish_due_episodes,
-    rerender_episode,
-)
-from engine.application.participation import (
-    ObserverView,
-    apply_fate_intervention,
-    apply_intervention,
-    avatar_memory,
-    avatar_opportunities,
-    avatar_perception,
-    fork_run,
-    get_pending_user_gate,
-    join_avatar,
-    leave_avatar,
-    observe_run,
-    run_until_user_gate,
-    submit_avatar_attempt,
-)
-from engine.application.package_validation import (
-    PackageValidationReport,
-    ProbeSeedResult,
-    validate_package,
-)
-from engine.application.literary_iteration import rerender_frozen_presentations
+"""Community lifecycle and read-only observation."""
+
+from engine.application.community_observation import observe_community
+from engine.runtime.kernel.lifecycle import create_run, export_run, fork_run, load_run
 
 __all__ = [
-    "AutonomousRun",
-    "CausalTrace",
-    "ObserverView",
-    "ObserverHome",
-    "ObserverWorldSummary",
-    "PackageValidationReport",
-    "ProbeSeedResult",
-    "SimulationPolicy",
-    "TickReport",
-    "apply_intervention",
-    "apply_fate_intervention",
-    "avatar_memory",
-    "avatar_opportunities",
-    "avatar_perception",
     "create_run",
-    "explain_event",
     "export_run",
     "fork_run",
-    "get_pending_user_gate",
-    "get_observer_home",
-    "join_avatar",
-    "leave_avatar",
     "load_run",
-    "observe_run",
-    "publish_due_episode",
-    "publish_due_episodes",
-    "rerender_episode",
-    "rerender_frozen_presentations",
-    "run_catchup",
-    "run_ticks",
-    "run_until_user_gate",
-    "submit_avatar_attempt",
-    "validate_package",
+    "observe_community",
 ]

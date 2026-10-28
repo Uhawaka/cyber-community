@@ -4,65 +4,179 @@
       "id": "bell-pier",
       "name": "钟栈桥",
       "description": "系着测雾铜钟的旧栈桥。",
-      "tags": ["shore", "public", "avatar-entry"],
-      "capacity": 3,
+      "tags": [
+        "shore",
+        "public",
+        "avatar-entry"
+      ],
+      "capacity": 8,
       "access_tags": [],
       "allowed_roles": [],
-      "affordances": {"observe": true, "rest": false, "gather": false, "social": true},
-      "danger": 12,
-      "metadata": {"weather_exposure": "high"},
-      "scene_seeds": [{
-        "key": "default",
-        "name": "雾中钟桥",
-        "premise": "铜钟、湿绳和看不见尽头的栈桥构成一处必须靠声音判断距离的公共场景。",
-        "tags": ["public", "shore"],
-        "dramatic_question": "在潮声扰乱铜钟回响时，谁愿意为一次可复核的外堤试验承担灯油与误判风险？",
-        "failure_pressure": "回潮正在淹没旧标记，拖延会让下一次钟声失去比对依据。",
-        "closure_signals": ["角色完成一次有记录的信号试验", "角色明确拒绝试验并重新分配灯油责任"]
-      }]
+      "affordances": {
+        "observe": true,
+        "rest": false,
+        "gather": false,
+        "social": true
+      },
+      "danger": 0,
+      "metadata": {
+        "weather_exposure": "high"
+      },
+      "scene_seeds": []
     },
     {
       "id": "glass-market",
       "name": "玻璃集市",
       "description": "以彩色玻璃顶棚辨认街区的交换场。",
-      "tags": ["market", "sheltered"],
-      "capacity": 4,
+      "tags": [
+        "market",
+        "sheltered"
+      ],
+      "capacity": 8,
       "access_tags": [],
       "allowed_roles": [],
-      "affordances": {"observe": true, "rest": true, "gather": true, "social": true},
-      "danger": 5,
-      "metadata": {"public": true},
-      "scene_seeds": [{
-        "key": "default",
-        "name": "玻璃顶下的账桌",
-        "premise": "彩色玻璃把雾光分成几块，账桌上的物资记录与来客证词可以当面比对。",
-        "tags": ["public", "market"],
-        "dramatic_question": "众人能否在灯油不足时决定哪一条未经核实的航标记录值得优先验证？",
-        "failure_pressure": "交换时段将尽，未标明责任的灯油会被按旧账分走。",
-        "closure_signals": ["角色公开选定待验证记录及责任人", "角色以新证据否定一条旧记录"]
-      }]
+      "affordances": {
+        "observe": true,
+        "rest": true,
+        "gather": true,
+        "social": true
+      },
+      "danger": 0,
+      "metadata": {
+        "public": true
+      },
+      "scene_seeds": []
     },
     {
       "id": "tide-workshop",
       "name": "潮汐工坊",
       "description": "维修浮标、绳索和小艇的临水工坊。",
-      "tags": ["workshop", "shore"],
+      "tags": [
+        "workshop",
+        "shore"
+      ],
       "allow_avatar_entry": true,
-      "capacity": 2,
+      "capacity": 8,
       "access_tags": [],
       "allowed_roles": [],
-      "affordances": {"observe": true, "rest": true, "gather": true, "social": true},
-      "danger": 8,
-      "metadata": {"work_area": true},
-      "scene_seeds": [{
-        "key": "default",
-        "name": "临水维修台",
-        "premise": "拆开的浮标、磨损绳结和待装的玻璃片占满临水工作台。",
-        "tags": ["workshop", "shore"],
-        "dramatic_question": "维修者要先恢复旧浮标，还是拆用它的零件验证一条更危险的新航路？",
-        "failure_pressure": "潮位持续升高，工作台上未固定的零件将被海水卷走。",
-        "closure_signals": ["角色实际完成一种维修方案", "角色放弃一种方案并交代零件去向"]
-      }]
+      "affordances": {
+        "observe": true,
+        "rest": true,
+        "gather": true,
+        "social": true
+      },
+      "danger": 0,
+      "metadata": {
+        "work_area": true
+      },
+      "scene_seeds": []
+    },
+    {
+      "id": "outer-bank",
+      "name": "外堤",
+      "description": "雾港最外侧、没有灯的一排木桩。",
+      "tags": [
+        "shore",
+        "outer"
+      ],
+      "capacity": 8,
+      "access_tags": [],
+      "allowed_roles": [],
+      "affordances": {
+        "observe": true,
+        "rest": false,
+        "gather": false,
+        "social": true
+      },
+      "danger": 0,
+      "metadata": {
+        "weather_exposure": "high"
+      },
+      "scene_seeds": []
+    },
+    {
+      "id": "living-row",
+      "name": "临水住巷",
+      "description": "合住的小屋、晾衣绳和沿墙放着的花盆。居民有自己的房间，也会在门外坐一会儿。",
+      "tags": [
+        "public",
+        "sheltered"
+      ],
+      "capacity": 8,
+      "access_tags": [],
+      "allowed_roles": [],
+      "affordances": {
+        "observe": true,
+        "rest": true,
+        "gather": true,
+        "social": true
+      },
+      "danger": 0,
+      "metadata": {},
+      "scene_seeds": []
+    },
+    {
+      "id": "common-house",
+      "name": "共用书屋",
+      "description": "桌边放着借阅簿和几本手艺读本，傍晚有人在这里谈天，没人必须参加。",
+      "tags": [
+        "public",
+        "sheltered"
+      ],
+      "capacity": 8,
+      "access_tags": [],
+      "allowed_roles": [],
+      "affordances": {
+        "observe": true,
+        "rest": true,
+        "gather": true,
+        "social": true
+      },
+      "danger": 0,
+      "metadata": {},
+      "scene_seeds": []
+    },
+    {
+      "id": "garden",
+      "name": "堤内菜圃",
+      "description": "被低墙挡住海风的菜圃，灌溉泵连着一段明渠，旁边留有维护空间。",
+      "tags": [
+        "public",
+        "sheltered"
+      ],
+      "capacity": 8,
+      "access_tags": [],
+      "allowed_roles": [],
+      "affordances": {
+        "observe": true,
+        "rest": true,
+        "gather": true,
+        "social": true
+      },
+      "danger": 0,
+      "metadata": {},
+      "scene_seeds": []
+    },
+    {
+      "id": "storehouse",
+      "name": "旧货仓",
+      "description": "货架、分类箱和推车靠墙摆放。到货有固定周期，误期不会变成某个人的预排台词。",
+      "tags": [
+        "public",
+        "sheltered"
+      ],
+      "capacity": 8,
+      "access_tags": [],
+      "allowed_roles": [],
+      "affordances": {
+        "observe": true,
+        "rest": true,
+        "gather": true,
+        "social": true
+      },
+      "danger": 0,
+      "metadata": {},
+      "scene_seeds": []
     }
   ]
 }

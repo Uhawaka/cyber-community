@@ -1,0 +1,28 @@
+{
+  "edges": [
+    {
+      "interest": "愿意保护她，但要学习尊重拒绝",
+      "source_id": "wukong",
+      "stance": "先听证据，不凭身份判断",
+      "target_id": "bailing"
+    },
+    {
+      "interest": "想知道他能否允许自己离开",
+      "source_id": "bailing",
+      "stance": "用小事实逐步交付信任",
+      "target_id": "wukong"
+    },
+    {
+      "interest": "不愿替旧窑用途担保",
+      "source_id": "traveler",
+      "stance": "买卖按眼前物件谈",
+      "target_id": "han"
+    },
+    {
+      "interest": "想让记录人也记得照料者要休息",
+      "source_id": "tao",
+      "stance": "愿意帮忙，但不接受全天安排",
+      "target_id": "zhu"
+    }
+  ]
+}

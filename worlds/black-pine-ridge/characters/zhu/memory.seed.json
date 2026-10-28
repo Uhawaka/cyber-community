@@ -1,0 +1,12 @@
+[
+  {
+    "confidence": 0.9,
+    "kind": "observation",
+    "summary": "灰库页角上的数字仍可辨读，一部分姓名被裁去。"
+  },
+  {
+    "kind": "experience",
+    "summary": "曾拒绝把来访者的沉默写成默认同意。",
+    "visibility": "private"
+  }
+]

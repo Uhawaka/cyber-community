@@ -65,7 +65,14 @@ RUNTIME_MODE_CATALOG: Mapping[str, RuntimeNarrativeContract] = (
                     "closure_signals",
                     "participant_decisions",
                 ),
-            )
+            ),
+            "community-life-v1": RuntimeNarrativeContract(
+                "community-life-v1",
+                pressure_escalation_turns=0,
+                max_pressure_level=0,
+                decision_pressure_level=0,
+                resolution_modes=(),
+            ),
         }
     )
 )

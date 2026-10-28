@@ -1,0 +1,54 @@
+{
+  "name": "任舟",
+  "role": "摆渡人",
+  "location_id": "bell-pier",
+  "skills": [
+    "辨认航标",
+    "搬运物资"
+  ],
+  "goals": [
+    "建立能轮休的摆渡班",
+    "让临时住户也能参与集市互助"
+  ],
+  "needs": {
+    "resources": 30,
+    "knowledge": 22,
+    "social": 32,
+    "exploration": 28,
+    "fatigue": 18
+  },
+  "responsibilities": [
+    "harbor-lamp"
+  ],
+  "learning_interests": [
+    "清点物资"
+  ],
+  "known_routes": [
+    "pier-to-market",
+    "market-to-pier",
+    "market-to-workshop",
+    "workshop-to-market",
+    "pier-to-bank",
+    "bank-to-pier",
+    "glass-market-to-living-row",
+    "living-row-to-glass-market",
+    "glass-market-to-common-house",
+    "common-house-to-glass-market",
+    "glass-market-to-garden",
+    "garden-to-glass-market",
+    "glass-market-to-storehouse",
+    "storehouse-to-glass-market",
+    "tide-workshop-to-storehouse",
+    "storehouse-to-tide-workshop",
+    "bell-pier-to-storehouse",
+    "storehouse-to-bell-pier"
+  ],
+  "home_location_id": "living-row",
+  "routine_locations": [
+    "living-row",
+    "bell-pier",
+    "glass-market",
+    "common-house"
+  ],
+  "stocking_interests": []
+}

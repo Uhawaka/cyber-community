@@ -1,0 +1,80 @@
+import {
+  Button, Callout, Card, CardBody, CardHeader, Divider, H1, H2,
+  Pill, Row, Stack, Table, Text, useCanvasAction, useHostTheme, useState,
+} from "cursor/canvas";
+
+const root = "/Users/alexios/Project/cyber-community/docs/development/";
+const phases = [
+  { name: "A 运行基础", ids: "R00–R04", days: "5–8 工作日", gate: "恢复认知、隔离感知、动作产生真实后果", tasks: [
+    ["R00", "修复四项基线失败", "冻结验收口径，不删安全断言"],
+    ["R01", "冻结最小契约与 ADR", "明确权威、可见性、时间与迁移"],
+    ["R02", "统一运行与恢复", "模型只替换策略，跨 run 不串状态"],
+    ["R03", "感知与作者信息隔离", "查看前拿不到隐藏答案"],
+    ["R04", "物件动作结算", "维修消耗材料/时间，改变设备状态"],
+  ] },
+  { name: "B 自主角色", ids: "R05–R08", days: "7–11 工作日", gate: "旧事可召回、信念可纠正、拒绝可重规划", tasks: [
+    ["R05", "记忆与相关检索", "来源化、预算化、可重建"],
+    ["R06", "信念与信息传播", "听闻、目击、推断不能混同"],
+    ["R07", "Soul 与人物重写", "人生愿望、矛盾、日常与不同关系"],
+    ["R08", "目标、承诺与反思", "生活持续，承诺不等于履约"],
+  ] },
+  { name: "C 持续世界", ids: "R09–R12", days: "8–13 工作日", gate: "无人观看仍生活，角色发起跨日因果链", tasks: [
+    ["R09", "活动与公平调度", "跨 Tick 活动，多地点逻辑并行"],
+    ["R10", "物质与环境循环", "生产、运输、消耗、磨损与维护"],
+    ["R11", "社会规则与群体", "交易、义务、违约、消息与多人会话"],
+    ["R12", "六人码头 v2 集成", "生活线独立，合作和冲突均可发生"],
+  ] },
+  { name: "D 连续性与迁移", ids: "R13–R15", days: "5–8 工作日", gate: "长跑、质量、成本与旧历史兼容分别验证", tasks: [
+    ["R13", "只读故事线与观察", "发现历史，不向世界派剧情任务"],
+    ["R14", "100/1000 Tick 多 seed", "最差样本、恢复、故障、成本与盲评"],
+    ["R15", "版本迁移与旧路径收敛", "一个主链，不从旧文案猜状态"],
+  ] },
+];
+
+export default function AutonomousCommunity() {
+  const theme = useHostTheme();
+  const dispatch = useCanvasAction();
+  const [selected, setSelected] = useState(0);
+  const phase = phases[selected];
+  const open = (name: string) => dispatch({ type: "openFile", path: root + name });
+  return (
+    <Stack gap={18} style={{ padding: 24, color: theme.text.primary, background: theme.bg.editor }}>
+      <H1>自主社区重构</H1>
+      <Text tone="secondary">2026-10-27 · 基于源码、世界资产与当前测试 · 规划待确认，实现未开始</Text>
+      <Callout tone="info" title="核心转向">
+        从逐场景查验，转向有生活、认知、关系和持续后果的社区。保留事件内核，统一运行机制。
+      </Callout>
+      <Row wrap>
+        <Button onClick={() => open("autonomous-community-refactor.md")}>项目计划</Button>
+        <Button onClick={() => open("autonomous-community-architecture.md")}>目标架构</Button>
+        <Button onClick={() => open("autonomous-community-tasks.md")}>长任务与检查点</Button>
+      </Row>
+      <H2>当前差距</H2>
+      <Table headers={["层面", "已观察的实现限制", "重构方向"]} rows={[
+        ["运行", "有模型时另走 LivingSession", "同一规则内核，替换决策策略"],
+        ["认知", "内存态材料，提示取最近八条", "事件恢复、相关检索与信念投影"],
+        ["物件", "work 记结果文字，空 Delta", "能力、材料、时间与状态结算"],
+        ["人物", "价值与关系过度围绕核验", "愿望冲突、日常、关系史与能力边界"],
+        ["世界", "存量资源与一次性 incident 为主", "环境、物质、社会的可持续循环"],
+      ]} />
+      <Text size="small" tone="secondary">来源：composition、living_session、stage/records、setting、interaction、memory 与世界包。静态结论尚需专项复现；未运行付费模型长跑。</Text>
+      <Divider />
+      <H2>阶段依赖：A → B → C → D</H2>
+      <Row wrap>{phases.map((item, i) => <Pill key={item.ids} active={selected === i} onClick={() => setSelected(i)}>{item.name}</Pill>)}</Row>
+      <Card>
+        <CardHeader trailing={<Pill>{phase.ids}</Pill>}>{phase.name}</CardHeader>
+        <CardBody><Stack gap={10}>
+          <Text weight="semibold">退出条件：{phase.gate}</Text>
+          <Text size="small" tone="secondary">初估 {phase.days}；R00 后重新估算，不是日历承诺。</Text>
+          <Table headers={["任务", "交付", "验收重点"]} rows={phase.tasks} framed={false} />
+        </Stack></CardBody>
+      </Card>
+      <H2>验收与下一步</H2>
+      <Text>硬门禁：可重放、可恢复、无越权知识、物质守恒、原子失败、有界预算。行为与剧情另做固定 seed、扰动和人工盲评。</Text>
+      <Callout tone="warning" title="当前基线：269 通过 / 4 失败">
+        下一轮从 R00.1 开始，确认四个测试的正确契约。第一批目标是可恢复的两人维修纵切，不立即扩写整个世界。
+      </Callout>
+      <Text size="small" tone="secondary">本次仅落地规划；没有修改 Runtime、世界包或历史，也未启动后台长任务。任务状态以 Markdown 检查点为准。</Text>
+    </Stack>
+  );
+}

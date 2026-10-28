@@ -51,6 +51,22 @@ def _validate_entities(
             continue
         location = location_by_id[item.location_id]
         profile = dict(item.profile)
+        for field, known in (
+            ("responsibilities", {r.id for r in resources}),
+            ("stocking_interests", {r.id for r in resources}),
+            ("known_routes", {p.id for p in passages}),
+            ("routine_locations", location_ids),
+        ):
+            if not set(profile.get(field, ())) <= known:
+                diagnostics.append(PackageDiagnostic(
+                    "UNKNOWN_PROFILE_REFERENCE", f"characters.{item.id}.profile.yaml.{field}",
+                    "profile references unknown world entities",
+                ))
+        if profile.get("home_location_id", item.location_id) not in location_ids:
+            diagnostics.append(PackageDiagnostic(
+                "UNKNOWN_PROFILE_REFERENCE", f"characters.{item.id}.profile.yaml.home_location_id",
+                "home must be an existing location",
+            ))
         actor_tags = {
             str(tag) for tag in profile.get("access_tags", ())
         } if isinstance(profile.get("access_tags", ()), list) else set()

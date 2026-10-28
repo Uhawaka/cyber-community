@@ -1,38 +1,314 @@
 {
   "resources": [
     {
-      "id": "dry-kindling",
-      "name": "干燥松枝",
-      "location_id": "ruined-temple",
-      "quantity": 3,
-      "owner_id": "ruined-temple",
       "container_id": "ruined-temple",
-      "required_skills": [],
-      "properties": {"portable": true, "use": "fire"}
+      "id": "daily-meal",
+      "location_id": "ruined-temple",
+      "name": "庙灶饭食",
+      "owner_id": "ruined-temple",
+      "properties": {
+        "consumable": true,
+        "portable": true,
+        "public_access": true,
+        "use_effects": {
+          "resources": -30
+        }
+      },
+      "quantity": 8,
+      "required_skills": []
     },
     {
-      "id": "bell-fragment",
-      "name": "断裂铜铃片",
-      "location_id": "back-door",
-      "quantity": 1,
-      "owner_id": "back-door",
-      "container_id": "back-door",
-      "required_skills": [],
+      "container_id": "ruined-temple",
+      "id": "dry-kindling",
+      "location_id": "ruined-temple",
+      "name": "干燥松枝",
+      "owner_id": "ruined-temple",
       "properties": {
         "portable": true,
-        "mark": "bone-white-powder-trace",
-        "inspection": "断裂铜铃片内侧留着一道骨白粉痕，凹槽里还压着少量未被雨水触及的粉末；粉痕旁有一道磨损铸印，只能辨出“入供”二字。后门只能看见这道印，不能说明它的含义，也不能说明别处的粉末或号牌。"
-      }
+        "public_access": true
+      },
+      "quantity": 8,
+      "required_skills": []
     },
     {
-      "id": "bitter-herb",
-      "name": "苦叶草",
-      "location_id": "forest-path",
+      "container_id": "ruined-temple",
+      "id": "grain",
+      "location_id": "ruined-temple",
+      "name": "驿道粮袋",
+      "owner_id": "ruined-temple",
+      "properties": {
+        "portable": true,
+        "public_access": true
+      },
+      "quantity": 10,
+      "required_skills": []
+    },
+    {
+      "container_id": "ruined-temple",
+      "id": "stove",
+      "location_id": "ruined-temple",
+      "name": "庙灶风门",
+      "owner_id": "ruined-temple",
+      "properties": {
+        "condition": 55,
+        "public_access": true
+      },
+      "quantity": 1,
+      "required_skills": []
+    },
+    {
+      "container_id": "ruined-temple",
+      "id": "stove-wire",
+      "location_id": "ruined-temple",
+      "name": "庙灶修补丝",
+      "owner_id": "ruined-temple",
+      "properties": {
+        "portable": true,
+        "public_access": true
+      },
       "quantity": 4,
-      "owner_id": "forest-path",
+      "required_skills": []
+    },
+    {
       "container_id": "forest-path",
-      "required_skills": ["辨认药草"],
-      "properties": {"portable": true, "use": "medicine"}
+      "id": "bitter-herb",
+      "location_id": "forest-path",
+      "name": "苦叶草",
+      "owner_id": "forest-path",
+      "properties": {
+        "consumable": true,
+        "portable": true,
+        "public_access": true,
+        "use_effects": {
+          "resources": -15
+        }
+      },
+      "quantity": 6,
+      "required_skills": [
+        "辨认药草"
+      ]
+    },
+    {
+      "container_id": "back-door",
+      "id": "bell-fragment",
+      "location_id": "back-door",
+      "name": "断裂铜铃片",
+      "owner_id": "back-door",
+      "properties": {
+        "inspection": "铜片凹槽有骨白粉末，磨损铸印只辨出入供二字；这里看不见下令者，也不能判定别处粉末相同。",
+        "portable": true,
+        "public_access": true
+      },
+      "quantity": 1,
+      "required_skills": []
+    },
+    {
+      "container_id": "levy-outpost",
+      "id": "levy-marker",
+      "location_id": "levy-outpost",
+      "name": "刮名号牌",
+      "owner_id": "levy-outpost",
+      "properties": {
+        "inspection": "号牌只有按户计数的刻痕，官署名号被刮去；不能由此判定某个人已在名册。",
+        "public_access": true
+      },
+      "quantity": 1,
+      "required_skills": []
+    },
+    {
+      "container_id": "levy-outpost",
+      "id": "blank-paper",
+      "location_id": "levy-outpost",
+      "name": "烘干纸页",
+      "owner_id": "levy-outpost",
+      "properties": {
+        "portable": true,
+        "public_access": true
+      },
+      "quantity": 4,
+      "required_skills": []
+    },
+    {
+      "container_id": "levy-outpost",
+      "id": "paper-pulp",
+      "location_id": "levy-outpost",
+      "name": "草浆",
+      "owner_id": "levy-outpost",
+      "properties": {
+        "portable": true,
+        "public_access": true
+      },
+      "quantity": 8,
+      "required_skills": []
+    },
+    {
+      "container_id": "levy-outpost",
+      "id": "paper-rack",
+      "location_id": "levy-outpost",
+      "name": "烘纸架",
+      "owner_id": "levy-outpost",
+      "properties": {
+        "condition": 60,
+        "public_access": true
+      },
+      "quantity": 1,
+      "required_skills": []
+    },
+    {
+      "container_id": "levy-outpost",
+      "id": "rack-wire",
+      "location_id": "levy-outpost",
+      "name": "纸架修补丝",
+      "owner_id": "levy-outpost",
+      "properties": {
+        "portable": true,
+        "public_access": true
+      },
+      "quantity": 4,
+      "required_skills": []
+    },
+    {
+      "container_id": "ash-kiln",
+      "id": "clay",
+      "location_id": "ash-kiln",
+      "name": "普通陶土",
+      "owner_id": "ash-kiln",
+      "properties": {
+        "portable": true,
+        "public_access": true
+      },
+      "quantity": 8,
+      "required_skills": []
+    },
+    {
+      "container_id": "ash-kiln",
+      "id": "kiln-fuel",
+      "location_id": "ash-kiln",
+      "name": "窑场薪柴",
+      "owner_id": "ash-kiln",
+      "properties": {
+        "portable": true,
+        "public_access": true
+      },
+      "quantity": 8,
+      "required_skills": []
+    },
+    {
+      "container_id": "ash-kiln",
+      "id": "clay-bowl",
+      "location_id": "ash-kiln",
+      "name": "居民陶碗",
+      "owner_id": "ash-kiln",
+      "properties": {
+        "consumable": false,
+        "portable": true,
+        "public_access": true
+      },
+      "quantity": 3,
+      "required_skills": []
+    },
+    {
+      "container_id": "ash-kiln",
+      "id": "hand-kiln",
+      "location_id": "ash-kiln",
+      "name": "居民低窑",
+      "owner_id": "ash-kiln",
+      "properties": {
+        "condition": 50,
+        "public_access": true
+      },
+      "quantity": 1,
+      "required_skills": []
+    },
+    {
+      "container_id": "ash-kiln",
+      "id": "kiln-wire",
+      "location_id": "ash-kiln",
+      "name": "风门修补丝",
+      "owner_id": "ash-kiln",
+      "properties": {
+        "portable": true,
+        "public_access": true
+      },
+      "quantity": 4,
+      "required_skills": []
+    },
+    {
+      "container_id": "cloud-chain-gorge",
+      "id": "wooden-tally",
+      "location_id": "cloud-chain-gorge",
+      "name": "磨名木牌",
+      "owner_id": "cloud-chain-gorge",
+      "properties": {
+        "inspection": "一块木牌的姓名被磨去，凹痕仍在；牌不能说明主人是否已被炼化。",
+        "portable": true,
+        "public_access": true
+      },
+      "quantity": 1,
+      "required_skills": []
+    },
+    {
+      "container_id": "celestial-weighhouse",
+      "id": "copper-scale",
+      "location_id": "celestial-weighhouse",
+      "name": "空铜衡",
+      "owner_id": "celestial-weighhouse",
+      "properties": {
+        "inspection": "三处刻度分别标灵性、功德与炼成数；空衡不是对任何人的实际称量记录。",
+        "public_access": true
+      },
+      "quantity": 1,
+      "required_skills": []
+    },
+    {
+      "container_id": "merit-ash-archive",
+      "id": "ledger-fragment",
+      "location_id": "merit-ash-archive",
+      "name": "残名页角",
+      "owner_id": "merit-ash-archive",
+      "properties": {
+        "inspection": "页角保留一个数字和半个姓名，不能独自还原全册或证明某位居民的身份。",
+        "portable": true,
+        "public_access": true
+      },
+      "quantity": 1,
+      "required_skills": []
+    },
+    {
+      "container_id": "merit-ash-archive",
+      "id": "records-handbook",
+      "location_id": "merit-ash-archive",
+      "name": "校记读本",
+      "owner_id": "merit-ash-archive",
+      "properties": {
+        "public_access": true
+      },
+      "quantity": 1,
+      "required_skills": []
+    },
+    {
+      "container_id": "levy-outpost",
+      "id": "repair-handbook",
+      "location_id": "levy-outpost",
+      "name": "风门修补读本",
+      "owner_id": "levy-outpost",
+      "properties": {
+        "public_access": true
+      },
+      "quantity": 1,
+      "required_skills": []
+    },
+    {
+      "container_id": "ruined-temple",
+      "id": "herb-handbook",
+      "location_id": "ruined-temple",
+      "name": "苦叶辨识读本",
+      "owner_id": "ruined-temple",
+      "properties": {
+        "public_access": true
+      },
+      "quantity": 1,
+      "required_skills": []
     }
   ]
 }

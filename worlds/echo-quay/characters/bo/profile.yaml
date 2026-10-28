@@ -1,0 +1,53 @@
+{
+  "name": "泊安",
+  "role": "学徒",
+  "location_id": "tide-workshop",
+  "skills": [
+    "搬运物资"
+  ],
+  "goals": [
+    "学会能独立谋生的手艺",
+    "还清借来的路费"
+  ],
+  "needs": {
+    "resources": 50,
+    "knowledge": 40,
+    "social": 25,
+    "exploration": 35,
+    "fatigue": 12
+  },
+  "responsibilities": [
+    "garden-pump"
+  ],
+  "learning_interests": [
+    "修补浮标"
+  ],
+  "known_routes": [
+    "pier-to-market",
+    "market-to-pier",
+    "market-to-workshop",
+    "workshop-to-market",
+    "pier-to-bank",
+    "bank-to-pier",
+    "glass-market-to-living-row",
+    "living-row-to-glass-market",
+    "glass-market-to-common-house",
+    "common-house-to-glass-market",
+    "glass-market-to-garden",
+    "garden-to-glass-market",
+    "glass-market-to-storehouse",
+    "storehouse-to-glass-market",
+    "tide-workshop-to-storehouse",
+    "storehouse-to-tide-workshop",
+    "bell-pier-to-storehouse",
+    "storehouse-to-bell-pier"
+  ],
+  "home_location_id": "living-row",
+  "routine_locations": [
+    "living-row",
+    "garden",
+    "glass-market",
+    "common-house"
+  ],
+  "stocking_interests": []
+}

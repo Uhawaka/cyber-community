@@ -5,6 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
+from engine.contracts.personhood import personhood_from_soul
 from engine.world.package_source import _read_array, _read_object
 from engine.world.package_spec import PackageCharacter, PackageDiagnostic
 from engine.world.package_validation import MAX_CHARACTERS, MAX_MEMORY_SEEDS, MAX_MEMORY_SUMMARY_LENGTH, _reject_unknown_fields, _validate_memory_seed
@@ -49,6 +50,13 @@ def _compile_characters(
                 "goals",
                 "needs",
                 "motivation",
+                "responsibilities",
+                "learning_interests",
+                "known_routes",
+                "home_location_id",
+                "routine_locations",
+                "access_tags",
+                "stocking_interests",
             },
             f"characters.{character_id}.profile.yaml",
             diagnostics,
@@ -66,6 +74,12 @@ def _compile_characters(
                 "relationship_stance",
                 "secrets",
                 "beliefs",
+                "version",
+                "long_term_desire",
+                "inner_conflict",
+                "interests",
+                "vulnerabilities",
+                "capability_limits",
             },
             f"characters.{character_id}.soul.yaml",
             diagnostics,
@@ -171,6 +185,16 @@ def _validate_character_profile(
     character_id: str,
     diagnostics: list[PackageDiagnostic],
 ) -> None:
+    for field in ("skills", "responsibilities", "learning_interests", "known_routes", "routine_locations", "access_tags", "stocking_interests"):
+        value = profile.get(field)
+        if value is not None and (
+            not isinstance(value, list) or len(value) > 128
+            or any(not isinstance(item, str) or not item.strip() for item in value)
+        ):
+            diagnostics.append(PackageDiagnostic(
+                "INVALID_CHARACTER_PROFILE", f"characters.{character_id}.profile.yaml.{field}",
+                "profile collections must be bounded arrays of non-empty strings",
+            ))
     goals = profile.get("goals")
     if goals is not None and (
         not isinstance(goals, list)
@@ -269,6 +293,15 @@ def _validate_character_soul(
     diagnostics: list[PackageDiagnostic],
 ) -> None:
     path = f"characters.{character_id}.soul.yaml"
+    v2_fields = {"long_term_desire", "inner_conflict", "interests", "vulnerabilities", "capability_limits"}
+    if "version" in soul or v2_fields & set(soul):
+        try:
+            if any(not isinstance(soul.get(key), list) for key in
+                   ("interests", "vulnerabilities", "capability_limits")):
+                raise ValueError("personhood collections must be arrays")
+            personhood_from_soul(soul)
+        except (ValueError, TypeError, KeyError) as exc:
+            diagnostics.append(PackageDiagnostic("INVALID_PERSONHOOD", path, str(exc)))
     for required in ("values", "voice", "drives"):
         if required not in soul:
             diagnostics.append(
@@ -314,4 +347,3 @@ def _validate_character_soul(
                     f"{field} must be a string or object",
                 )
             )
-

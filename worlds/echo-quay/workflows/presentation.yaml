@@ -2,17 +2,29 @@
   "schema_version": "world-workflow/v1alpha3",
   "kind": "presentation",
   "steps": [
-    {"op": "source_filter"},
-    {"op": "curate"},
-    {"op": "plan"},
-    {"op": "render"},
-    {"op": "validate"},
-    {"op": "publish"}
+    {
+      "op": "source_filter"
+    },
+    {
+      "op": "curate"
+    },
+    {
+      "op": "plan"
+    },
+    {
+      "op": "render"
+    },
+    {
+      "op": "validate"
+    },
+    {
+      "op": "publish"
+    }
   ],
   "policy": {
     "unpresented_event_threshold": 3,
     "critical_event_threshold": 1,
-    "renderer": "literary_skill",
+    "renderer": "deterministic",
     "audience_default": "omniscient"
   }
 }

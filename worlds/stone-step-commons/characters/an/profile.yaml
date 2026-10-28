@@ -1,0 +1,50 @@
+{
+  "name": "安澈",
+  "role": "泉工",
+  "location_id": "spring-room",
+  "skills": [
+    "泉水维护"
+  ],
+  "goals": [
+    "让泉房不再只有自己能接手"
+  ],
+  "needs": {
+    "resources": 26,
+    "knowledge": 25,
+    "social": 20,
+    "exploration": 28,
+    "fatigue": 10
+  },
+  "responsibilities": [
+    "spring-valve"
+  ],
+  "learning_interests": [
+    "校记档案"
+  ],
+  "stocking_interests": [
+    "valve-gasket"
+  ],
+  "home_location_id": "terrace-homes",
+  "routine_locations": [
+    "terrace-homes",
+    "spring-room",
+    "shared-court",
+    "archive-room"
+  ],
+  "known_routes": [
+    "shared-court-to-print-room",
+    "print-room-to-shared-court",
+    "shared-court-to-spring-room",
+    "spring-room-to-shared-court",
+    "shared-court-to-archive-room",
+    "archive-room-to-shared-court",
+    "shared-court-to-terrace-homes",
+    "terrace-homes-to-shared-court",
+    "shared-court-to-ridge-gate",
+    "ridge-gate-to-shared-court",
+    "print-room-to-archive-room",
+    "archive-room-to-print-room",
+    "spring-room-to-ridge-gate",
+    "ridge-gate-to-spring-room"
+  ]
+}

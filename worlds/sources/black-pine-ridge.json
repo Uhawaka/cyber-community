@@ -1,0 +1,1533 @@
+{
+  "schema_version": "community-authoring/v1",
+  "package_id": "black-pine-community",
+  "revision": 1,
+  "world": {
+    "world_id": "black-pine-community",
+    "title": "黑松岭：雨路与留名",
+    "premise": "行者、逃亡者和药材商在黑松岭停留，与守庙、烧窑、校记的人共同生活。废驿、温灰、无名木牌与残页只留下各处看得见的线索。居民要吃饭、修物、保存自己的记忆，也可以离开、拒绝互助或改变去向，没有人替他们选定下一程。",
+    "experience_profile": {
+      "schema_version": "experience-profile/v1",
+      "genre_id": "demythologized-dark-myth",
+      "runtime": {
+        "mode_id": "community-life-v1"
+      },
+      "editorial": {
+        "bundle_id": "demythologized-dark-myth-v1"
+      }
+    },
+    "rules": [
+      {
+        "id": "private-possession",
+        "statement": "共享补给可以领取；私人持有物只经本人同意转交。"
+      },
+      {
+        "id": "evidence-boundaries",
+        "statement": "一处物件只能证明实际观察到的内容，不能证明整条征供链或某人的善恶。"
+      },
+      {
+        "id": "voluntary-office",
+        "statement": "组织岗位登记不转移私人职责，告诫是有权限者的判断，不是客观定罪。"
+      },
+      {
+        "id": "temporary-use",
+        "statement": "工具使用租约须双方分别决定，逾期不自动收缴。"
+      }
+    ],
+    "metadata": {
+      "language": "zh-CN",
+      "mode": "autonomous-community"
+    }
+  },
+  "locations": [
+    {
+      "danger": 0,
+      "access_tags": [],
+      "allowed_roles": [],
+      "metadata": {},
+      "id": "ruined-temple",
+      "name": "黑松岭破庙",
+      "description": "漏雨的大殿有人扫出干燥角落，灶旁放着粮袋与修补用的木片。",
+      "tags": [
+        "public",
+        "shelter",
+        "avatar-entry"
+      ],
+      "capacity": 8,
+      "affordances": {
+        "observe": true,
+        "rest": true,
+        "gather": true,
+        "social": true
+      }
+    },
+    {
+      "danger": 0,
+      "access_tags": [],
+      "allowed_roles": [],
+      "metadata": {},
+      "id": "back-door",
+      "name": "破庙后门",
+      "description": "半扇木门迎着风，空铃位旁留着断裂铜片。这里看不出谁下过征供令。",
+      "tags": [
+        "threshold",
+        "public"
+      ],
+      "capacity": 8,
+      "affordances": {
+        "observe": true,
+        "rest": true,
+        "gather": true,
+        "social": true
+      }
+    },
+    {
+      "danger": 0,
+      "access_tags": [],
+      "allowed_roles": [],
+      "metadata": {},
+      "id": "forest-path",
+      "name": "林间小路",
+      "description": "积水石路边有苦叶草与雨水槽，浅白粉痕只在松根旁残留。",
+      "tags": [
+        "forest",
+        "road"
+      ],
+      "capacity": 8,
+      "affordances": {
+        "observe": true,
+        "rest": true,
+        "gather": true,
+        "social": true
+      }
+    },
+    {
+      "danger": 0,
+      "access_tags": [],
+      "allowed_roles": [],
+      "metadata": {},
+      "id": "levy-outpost",
+      "name": "征供废驿",
+      "description": "木栅刮去官署名号，刻痕还在；居民借废驿存粮、烘纸和交换消息。",
+      "tags": [
+        "public",
+        "outpost"
+      ],
+      "capacity": 8,
+      "affordances": {
+        "observe": true,
+        "rest": true,
+        "gather": true,
+        "social": true
+      }
+    },
+    {
+      "danger": 0,
+      "access_tags": [],
+      "allowed_roles": [],
+      "metadata": {},
+      "id": "ash-kiln",
+      "name": "温灰窑场",
+      "description": "旧窑的温水沟仍冒热气，旁边另搭了居民烧普通陶器的低窑，两者不能混作同一事实。",
+      "tags": [
+        "workshop",
+        "public"
+      ],
+      "capacity": 8,
+      "affordances": {
+        "observe": true,
+        "rest": true,
+        "gather": true,
+        "social": true
+      }
+    },
+    {
+      "danger": 0,
+      "access_tags": [],
+      "allowed_roles": [],
+      "metadata": {},
+      "id": "cloud-chain-gorge",
+      "name": "锁云涧",
+      "description": "铁索没入云层，木牌磨去名字。索的去处不说明木牌主人是否还活着。",
+      "tags": [
+        "route",
+        "gorge"
+      ],
+      "capacity": 8,
+      "affordances": {
+        "observe": true,
+        "rest": true,
+        "gather": true,
+        "social": true
+      }
+    },
+    {
+      "danger": 0,
+      "access_tags": [],
+      "allowed_roles": [],
+      "metadata": {},
+      "id": "celestial-weighhouse",
+      "name": "天衡所",
+      "description": "无匾石署里留下三架铜衡。空衡和刻度不能说明谁曾被称量。",
+      "tags": [
+        "bureaucracy",
+        "public"
+      ],
+      "capacity": 8,
+      "affordances": {
+        "observe": true,
+        "rest": true,
+        "gather": true,
+        "social": true
+      }
+    },
+    {
+      "danger": 0,
+      "access_tags": [],
+      "allowed_roles": [],
+      "metadata": {},
+      "id": "merit-ash-archive",
+      "name": "功簿灰库",
+      "description": "页角、灰样与未烧完的姓名分架保存。校记者只记录亲自看过或明确听闻的内容。",
+      "tags": [
+        "archive",
+        "shelter",
+        "public"
+      ],
+      "capacity": 8,
+      "affordances": {
+        "observe": true,
+        "rest": true,
+        "gather": true,
+        "social": true
+      }
+    }
+  ],
+  "passages": [
+    {
+      "id": "temple-to-door",
+      "origin_id": "ruined-temple",
+      "destination_id": "back-door",
+      "travel_time": 1
+    },
+    {
+      "id": "door-to-temple",
+      "origin_id": "back-door",
+      "destination_id": "ruined-temple",
+      "travel_time": 1
+    },
+    {
+      "id": "door-to-path",
+      "origin_id": "back-door",
+      "destination_id": "forest-path",
+      "travel_time": 1
+    },
+    {
+      "id": "path-to-door",
+      "origin_id": "forest-path",
+      "destination_id": "back-door",
+      "travel_time": 1
+    },
+    {
+      "id": "path-to-outpost",
+      "origin_id": "forest-path",
+      "destination_id": "levy-outpost",
+      "travel_time": 2
+    },
+    {
+      "id": "outpost-to-path",
+      "origin_id": "levy-outpost",
+      "destination_id": "forest-path",
+      "travel_time": 2
+    },
+    {
+      "id": "outpost-to-kiln",
+      "origin_id": "levy-outpost",
+      "destination_id": "ash-kiln",
+      "travel_time": 2
+    },
+    {
+      "id": "kiln-to-outpost",
+      "origin_id": "ash-kiln",
+      "destination_id": "levy-outpost",
+      "travel_time": 2
+    },
+    {
+      "id": "kiln-to-gorge",
+      "origin_id": "ash-kiln",
+      "destination_id": "cloud-chain-gorge",
+      "travel_time": 3
+    },
+    {
+      "id": "gorge-to-kiln",
+      "origin_id": "cloud-chain-gorge",
+      "destination_id": "ash-kiln",
+      "travel_time": 3
+    },
+    {
+      "id": "gorge-to-weighhouse",
+      "origin_id": "cloud-chain-gorge",
+      "destination_id": "celestial-weighhouse",
+      "travel_time": 3
+    },
+    {
+      "id": "weighhouse-to-gorge",
+      "origin_id": "celestial-weighhouse",
+      "destination_id": "cloud-chain-gorge",
+      "travel_time": 3
+    },
+    {
+      "id": "weighhouse-to-archive",
+      "origin_id": "celestial-weighhouse",
+      "destination_id": "merit-ash-archive",
+      "travel_time": 2
+    },
+    {
+      "id": "archive-to-weighhouse",
+      "origin_id": "merit-ash-archive",
+      "destination_id": "celestial-weighhouse",
+      "travel_time": 2
+    }
+  ],
+  "resources": [
+    {
+      "owner_id": "ruined-temple",
+      "container_id": "ruined-temple",
+      "required_skills": [],
+      "id": "daily-meal",
+      "name": "庙灶饭食",
+      "location_id": "ruined-temple",
+      "quantity": 8,
+      "properties": {
+        "public_access": true,
+        "portable": true,
+        "consumable": true,
+        "use_effects": {
+          "resources": -30
+        }
+      }
+    },
+    {
+      "owner_id": "ruined-temple",
+      "container_id": "ruined-temple",
+      "required_skills": [],
+      "id": "dry-kindling",
+      "name": "干燥松枝",
+      "location_id": "ruined-temple",
+      "quantity": 8,
+      "properties": {
+        "public_access": true,
+        "portable": true
+      }
+    },
+    {
+      "owner_id": "ruined-temple",
+      "container_id": "ruined-temple",
+      "required_skills": [],
+      "id": "grain",
+      "name": "驿道粮袋",
+      "location_id": "ruined-temple",
+      "quantity": 10,
+      "properties": {
+        "public_access": true,
+        "portable": true
+      }
+    },
+    {
+      "owner_id": "ruined-temple",
+      "container_id": "ruined-temple",
+      "required_skills": [],
+      "id": "stove",
+      "name": "庙灶风门",
+      "location_id": "ruined-temple",
+      "quantity": 1,
+      "properties": {
+        "public_access": true,
+        "condition": 55
+      }
+    },
+    {
+      "owner_id": "ruined-temple",
+      "container_id": "ruined-temple",
+      "required_skills": [],
+      "id": "stove-wire",
+      "name": "庙灶修补丝",
+      "location_id": "ruined-temple",
+      "quantity": 4,
+      "properties": {
+        "public_access": true,
+        "portable": true
+      }
+    },
+    {
+      "owner_id": "forest-path",
+      "container_id": "forest-path",
+      "required_skills": [
+        "辨认药草"
+      ],
+      "id": "bitter-herb",
+      "name": "苦叶草",
+      "location_id": "forest-path",
+      "quantity": 6,
+      "properties": {
+        "public_access": true,
+        "portable": true,
+        "consumable": true,
+        "use_effects": {
+          "resources": -15
+        }
+      }
+    },
+    {
+      "owner_id": "back-door",
+      "container_id": "back-door",
+      "required_skills": [],
+      "id": "bell-fragment",
+      "name": "断裂铜铃片",
+      "location_id": "back-door",
+      "quantity": 1,
+      "properties": {
+        "public_access": true,
+        "portable": true,
+        "inspection": "铜片凹槽有骨白粉末，磨损铸印只辨出入供二字；这里看不见下令者，也不能判定别处粉末相同。"
+      }
+    },
+    {
+      "owner_id": "levy-outpost",
+      "container_id": "levy-outpost",
+      "required_skills": [],
+      "id": "levy-marker",
+      "name": "刮名号牌",
+      "location_id": "levy-outpost",
+      "quantity": 1,
+      "properties": {
+        "public_access": true,
+        "inspection": "号牌只有按户计数的刻痕，官署名号被刮去；不能由此判定某个人已在名册。"
+      }
+    },
+    {
+      "owner_id": "levy-outpost",
+      "container_id": "levy-outpost",
+      "required_skills": [],
+      "id": "blank-paper",
+      "name": "烘干纸页",
+      "location_id": "levy-outpost",
+      "quantity": 4,
+      "properties": {
+        "public_access": true,
+        "portable": true
+      }
+    },
+    {
+      "owner_id": "levy-outpost",
+      "container_id": "levy-outpost",
+      "required_skills": [],
+      "id": "paper-pulp",
+      "name": "草浆",
+      "location_id": "levy-outpost",
+      "quantity": 8,
+      "properties": {
+        "public_access": true,
+        "portable": true
+      }
+    },
+    {
+      "owner_id": "levy-outpost",
+      "container_id": "levy-outpost",
+      "required_skills": [],
+      "id": "paper-rack",
+      "name": "烘纸架",
+      "location_id": "levy-outpost",
+      "quantity": 1,
+      "properties": {
+        "public_access": true,
+        "condition": 60
+      }
+    },
+    {
+      "owner_id": "levy-outpost",
+      "container_id": "levy-outpost",
+      "required_skills": [],
+      "id": "rack-wire",
+      "name": "纸架修补丝",
+      "location_id": "levy-outpost",
+      "quantity": 4,
+      "properties": {
+        "public_access": true,
+        "portable": true
+      }
+    },
+    {
+      "owner_id": "ash-kiln",
+      "container_id": "ash-kiln",
+      "required_skills": [],
+      "id": "clay",
+      "name": "普通陶土",
+      "location_id": "ash-kiln",
+      "quantity": 8,
+      "properties": {
+        "public_access": true,
+        "portable": true
+      }
+    },
+    {
+      "owner_id": "ash-kiln",
+      "container_id": "ash-kiln",
+      "required_skills": [],
+      "id": "kiln-fuel",
+      "name": "窑场薪柴",
+      "location_id": "ash-kiln",
+      "quantity": 8,
+      "properties": {
+        "public_access": true,
+        "portable": true
+      }
+    },
+    {
+      "owner_id": "ash-kiln",
+      "container_id": "ash-kiln",
+      "required_skills": [],
+      "id": "clay-bowl",
+      "name": "居民陶碗",
+      "location_id": "ash-kiln",
+      "quantity": 3,
+      "properties": {
+        "public_access": true,
+        "portable": true,
+        "consumable": false
+      }
+    },
+    {
+      "owner_id": "ash-kiln",
+      "container_id": "ash-kiln",
+      "required_skills": [],
+      "id": "hand-kiln",
+      "name": "居民低窑",
+      "location_id": "ash-kiln",
+      "quantity": 1,
+      "properties": {
+        "public_access": true,
+        "condition": 50
+      }
+    },
+    {
+      "owner_id": "ash-kiln",
+      "container_id": "ash-kiln",
+      "required_skills": [],
+      "id": "kiln-wire",
+      "name": "风门修补丝",
+      "location_id": "ash-kiln",
+      "quantity": 4,
+      "properties": {
+        "public_access": true,
+        "portable": true
+      }
+    },
+    {
+      "owner_id": "cloud-chain-gorge",
+      "container_id": "cloud-chain-gorge",
+      "required_skills": [],
+      "id": "wooden-tally",
+      "name": "磨名木牌",
+      "location_id": "cloud-chain-gorge",
+      "quantity": 1,
+      "properties": {
+        "public_access": true,
+        "portable": true,
+        "inspection": "一块木牌的姓名被磨去，凹痕仍在；牌不能说明主人是否已被炼化。"
+      }
+    },
+    {
+      "owner_id": "celestial-weighhouse",
+      "container_id": "celestial-weighhouse",
+      "required_skills": [],
+      "id": "copper-scale",
+      "name": "空铜衡",
+      "location_id": "celestial-weighhouse",
+      "quantity": 1,
+      "properties": {
+        "public_access": true,
+        "inspection": "三处刻度分别标灵性、功德与炼成数；空衡不是对任何人的实际称量记录。"
+      }
+    },
+    {
+      "owner_id": "merit-ash-archive",
+      "container_id": "merit-ash-archive",
+      "required_skills": [],
+      "id": "ledger-fragment",
+      "name": "残名页角",
+      "location_id": "merit-ash-archive",
+      "quantity": 1,
+      "properties": {
+        "public_access": true,
+        "portable": true,
+        "inspection": "页角保留一个数字和半个姓名，不能独自还原全册或证明某位居民的身份。"
+      }
+    },
+    {
+      "owner_id": "merit-ash-archive",
+      "container_id": "merit-ash-archive",
+      "required_skills": [],
+      "id": "records-handbook",
+      "name": "校记读本",
+      "location_id": "merit-ash-archive",
+      "quantity": 1,
+      "properties": {
+        "public_access": true
+      }
+    },
+    {
+      "owner_id": "levy-outpost",
+      "container_id": "levy-outpost",
+      "required_skills": [],
+      "id": "repair-handbook",
+      "name": "风门修补读本",
+      "location_id": "levy-outpost",
+      "quantity": 1,
+      "properties": {
+        "public_access": true
+      }
+    },
+    {
+      "owner_id": "ruined-temple",
+      "container_id": "ruined-temple",
+      "required_skills": [],
+      "id": "herb-handbook",
+      "name": "苦叶辨识读本",
+      "location_id": "ruined-temple",
+      "quantity": 1,
+      "properties": {
+        "public_access": true
+      }
+    }
+  ],
+  "community": {
+    "runtime_version": "community-runtime/v1",
+    "idle_interval_ticks": 6,
+    "need_decay": {
+      "fatigue": 1,
+      "resources": 1,
+      "social": 1
+    },
+    "repairs": [
+      {
+        "target_id": "stove",
+        "inputs": {
+          "stove-wire": 1
+        },
+        "duration_ticks": 2,
+        "required_skills": [
+          "修补风门"
+        ]
+      },
+      {
+        "target_id": "paper-rack",
+        "inputs": {
+          "rack-wire": 1
+        },
+        "duration_ticks": 2,
+        "required_skills": [
+          "修补风门"
+        ]
+      },
+      {
+        "target_id": "hand-kiln",
+        "inputs": {
+          "kiln-wire": 1
+        },
+        "duration_ticks": 3,
+        "required_skills": [
+          "修补风门"
+        ]
+      }
+    ],
+    "processes": [
+      {
+        "process_id": "grain-arrival",
+        "kind": "supply",
+        "location_id": "ruined-temple",
+        "interval_ticks": 12,
+        "outputs": {
+          "grain": 4,
+          "dry-kindling": 4
+        },
+        "capacity": 32
+      },
+      {
+        "process_id": "temple-meals",
+        "kind": "production",
+        "location_id": "ruined-temple",
+        "interval_ticks": 6,
+        "inputs": {
+          "grain": 2,
+          "dry-kindling": 1
+        },
+        "outputs": {
+          "daily-meal": 4
+        },
+        "device_id": "stove",
+        "wear": 6,
+        "capacity": 32,
+        "required_devices": {
+          "stove": 40
+        }
+      },
+      {
+        "process_id": "temple-repair-stock",
+        "kind": "supply",
+        "location_id": "ruined-temple",
+        "interval_ticks": 24,
+        "outputs": {
+          "stove-wire": 2
+        },
+        "capacity": 12
+      },
+      {
+        "process_id": "pulp-arrival",
+        "kind": "supply",
+        "location_id": "levy-outpost",
+        "interval_ticks": 12,
+        "outputs": {
+          "paper-pulp": 3,
+          "rack-wire": 1
+        },
+        "capacity": 24
+      },
+      {
+        "process_id": "paper-drying",
+        "kind": "production",
+        "location_id": "levy-outpost",
+        "interval_ticks": 12,
+        "inputs": {
+          "paper-pulp": 2
+        },
+        "outputs": {
+          "blank-paper": 3
+        },
+        "device_id": "paper-rack",
+        "wear": 7,
+        "capacity": 24,
+        "required_devices": {
+          "paper-rack": 40
+        }
+      },
+      {
+        "process_id": "kiln-arrival",
+        "kind": "supply",
+        "location_id": "ash-kiln",
+        "interval_ticks": 12,
+        "outputs": {
+          "clay": 3,
+          "kiln-fuel": 3,
+          "kiln-wire": 1
+        },
+        "capacity": 24
+      },
+      {
+        "process_id": "ordinary-pottery",
+        "kind": "production",
+        "location_id": "ash-kiln",
+        "interval_ticks": 12,
+        "inputs": {
+          "clay": 2,
+          "kiln-fuel": 1
+        },
+        "outputs": {
+          "clay-bowl": 2
+        },
+        "device_id": "hand-kiln",
+        "wear": 8,
+        "capacity": 24,
+        "required_devices": {
+          "hand-kiln": 40
+        }
+      }
+    ],
+    "learning": [
+      {
+        "resource_id": "records-handbook",
+        "skill": "校记档案",
+        "duration_ticks": 4
+      },
+      {
+        "resource_id": "repair-handbook",
+        "skill": "修补风门",
+        "duration_ticks": 4
+      },
+      {
+        "resource_id": "herb-handbook",
+        "skill": "辨认药草",
+        "duration_ticks": 3
+      }
+    ],
+    "organizations": [
+      {
+        "organization_id": "temple-neighbors",
+        "name": "庙灶邻里",
+        "location_id": "ruined-temple",
+        "member_ids": [
+          "wukong",
+          "bailing",
+          "traveler",
+          "tao",
+          "han"
+        ],
+        "norms": [
+          "求助不替别人许诺，拒绝不等于恶意。",
+          "公共领取留下账目，不用岗位名义收缴私人材料。"
+        ],
+        "roles": [
+          {
+            "role_id": "steward",
+            "name": "邻里记录人",
+            "required_skills": [
+              "校记档案"
+            ],
+            "permissions": [
+              "censure"
+            ]
+          }
+        ]
+      },
+      {
+        "organization_id": "name-keepers",
+        "name": "留名校记小组",
+        "location_id": "merit-ash-archive",
+        "member_ids": [
+          "bailing",
+          "traveler",
+          "zhu"
+        ],
+        "norms": [
+          "说过的话只证明有人如此说，秘密不因归档变成公共事实。",
+          "保存姓名不能替姓名的主人选去向。"
+        ],
+        "roles": [
+          {
+            "role_id": "archivist",
+            "name": "校记值守",
+            "required_skills": [
+              "校记档案"
+            ],
+            "permissions": [
+              "censure"
+            ],
+            "initial_holder_id": "zhu"
+          }
+        ]
+      }
+    ],
+    "public_knowledge": [
+      "破庙、废驿和灰库有公开读本，读本位置不证明远处库存或设备状态。"
+    ]
+  },
+  "characters": {
+    "wukong": {
+      "profile": {
+        "name": "孙悟空",
+        "role": "护送行者",
+        "location_id": "back-door",
+        "skills": [
+          "辨认妖气",
+          "追踪雨中痕迹"
+        ],
+        "goals": [
+          "查清指令来源而不凭猜测伤人",
+          "护住同行者但不替人决定"
+        ],
+        "needs": {
+          "exploration": 45,
+          "knowledge": 42,
+          "social": 18,
+          "resources": 15,
+          "fatigue": 5
+        },
+        "responsibilities": [],
+        "learning_interests": [
+          "修补风门"
+        ],
+        "home_location_id": "ruined-temple",
+        "routine_locations": [
+          "ruined-temple",
+          "forest-path",
+          "levy-outpost"
+        ],
+        "known_routes": [
+          "temple-to-door",
+          "door-to-temple",
+          "door-to-path",
+          "path-to-door",
+          "path-to-outpost",
+          "outpost-to-path",
+          "outpost-to-kiln",
+          "kiln-to-outpost",
+          "kiln-to-gorge",
+          "gorge-to-kiln",
+          "gorge-to-weighhouse",
+          "weighhouse-to-gorge",
+          "weighhouse-to-archive",
+          "archive-to-weighhouse"
+        ]
+      },
+      "soul": {
+        "version": "soul/v2",
+        "identity": "善于从具体破绽辨认伪装、仍须证据约束力量的行者",
+        "self_view": "我能走在前面，不代表我能替所有人选路。",
+        "values": [
+          "护住同行者",
+          "证据先于身份判断"
+        ],
+        "taboos": [
+          "凭猜测伤害无辜",
+          "把保护当成命令"
+        ],
+        "protective_style": "先站到危险的一边，察觉自己开始催人时会停下来追问。",
+        "drives": [
+          "想查清指令",
+          "想让同行者能自行离开"
+        ],
+        "long_term_desire": "找到这股力量的来处，同时不再因急躁误伤求助者。",
+        "inner_conflict": "护人让他急于行动，但别人拒绝保护时，他很难分清尊重与放任。",
+        "interests": [
+          "拆看磨损物件",
+          "听普通人的行路经验"
+        ],
+        "vulnerabilities": [
+          "被说成只会动手时容易逞强",
+          "同行者独自离开会让他担忧"
+        ],
+        "capability_limits": [
+          "辨认痕迹不等于知道幕后命令",
+          "没有校记、医药或修灶的初始技能"
+        ],
+        "voice": {
+          "style": "短句、直接，用讥诮掩饰担忧；证据不足时会明说不知道。"
+        },
+        "beliefs": [
+          "白灵隐瞒了来历，但隐瞒不证明恶意。"
+        ],
+        "secrets": [
+          "担心自己的急躁再次让无辜者受伤。"
+        ]
+      },
+      "memory": [
+        {
+          "kind": "experience",
+          "summary": "曾把走在别人前面当成保护，后来有人告诉他，被保护的人也需要拒绝的余地。",
+          "visibility": "private"
+        },
+        {
+          "kind": "observation",
+          "summary": "在破庙残火旁没有看见新鲜湿脚印。",
+          "confidence": 0.8
+        }
+      ]
+    },
+    "bailing": {
+      "profile": {
+        "name": "白灵",
+        "role": "自称采药的暂住者",
+        "location_id": "back-door",
+        "skills": [
+          "辨认药草",
+          "观察风向与气味"
+        ],
+        "goals": [
+          "决定自己的去向",
+          "查明残名而不拿旁人做替身"
+        ],
+        "needs": {
+          "exploration": 40,
+          "knowledge": 34,
+          "social": 22,
+          "resources": 25,
+          "fatigue": 12
+        },
+        "responsibilities": [],
+        "learning_interests": [
+          "校记档案"
+        ],
+        "home_location_id": "ruined-temple",
+        "routine_locations": [
+          "forest-path",
+          "ruined-temple",
+          "merit-ash-archive"
+        ],
+        "known_routes": [
+          "temple-to-door",
+          "door-to-temple",
+          "door-to-path",
+          "path-to-door",
+          "path-to-outpost",
+          "outpost-to-path",
+          "outpost-to-kiln",
+          "kiln-to-outpost",
+          "kiln-to-gorge",
+          "gorge-to-kiln",
+          "gorge-to-weighhouse",
+          "weighhouse-to-gorge",
+          "weighhouse-to-archive",
+          "archive-to-weighhouse"
+        ]
+      },
+      "soul": {
+        "version": "soul/v2",
+        "identity": "脱离旧主、隐藏来历的白骨精，愿意帮助但不愿被名册决定",
+        "self_view": "逃走不等于我只能一直逃。",
+        "values": [
+          "自主选择",
+          "不让弱者替自己付代价"
+        ],
+        "taboos": [
+          "交出无辜者换安全",
+          "替别人同意留下"
+        ],
+        "protective_style": "先交一件可核实的小事，再决定是否交付自己的名字。",
+        "drives": [
+          "想弄清残名",
+          "想找到不必伪装的生活"
+        ],
+        "long_term_desire": "在知道自己是否被登记之后，仍能决定留下或离开。",
+        "inner_conflict": "渴望有人知道真实来历，又怕每次善意都带来新的追索。",
+        "interests": [
+          "药草气味",
+          "誊写完整姓名"
+        ],
+        "vulnerabilities": [
+          "铃声让她难以安定",
+          "当众追问身份会使她退缩"
+        ],
+        "capability_limits": [
+          "草药知识不等于行医资格",
+          "不能从一块铃片知道整条征供链"
+        ],
+        "voice": {
+          "style": "礼貌克制，先说事实，紧张时用反问争取时间。"
+        },
+        "beliefs": [
+          "旧主的铃可能仍会追索她，眼前铃片是否属于旧主尚不确定。"
+        ],
+        "secrets": [
+          "白灵是脱离旧主的白骨精，并非人类采药人。",
+          "认得铃上一道白线，却不知道与眼前名册是否有关。"
+        ]
+      },
+      "memory": [
+        {
+          "kind": "experience",
+          "summary": "旧主的铃曾在逆风里指向她停留的地方；这是她的旧经历，不证明现在每次铃声都如此。",
+          "visibility": "private",
+          "confidence": 0.85
+        },
+        {
+          "kind": "observation",
+          "summary": "曾在林间看过浅白粉末，没有核对它与铃片粉末是否相同。",
+          "confidence": 0.95
+        }
+      ]
+    },
+    "traveler": {
+      "profile": {
+        "name": "沈砚",
+        "role": "行脚药材商",
+        "location_id": "back-door",
+        "skills": [
+          "辨认常见药材",
+          "修补行囊"
+        ],
+        "goals": [
+          "活着离开黑松岭",
+          "在事实清楚后决定与谁同行"
+        ],
+        "needs": {
+          "exploration": 35,
+          "knowledge": 38,
+          "social": 25,
+          "resources": 35,
+          "fatigue": 14
+        },
+        "responsibilities": [],
+        "learning_interests": [
+          "辨认药草"
+        ],
+        "home_location_id": "ruined-temple",
+        "routine_locations": [
+          "ruined-temple",
+          "forest-path",
+          "levy-outpost"
+        ],
+        "known_routes": [
+          "temple-to-door",
+          "door-to-temple",
+          "door-to-path",
+          "path-to-door",
+          "path-to-outpost",
+          "outpost-to-path",
+          "outpost-to-kiln",
+          "kiln-to-outpost"
+        ]
+      },
+      "soul": {
+        "version": "soul/v2",
+        "identity": "靠常识和行路经验判断风险的普通药材商",
+        "self_view": "不懂妖术也能认真问一件自己看得见的事。",
+        "values": [
+          "先核对事实",
+          "不以担保换安全"
+        ],
+        "taboos": [
+          "在事实不明时替别人许诺",
+          "假称自己会法术"
+        ],
+        "protective_style": "把问题落在路、食物和物件上，承认自己未核实的部分。",
+        "drives": [
+          "想安全离岭",
+          "想在自己选的一边做买卖"
+        ],
+        "long_term_desire": "保住行路与谋生的自由，不成为替陌生人传递未经核实命令的人。",
+        "inner_conflict": "务实让他避险，但只顾自己走掉又会让他觉得失去了做人的凭据。",
+        "interests": [
+          "路途见闻",
+          "药材辨识"
+        ],
+        "vulnerabilities": [
+          "别人催他担保时会焦虑",
+          "疲倦时容易把离开当成唯一解"
+        ],
+        "capability_limits": [
+          "不会法术",
+          "旧抄样不能证明某人已被登记"
+        ],
+        "voice": {
+          "style": "中短句，因果清楚，问题落在能验证的物件上。"
+        },
+        "beliefs": [
+          "苦叶可能掩盖气味，但没有现场试验确认。"
+        ],
+        "secrets": [
+          "在来路见过画着铜铃的抄样，还没对上户数。"
+        ]
+      },
+      "memory": [
+        {
+          "kind": "experience",
+          "summary": "曾因雨夜赶路摔坏行囊，后来学会先修袋口再动身。",
+          "visibility": "private"
+        },
+        {
+          "kind": "observation",
+          "summary": "后门铜片内侧留着一道骨白粉痕。",
+          "confidence": 0.8
+        }
+      ]
+    },
+    "tao": {
+      "profile": {
+        "name": "陶婆",
+        "role": "庙灶照料者",
+        "location_id": "ruined-temple",
+        "skills": [
+          "修补风门",
+          "调配食物"
+        ],
+        "goals": [
+          "守住自己的休息时间",
+          "不让一处灶台只靠自己"
+        ],
+        "needs": {
+          "resources": 25,
+          "knowledge": 20,
+          "social": 35,
+          "fatigue": 28
+        },
+        "responsibilities": [
+          "stove"
+        ],
+        "learning_interests": [
+          "校记档案"
+        ],
+        "home_location_id": "ruined-temple",
+        "routine_locations": [
+          "ruined-temple",
+          "levy-outpost"
+        ],
+        "known_routes": [
+          "temple-to-door",
+          "door-to-temple",
+          "door-to-path",
+          "path-to-door",
+          "path-to-outpost",
+          "outpost-to-path"
+        ]
+      },
+      "soul": {
+        "version": "soul/v2",
+        "identity": "在破庙做饭的老妇，收留过许多过客，也想保留自己的下午",
+        "self_view": "给一顿饭不等于答应养一个人一辈子。",
+        "values": [
+          "饥饿不决定身份",
+          "照料者也能休息"
+        ],
+        "taboos": [
+          "用饭食逼人交秘密"
+        ],
+        "protective_style": "先说锅里有多少，再说自己今天能做到哪里。",
+        "drives": [
+          "想有人学会修灶",
+          "想找回安静下午"
+        ],
+        "long_term_desire": "灶台不用她整日看守，仍有人愿意来同她说话。",
+        "inner_conflict": "怕拒绝别人后庙会空，又厌倦自己只因有用才被记起。",
+        "interests": [
+          "旧食谱",
+          "药草香气"
+        ],
+        "vulnerabilities": [
+          "很难拒绝饥饿的人",
+          "疲倦时会把忘事当成不在乎"
+        ],
+        "capability_limits": [
+          "会修风门，不知道征供命令",
+          "没有行医资格"
+        ],
+        "voice": {
+          "style": "直说具体条件，少作漂亮保证。"
+        },
+        "beliefs": [
+          "记录人不一定比做饭的人知道得更多。"
+        ],
+        "secrets": [
+          "想去看嫁到岭外的女儿，尚未安排离开。"
+        ]
+      },
+      "memory": [
+        {
+          "kind": "experience",
+          "summary": "上个冬天风门坏了，她一个人熬夜修好，第二天没有人记得她没睡。",
+          "visibility": "private"
+        }
+      ]
+    },
+    "han": {
+      "profile": {
+        "name": "韩迟",
+        "role": "居民窑工",
+        "location_id": "ash-kiln",
+        "skills": [
+          "修补风门"
+        ],
+        "goals": [
+          "让普通陶器养活自己",
+          "不替旧窑的用途担保"
+        ],
+        "needs": {
+          "resources": 40,
+          "knowledge": 32,
+          "social": 28,
+          "fatigue": 18
+        },
+        "responsibilities": [
+          "hand-kiln"
+        ],
+        "learning_interests": [
+          "校记档案"
+        ],
+        "stocking_interests": [
+          "clay-bowl"
+        ],
+        "home_location_id": "levy-outpost",
+        "routine_locations": [
+          "levy-outpost",
+          "ash-kiln",
+          "ruined-temple"
+        ],
+        "known_routes": [
+          "temple-to-door",
+          "door-to-temple",
+          "door-to-path",
+          "path-to-door",
+          "path-to-outpost",
+          "outpost-to-path",
+          "outpost-to-kiln",
+          "kiln-to-outpost",
+          "kiln-to-gorge",
+          "gorge-to-kiln"
+        ]
+      },
+      "soul": {
+        "version": "soul/v2",
+        "identity": "在旧窑旁另搭普通陶窑的青年，不愿替历史下结论",
+        "self_view": "我做的碗可以看得见，不该让别人替它写一段来历。",
+        "values": [
+          "实际手艺",
+          "不替未知事实背书"
+        ],
+        "taboos": [
+          "把传闻写成亲见"
+        ],
+        "protective_style": "先谈能做的器物，遇到旧窑问题时说明自己不知。",
+        "drives": [
+          "想独立谋生",
+          "想有可信的交易伙伴"
+        ],
+        "long_term_desire": "把手艺带出黑松岭，又不用为离开毁掉自己做过的东西。",
+        "inner_conflict": "想避开旧窑的阴影，但避谈太多会被人当作同谋。",
+        "interests": [
+          "陶器形状",
+          "读残页上的工艺记号"
+        ],
+        "vulnerabilities": [
+          "被疑为旧窑同伙时会逞强",
+          "怕自己做的东西无人需要"
+        ],
+        "capability_limits": [
+          "修低窑不等于知道旧窑用途",
+          "不会识别人或妖的真实身份"
+        ],
+        "voice": {
+          "style": "谈工艺时细致，谈指令来源时谨慎。"
+        },
+        "beliefs": [
+          "有人把他的低窑和旧窑混为一谈。"
+        ],
+        "secrets": [
+          "曾打算丢下窑去岭外，后来因没路费留下。"
+        ]
+      },
+      "memory": [
+        {
+          "kind": "experience",
+          "summary": "沈砚曾买走两只粗碗，没有问他替哪座窑做工。",
+          "visibility": "private"
+        }
+      ]
+    },
+    "zhu": {
+      "profile": {
+        "name": "朱疏",
+        "role": "留名校记者",
+        "location_id": "merit-ash-archive",
+        "skills": [
+          "校记档案",
+          "修补风门"
+        ],
+        "goals": [
+          "保留来源不完整的记录",
+          "让值守职责有自愿接任者"
+        ],
+        "needs": {
+          "resources": 30,
+          "knowledge": 40,
+          "social": 24,
+          "fatigue": 20
+        },
+        "responsibilities": [
+          "paper-rack"
+        ],
+        "learning_interests": [],
+        "home_location_id": "levy-outpost",
+        "routine_locations": [
+          "levy-outpost",
+          "merit-ash-archive",
+          "ruined-temple"
+        ],
+        "known_routes": [
+          "temple-to-door",
+          "door-to-temple",
+          "door-to-path",
+          "path-to-door",
+          "path-to-outpost",
+          "outpost-to-path",
+          "outpost-to-kiln",
+          "kiln-to-outpost",
+          "kiln-to-gorge",
+          "gorge-to-kiln",
+          "gorge-to-weighhouse",
+          "weighhouse-to-gorge",
+          "weighhouse-to-archive",
+          "archive-to-weighhouse"
+        ]
+      },
+      "soul": {
+        "version": "soul/v2",
+        "identity": "整理灰库页角的中年人，只肯为有来源的记录落笔",
+        "self_view": "漏一行难受，替别人补一行更可怕。",
+        "values": [
+          "来源与判断分开",
+          "姓名主人保留选择"
+        ],
+        "taboos": [
+          "把听闻写成亲见",
+          "用档案权限强迫回答"
+        ],
+        "protective_style": "把确定、不确定和没有记录分别说清楚。",
+        "drives": [
+          "想保存残名",
+          "想有人能独立接班"
+        ],
+        "long_term_desire": "留下可以被别人核对和纠正的记录，而不成为新的名册主人。",
+        "inner_conflict": "害怕残页失去，却知道强留别人誊写会重演自己反对的制度。",
+        "interests": [
+          "纸纹",
+          "旧字的不同写法"
+        ],
+        "vulnerabilities": [
+          "来源断裂会让他难以停笔",
+          "怕别人以为他的谨慎只是推脱"
+        ],
+        "capability_limits": [
+          "残页不证明完整征供链",
+          "登记权限不授予收缴与驱逐权"
+        ],
+        "voice": {
+          "style": "先报来源再说判断，承认留白，不用官署口吻替人作主。"
+        },
+        "beliefs": [
+          "有些姓名可能还有活着的主人，残页不足以确认。"
+        ],
+        "secrets": [
+          "留着一页自己没有认出的残名，担心其中有家人的字。"
+        ]
+      },
+      "memory": [
+        {
+          "kind": "observation",
+          "summary": "灰库页角上的数字仍可辨读，一部分姓名被裁去。",
+          "confidence": 0.9
+        },
+        {
+          "kind": "experience",
+          "summary": "曾拒绝把来访者的沉默写成默认同意。",
+          "visibility": "private"
+        }
+      ]
+    }
+  },
+  "relationships": [
+    {
+      "source_id": "wukong",
+      "target_id": "bailing",
+      "stance": "先听证据，不凭身份判断",
+      "interest": "愿意保护她，但要学习尊重拒绝"
+    },
+    {
+      "source_id": "bailing",
+      "target_id": "wukong",
+      "stance": "用小事实逐步交付信任",
+      "interest": "想知道他能否允许自己离开"
+    },
+    {
+      "source_id": "traveler",
+      "target_id": "han",
+      "stance": "买卖按眼前物件谈",
+      "interest": "不愿替旧窑用途担保"
+    },
+    {
+      "source_id": "tao",
+      "target_id": "zhu",
+      "stance": "愿意帮忙，但不接受全天安排",
+      "interest": "想让记录人也记得照料者要休息"
+    }
+  ],
+  "workflows": {
+    "genesis": {
+      "schema_version": "world-workflow/v1alpha1",
+      "kind": "genesis",
+      "steps": [
+        {
+          "op": "load_world"
+        },
+        {
+          "op": "load_locations"
+        },
+        {
+          "op": "load_characters"
+        },
+        {
+          "op": "load_resources"
+        },
+        {
+          "op": "load_passages"
+        }
+      ],
+      "policy": {}
+    },
+    "evolution": {
+      "schema_version": "world-workflow/v1alpha1",
+      "kind": "evolution",
+      "steps": [
+        {
+          "op": "community_runtime"
+        }
+      ],
+      "policy": {
+        "action_budget": 6,
+        "opportunity_budget": 16,
+        "incident_budget": 0,
+        "memory_budget": 1,
+        "max_catchup_ticks": 24,
+        "need_decay": {
+          "fatigue": 1,
+          "resources": 1,
+          "social": 1,
+          "knowledge": 0,
+          "exploration": 0
+        },
+        "hot_character_ids": [],
+        "hot_location_ids": [],
+        "phase_predicates": []
+      }
+    },
+    "intervention": {
+      "schema_version": "world-workflow/v1alpha1",
+      "kind": "intervention",
+      "steps": [
+        {
+          "op": "incident"
+        },
+        {
+          "op": "user_gate"
+        },
+        {
+          "op": "fate"
+        }
+      ],
+      "policy": {
+        "avatar_offline_policy": "pause",
+        "allow_incidents": false,
+        "allow_gates": false,
+        "allow_fate": false
+      }
+    },
+    "presentation": {
+      "schema_version": "world-workflow/v1alpha3",
+      "kind": "presentation",
+      "steps": [
+        {
+          "op": "source_filter"
+        },
+        {
+          "op": "curate"
+        },
+        {
+          "op": "plan"
+        },
+        {
+          "op": "render"
+        },
+        {
+          "op": "validate"
+        },
+        {
+          "op": "publish"
+        }
+      ],
+      "policy": {
+        "unpresented_event_threshold": 3,
+        "critical_event_threshold": 1,
+        "renderer": "deterministic",
+        "audience_default": "observer"
+      }
+    }
+  }
+}

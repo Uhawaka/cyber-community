@@ -14,4 +14,4 @@
 | 工具、路径、网络提示仅是文本 | 编译器只做 JSON 解析/规范化，不调用模型或能力适配器 | inert author text 测试 |
 | `engine.world` 不依赖 runtime | probe 编排位于 `engine.application` | `tests/architecture/test_import_boundaries.py` |
 
-实验结论见 [世界包 probe 与安全门禁实验](package-probe-security-v1.md)。
+实验结论见 [世界包 probe 与安全门禁实验](../../outputs/experiments/package-probe-security-v1.md)。

@@ -1,0 +1,127 @@
+{
+  "locations": [
+    {
+      "danger": 0,
+      "access_tags": [],
+      "allowed_roles": [],
+      "metadata": {},
+      "id": "shared-court",
+      "name": "共用石院",
+      "description": "磨石和炉灶各占院子一角，饭桌靠着排水沟。工作声与闲谈能互相听见，住客仍有权离开。",
+      "tags": [
+        "public"
+      ],
+      "capacity": 8,
+      "affordances": {
+        "observe": true,
+        "rest": true,
+        "gather": true,
+        "social": true
+      },
+      "scene_seeds": []
+    },
+    {
+      "danger": 0,
+      "access_tags": [],
+      "allowed_roles": [],
+      "metadata": {},
+      "id": "print-room",
+      "name": "纸与字的工房",
+      "description": "旧布、压纸机、墨盒与晾纸杆分开摆放。来帮工的人不必加入任何出版计划。",
+      "tags": [
+        "public",
+        "sheltered"
+      ],
+      "capacity": 6,
+      "affordances": {
+        "observe": true,
+        "rest": true,
+        "gather": true,
+        "social": true
+      },
+      "scene_seeds": []
+    },
+    {
+      "danger": 0,
+      "access_tags": [],
+      "allowed_roles": [],
+      "metadata": {},
+      "id": "spring-room",
+      "name": "泉房",
+      "description": "泉水经阀门送向院内两处用水点。房前有一段可坐人的石沿，阀门故障不会自动通知不在场的人。",
+      "tags": [
+        "public"
+      ],
+      "capacity": 4,
+      "affordances": {
+        "observe": true,
+        "rest": true,
+        "gather": true,
+        "social": true
+      },
+      "scene_seeds": []
+    },
+    {
+      "danger": 0,
+      "access_tags": [],
+      "allowed_roles": [],
+      "metadata": {},
+      "id": "archive-room",
+      "name": "旧档与读书间",
+      "description": "公开手艺读本与旧账册分柜存放。读本允许慢慢学，档案中的内容需要有来源地进入个人认知。",
+      "tags": [
+        "public",
+        "sheltered"
+      ],
+      "capacity": 6,
+      "affordances": {
+        "observe": true,
+        "rest": true,
+        "gather": true,
+        "social": true
+      },
+      "scene_seeds": []
+    },
+    {
+      "danger": 0,
+      "access_tags": [],
+      "allowed_roles": [],
+      "metadata": {},
+      "id": "terrace-homes",
+      "name": "阶上住屋",
+      "description": "几间租住的小屋有各自的门，门外共用晾衣绳和修鞋凳。休息不需要成为对话任务。",
+      "tags": [
+        "public",
+        "sheltered"
+      ],
+      "capacity": 8,
+      "affordances": {
+        "observe": true,
+        "rest": true,
+        "gather": true,
+        "social": true
+      },
+      "scene_seeds": []
+    },
+    {
+      "danger": 0,
+      "access_tags": [],
+      "allowed_roles": [],
+      "metadata": {},
+      "id": "ridge-gate",
+      "name": "山路口",
+      "description": "驮队卸下粮袋和维修材料后继续赶路。到货以实际记录为准，不由住客说了就出现。",
+      "tags": [
+        "public"
+      ],
+      "capacity": 6,
+      "affordances": {
+        "observe": true,
+        "rest": true,
+        "gather": true,
+        "social": true
+      },
+      "scene_seeds": []
+    }
+  ]
+}

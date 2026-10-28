@@ -1,20 +1,27 @@
 {
-  "world_id": "echo-quay",
-  "title": "回声码头",
-  "premise": "一座依靠潮音测距的雾港重新开放，居民可自由移动、交换物资并形成自己的判断。",
+  "world_id": "echo-quay-v2",
+  "title": "回声码头：共同生活",
+  "premise": "六位居民在工坊、集市、住处与外堤之间工作生活。补给、设备磨损和互助承诺持续发生，谁参与、谁拒绝，由各人自己决定。",
   "experience_profile": {
     "schema_version": "experience-profile/v1",
     "genre_id": "mystery",
     "runtime": {
-      "mode_id": "scene-pressure-v1"
+      "mode_id": "community-life-v1"
     },
     "editorial": {
       "bundle_id": "restrained-mystery-v1",
       "style_overrides": {
         "point_of_view": "observer",
         "dialogue_density": "sparse",
-        "imagery_domains": ["潮声", "灯影", "湿冷木料"],
-        "forbidden_phrases": ["命中注定", "显而易见"]
+        "imagery_domains": [
+          "潮声",
+          "灯影",
+          "湿冷木料"
+        ],
+        "forbidden_phrases": [
+          "命中注定",
+          "显而易见"
+        ]
       },
       "episode_overrides": {
         "max_events": 10,
@@ -25,78 +32,30 @@
       }
     }
   },
-  "dramatic_horizon": {
-    "central_question": "雾港居民能否在信号失真与资源不足之间建立一套可复核、可共同承担的航标办法？",
-    "success_conditions": [
-      "至少一处关键航标经过现场验证并留下公开记录",
-      "角色对灯油用途形成承担后果的共同决定"
-    ],
-    "failure_conditions": [
-      "未经验证的信号被当作事实传播",
-      "灯油在责任不明时耗尽，使外堤继续失去方向"
-    ],
-    "invariants": [
-      "线索必须通过潮音、灯光、物件或公开记录验证",
-      "任何资源决定必须保留持有、消耗与受益对象"
-    ]
-  },
   "rules": [
     {
-      "id": "fog-muffles-distance",
-      "statement": "浓雾中只能可靠辨认近处的声音与灯光。"
+      "id": "communal-stock",
+      "statement": "标为共享的库存可以领取；私人库存只有本人同意才能转交。"
     },
     {
-      "id": "returning-tide",
-      "type": "incident",
-      "trigger": {"tick": 2},
-      "summary": "回潮带来一桶可用的信号灯油。",
-      "cost": 1,
-      "effects": [
-        {"type": "resource", "resource_id": "signal-oil", "amount": 1},
-        {"type": "global_need", "need": "resources", "amount": -2}
-      ]
+      "id": "promise-is-voluntary",
+      "statement": "提出帮助不等于对方已经接受。约定有期限，也允许说不。"
     },
     {
-      "id": "quay-signal-choice",
-      "type": "user_gate",
-      "trigger": {"tick": 8},
-      "prompt": "是否消耗信号灯油点亮外堤灯？",
-      "deadline_ticks": 3,
-      "choices": [
-        {
-          "id": "light-outer-quay",
-          "label": "点亮外堤灯",
-          "costs": [
-            {"type": "resource", "resource_id": "signal-oil", "amount": 1}
-          ],
-          "effects": [
-            {"type": "global_need", "need": "knowledge", "amount": -8}
-          ]
-        }
-      ]
+      "id": "tidal-power",
+      "statement": "潮汐机械使用原料并磨损，维护时暂停运转。"
     },
     {
-      "id": "turn-glass-buoy",
-      "type": "fate_intervention",
-      "summary": "转动外港玻璃浮标，使潮音更容易辨认。",
-      "conditions": {
-        "tick_gte": 1,
-        "resources": [
-          {"resource_id": "signal-oil", "minimum": 1}
-        ]
-      },
-      "once": true,
-      "cooldown_ticks": 0,
-      "costs": [
-        {"type": "resource", "resource_id": "signal-oil", "amount": 1}
-      ],
-      "effects": [
-        {"type": "global_need", "need": "knowledge", "amount": -5}
-      ]
+      "id": "navigation-service",
+      "statement": "港外补给依靠公共栈桥灯导航，灯具无法服务或停机维护时，补给暂缓，不凭空到货。"
+    },
+    {
+      "id": "garden-production",
+      "statement": "菜圃用雨水与种苗补给生产蔬菜，灌溉泵无法服务时停产。收成可以领取，但仍要留下库存变化。"
     }
   ],
   "metadata": {
     "language": "zh-CN",
-    "mode": "autonomous"
+    "mode": "autonomous-community"
   }
 }

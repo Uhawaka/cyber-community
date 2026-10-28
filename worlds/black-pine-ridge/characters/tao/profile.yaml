@@ -1,0 +1,38 @@
+{
+  "goals": [
+    "守住自己的休息时间",
+    "不让一处灶台只靠自己"
+  ],
+  "home_location_id": "ruined-temple",
+  "known_routes": [
+    "temple-to-door",
+    "door-to-temple",
+    "door-to-path",
+    "path-to-door",
+    "path-to-outpost",
+    "outpost-to-path"
+  ],
+  "learning_interests": [
+    "校记档案"
+  ],
+  "location_id": "ruined-temple",
+  "name": "陶婆",
+  "needs": {
+    "fatigue": 28,
+    "knowledge": 20,
+    "resources": 25,
+    "social": 35
+  },
+  "responsibilities": [
+    "stove"
+  ],
+  "role": "庙灶照料者",
+  "routine_locations": [
+    "ruined-temple",
+    "levy-outpost"
+  ],
+  "skills": [
+    "修补风门",
+    "调配食物"
+  ]
+}

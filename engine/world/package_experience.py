@@ -14,7 +14,6 @@ from engine.contracts.experience import (
     CompiledExperienceContract,
     EditorialExperienceContract,
 )
-from engine.contracts.literary import DEFAULT_EDITORIAL_PIPELINE
 from engine.world.experience_catalog import (
     EDITORIAL_BUNDLE_CATALOG,
     REGISTERED_GENRE_IDS,
@@ -43,8 +42,6 @@ def compile_experience_profile(
     presentation: WorkflowDefinition,
     diagnostics: list[PackageDiagnostic],
 ) -> CompiledExperienceContract:
-    if value is None:
-        return _legacy_contract(presentation)
     path = "world.yaml.experience_profile"
     if not isinstance(value, dict):
         diagnostics.append(
@@ -323,36 +320,6 @@ def _normalized(value: Any) -> Any:
     if isinstance(value, (list, tuple)):
         return tuple(_normalized(item) for item in value)
     return value
-
-
-def _legacy_contract(
-    presentation: WorkflowDefinition,
-) -> CompiledExperienceContract:
-    policy = dict(presentation.policy)
-    default_bundle = EDITORIAL_BUNDLE_CATALOG["neutral-observer-v1"]
-    style = dict(default_bundle.style)
-    if isinstance(policy.get("style"), dict):
-        style.update(policy["style"])
-    episode = dict(default_bundle.episode)
-    if isinstance(policy.get("episode"), dict):
-        episode.update(policy["episode"])
-    pipeline = policy.get("editorial_pipeline")
-    if not isinstance(pipeline, list):
-        pipeline = list(DEFAULT_EDITORIAL_PIPELINE)
-    editorial = EditorialExperienceContract(
-        bundle_id="legacy-workflow-v1",
-        genre_id="neutral",
-        voice_id=str(style["voice_id"]),
-        pipeline=tuple(pipeline),
-        style=tuple(sorted(style.items())),
-        episode=tuple(sorted(episode.items())),
-    )
-    return CompiledExperienceContract(
-        EXPERIENCE_PROFILE_SCHEMA_VERSION,
-        next(iter(RUNTIME_MODE_CATALOG.values())),
-        editorial,
-        legacy=True,
-    )
 
 
 def _fallback_contract() -> CompiledExperienceContract:

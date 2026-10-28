@@ -1,28 +1,46 @@
 {
-  "name": "白灵",
-  "role": "自称迷路的采药人",
-  "location_id": "back-door",
-  "identity": "熟悉药草与山路、对铃声异常敏感的年轻女子",
-  "skills": ["辨认药草", "观察风向与气味"],
   "goals": [
-    "摆脱被名册定义的命运，自己选定去向",
-    "弄清自己是不是已经被写成一户、挂上木牌"
+    "决定自己的去向",
+    "查明残名而不拿旁人做替身"
   ],
-  "motivation": {
-    "terminal_desire": "不再被名册定义，自己选一条活路",
-    "fear": "在同一处停留，会被铃交出去",
-    "sacrifice_boundary": "可以交出一件真事换退路，不用别人当替身",
-    "active_commitment": "每一处只取和自己的命有关的那一层，取到就离开",
-    "completion_signals": [
-      "她知道自己是否在名册上，并据此选定去向",
-      "她没有让无辜者替自己留下"
-    ]
-  },
+  "home_location_id": "ruined-temple",
+  "known_routes": [
+    "temple-to-door",
+    "door-to-temple",
+    "door-to-path",
+    "path-to-door",
+    "path-to-outpost",
+    "outpost-to-path",
+    "outpost-to-kiln",
+    "kiln-to-outpost",
+    "kiln-to-gorge",
+    "gorge-to-kiln",
+    "gorge-to-weighhouse",
+    "weighhouse-to-gorge",
+    "weighhouse-to-archive",
+    "archive-to-weighhouse"
+  ],
+  "learning_interests": [
+    "校记档案"
+  ],
+  "location_id": "back-door",
+  "name": "白灵",
   "needs": {
-    "exploration": 72,
+    "exploration": 40,
+    "fatigue": 12,
     "knowledge": 34,
-    "social": 22,
-    "resources": 6,
-    "fatigue": 12
-  }
+    "resources": 25,
+    "social": 22
+  },
+  "responsibilities": [],
+  "role": "自称采药的暂住者",
+  "routine_locations": [
+    "forest-path",
+    "ruined-temple",
+    "merit-ash-archive"
+  ],
+  "skills": [
+    "辨认药草",
+    "观察风向与气味"
+  ]
 }

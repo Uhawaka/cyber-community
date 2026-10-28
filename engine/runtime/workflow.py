@@ -7,7 +7,8 @@ from dataclasses import dataclass, field
 from typing import Any, Callable, Iterator
 
 from engine.runtime.kernel.events import reset_workflow_provenance, set_workflow_provenance
-from engine.runtime.kernel.state import CharacterState, WorldState
+from engine.runtime.kernel.state import CharacterState, EntityState, WorldState
+from engine.contracts import EntityKind
 from engine.world.package_spec import CompiledWorld, WorkflowDefinition, WorkflowStep
 
 
@@ -141,6 +142,16 @@ def _load_resources(context: GenesisContext, _step: WorkflowStep) -> StepResult:
     context.parts["resources"] = {
         item.id: item.quantity for item in context.compiled.world.resources
     }
+    if context.compiled.community is not None:
+        context.parts["entities"] = {
+            item.id: EntityState(EntityKind.ITEM, 0, {
+                "attributes": {
+                    "location_id": item.location_id,
+                    "condition": dict(item.properties).get("condition", 100),
+                },
+            })
+            for item in context.compiled.world.resources
+        }
     return StepResult()
 
 

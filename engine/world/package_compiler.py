@@ -3,17 +3,20 @@
 from __future__ import annotations
 
 import hashlib
-from dataclasses import asdict
+from dataclasses import asdict, replace
 from pathlib import Path
 from typing import Any
 
 from engine.world.package_build import _build_world
+from engine.contracts.community import COMMUNITY_PACKAGE_VERSION
+from engine.world.package_community import compile_community
 from engine.world.package_characters import _compile_characters
+from engine.world.package_relationships import compile_relationships
 from engine.world.package_experience import compile_experience_profile
 from engine.world.package_source import _read_object, _safe_ref
 from engine.world.package_authoring import _find_forbidden_fields, _validate_document_schemas
 from engine.world.package_validation import _reject_unknown_fields, _validate_structured_rules
-from engine.world.package_spec import (PACKAGE_SCHEMA_VERSION, CapabilityHandshake, CompiledWorld, PackageCharacter, PackageCompileResult, PackageDiagnostic, PackageManifest, WorkflowDefinition, WorkflowIR, canonical_compiled_json)
+from engine.world.package_spec import (CapabilityHandshake, CompiledWorld, PackageCharacter, PackageCompileResult, PackageDiagnostic, PackageManifest, WorkflowDefinition, WorkflowIR, canonical_compiled_json)
 from engine.world.package_workflows import compile_workflow
 
 SUPPORTED_PACKAGE_CAPABILITIES = frozenset(
@@ -26,9 +29,12 @@ SUPPORTED_PACKAGE_CAPABILITIES = frozenset(
         "world.incidents.v1",
         "world.user-gates.v1",
         "world.fate-interventions.v1",
+        "world.relationships.v1",
+        "world.community.v1",
     }
 )
-REQUIRED_ASSETS = ("world", "locations", "characters", "resources", "passages")
+REQUIRED_ASSETS = ("world", "locations", "characters", "resources", "passages", "community")
+OPTIONAL_ASSETS = ("relationships",)
 REQUIRED_WORKFLOWS = ("genesis", "evolution", "intervention", "presentation")
 ASSET_CAPABILITIES = {
     "world": "world.core.v1",
@@ -36,6 +42,8 @@ ASSET_CAPABILITIES = {
     "characters": "world.characters.v1",
     "resources": "world.resources.v1",
     "passages": "world.topology.v1",
+    "relationships": "world.relationships.v1",
+    "community": "world.community.v1",
 }
 
 
@@ -108,7 +116,7 @@ def compile_package(
     else:
         _reject_unknown_fields(
             raw_assets,
-            set(REQUIRED_ASSETS),
+            set(REQUIRED_ASSETS) | set(OPTIONAL_ASSETS),
             "manifest.yaml.assets",
             diagnostics,
         )
@@ -124,6 +132,14 @@ def compile_package(
                     f"required asset ref is missing: {name}",
                 )
             )
+            continue
+        resolved = _safe_ref(root, raw_ref, diagnostics, f"manifest.yaml.assets.{name}")
+        if resolved is not None:
+            asset_paths[name] = resolved
+            asset_refs[name] = raw_ref
+    for name in OPTIONAL_ASSETS:
+        raw_ref = raw_assets.get(name)
+        if not isinstance(raw_ref, str) or not raw_ref.strip():
             continue
         resolved = _safe_ref(root, raw_ref, diagnostics, f"manifest.yaml.assets.{name}")
         if resolved is not None:
@@ -162,12 +178,12 @@ def compile_package(
             workflow_paths[kind] = resolved
             workflow_refs[kind] = raw_ref
 
-    if schema_version != PACKAGE_SCHEMA_VERSION:
+    if schema_version != COMMUNITY_PACKAGE_VERSION:
         diagnostics.append(
             PackageDiagnostic(
                 "UNSUPPORTED_SCHEMA_VERSION",
                 "manifest.yaml.schema_version",
-                f"expected {PACKAGE_SCHEMA_VERSION}",
+                f"expected {COMMUNITY_PACKAGE_VERSION}",
             )
         )
     if not package_id:
@@ -221,12 +237,27 @@ def compile_package(
             characters = _compile_characters(
                 characters_ref, root, diagnostics, asset_refs["characters"]
             )
+    relationships_ref = asset_paths.get("relationships")
+    relationships = ()
+    if relationships_ref is not None:
+        relationship_document = _read_object(relationships_ref, root, diagnostics)
+        relationships = compile_relationships(
+            relationship_document,
+            {character.id for character in characters},
+            asset_refs["relationships"],
+            diagnostics,
+        )
+        authored_values_relationships = relationship_document
+    else:
+        authored_values_relationships = None
 
     authored_values: list[tuple[str, Any]] = [
         (asset_refs.get(name, name), value) for name, value in documents.items()
     ]
     for character in characters:
         authored_values.append((f"characters/{character.id}", asdict(character)))
+    if authored_values_relationships is not None:
+        authored_values.append((asset_refs["relationships"], authored_values_relationships))
     for path, value in authored_values:
         _find_forbidden_fields(value, path, diagnostics)
     raw_rules = documents.get("world", {}).get("rules")
@@ -253,8 +284,15 @@ def compile_package(
         return PackageCompileResult(None, tuple(diagnostics), handshake)
 
     world = _build_world(documents, characters, diagnostics)
+    if world is not None:
+        world = replace(world, relationships=relationships)
     if world is None or diagnostics:
         return PackageCompileResult(None, tuple(diagnostics), handshake)
+    community = None
+    if "community" in asset_paths:
+        document = _read_object(asset_paths["community"], root, diagnostics)
+        _find_forbidden_fields(document, asset_refs["community"], diagnostics)
+        community = compile_community(document, world, asset_refs["community"], diagnostics)
     for rule_type, capability in (
         ("incident", "world.incidents.v1"),
         ("user_gate", "world.user-gates.v1"),
@@ -346,14 +384,21 @@ def compile_package(
         presentation=workflow.presentation,
         diagnostics=diagnostics,
     )
+    community_mode = experience.runtime.mode_id == "community-life-v1"
+    community_step = any(step.op == "community_runtime" for step in compiled_workflows["evolution"].steps)
+    if (community_mode or community_step) and community is None:
+        diagnostics.append(PackageDiagnostic(
+            "COMMUNITY_VERSION_REQUIRED", "world.yaml.experience_profile.runtime",
+            "community mode and workflow require an explicit versioned community asset",
+        ))
     if diagnostics:
         return PackageCompileResult(None, tuple(diagnostics), handshake)
-    provisional = CompiledWorld(manifest, workflow, world, experience, "")
+    provisional = CompiledWorld(manifest, workflow, world, experience, "", community)
     digest = hashlib.sha256(
         canonical_compiled_json(provisional).encode("utf-8")
     ).hexdigest()
     return PackageCompileResult(
-        CompiledWorld(manifest, workflow, world, experience, digest),
+        CompiledWorld(manifest, workflow, world, experience, digest, community),
         (),
         handshake,
     )
@@ -378,6 +423,3 @@ def _integer(value: Any, path: str, diagnostics: list[PackageDiagnostic], *, def
         diagnostics.append(PackageDiagnostic("INVALID_INTEGER", path, "expected an integer"))
         return default
     return value
-
-
-

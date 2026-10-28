@@ -1,0 +1,16 @@
+{
+  "edges": [
+    {
+      "source_id": "lin",
+      "target_id": "wei",
+      "stance": "先把验证说清楚，再领灯油",
+      "interest": "要魏澄在船户面前把林汐的名字和这一次听音记在同一行"
+    },
+    {
+      "source_id": "wei",
+      "target_id": "lin",
+      "stance": "没有现场证词就不改旧账",
+      "interest": "要林汐当着集市的人说明，外堤哪一户的船在等这桶油"
+    }
+  ]
+}

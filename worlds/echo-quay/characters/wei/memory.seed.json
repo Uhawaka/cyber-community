@@ -1,7 +1,12 @@
 [
   {
-    "kind": "observation",
-    "summary": "玻璃顶棚的蓝色区在清晨最先显出雾水。",
-    "confidence": 0.9
+    "kind": "experience",
+    "summary": "在城里做短工时，因没有介绍人被扣了工钱。他后来回码头，最先坚持的是给临时工一张自己留着的凭条。",
+    "visibility": "public"
+  },
+  {
+    "kind": "experience",
+    "summary": "苏禾曾当面指出他让熟人赊账，却要求外地人付押金。他当时嘴硬，晚上把规则改了，但没有向她道谢。",
+    "visibility": "private"
   }
 ]

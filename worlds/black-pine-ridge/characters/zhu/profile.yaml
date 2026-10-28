@@ -1,0 +1,45 @@
+{
+  "goals": [
+    "保留来源不完整的记录",
+    "让值守职责有自愿接任者"
+  ],
+  "home_location_id": "levy-outpost",
+  "known_routes": [
+    "temple-to-door",
+    "door-to-temple",
+    "door-to-path",
+    "path-to-door",
+    "path-to-outpost",
+    "outpost-to-path",
+    "outpost-to-kiln",
+    "kiln-to-outpost",
+    "kiln-to-gorge",
+    "gorge-to-kiln",
+    "gorge-to-weighhouse",
+    "weighhouse-to-gorge",
+    "weighhouse-to-archive",
+    "archive-to-weighhouse"
+  ],
+  "learning_interests": [],
+  "location_id": "merit-ash-archive",
+  "name": "朱疏",
+  "needs": {
+    "fatigue": 20,
+    "knowledge": 40,
+    "resources": 30,
+    "social": 24
+  },
+  "responsibilities": [
+    "paper-rack"
+  ],
+  "role": "留名校记者",
+  "routine_locations": [
+    "levy-outpost",
+    "merit-ash-archive",
+    "ruined-temple"
+  ],
+  "skills": [
+    "校记档案",
+    "修补风门"
+  ]
+}

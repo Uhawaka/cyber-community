@@ -1,0 +1,66 @@
+{
+  "world_id": "stone-step-commons",
+  "title": "石阶院：磨坊与印坊",
+  "premise": "山路边的旧院由磨坊、泉房和小印坊共用。六位住客与工匠把粮食、水、纸和维护材料变成日常生活。有人想留下，有人只想把一件事做完后离开；设备与库存按时间结算，谁协作、谁拒绝不由作者预定。",
+  "experience_profile": {
+    "schema_version": "experience-profile/v1",
+    "genre_id": "mystery",
+    "runtime": {
+      "mode_id": "community-life-v1"
+    },
+    "editorial": {
+      "bundle_id": "restrained-mystery-v1",
+      "style_overrides": {
+        "point_of_view": "observer",
+        "dialogue_density": "sparse",
+        "imagery_domains": [
+          "纸纤维",
+          "石阶上的水",
+          "炉灰",
+          "山风"
+        ],
+        "forbidden_phrases": [
+          "命中注定",
+          "显而易见"
+        ]
+      },
+      "episode_overrides": {
+        "max_events": 10,
+        "max_world_time_span": 6,
+        "min_narrative_events": 2,
+        "max_repeated_action": 1,
+        "min_arc_events": 4
+      }
+    }
+  },
+  "rules": [
+    {
+      "id": "consensual-custody",
+      "statement": "共享物资的领取要进入库存记录，私人材料只有本人同意才能交割。"
+    },
+    {
+      "id": "spring-service",
+      "statement": "泉房阀门服务不足或维护停机时，院内磨坊和印坊都暂停接水；泉房自己的维修垫片由山路独立送达。"
+    },
+    {
+      "id": "grain-to-meal",
+      "statement": "粮食与水经磨坊变成粉，再由炉灶制成共享饭食；磨粉和炊事分别消耗原料并要求设备服务。"
+    },
+    {
+      "id": "paper-and-print",
+      "statement": "旧布与水经压纸机变成纸张，纸张与墨再制成印页。印页不是食物，也不意味着内容自动成为人物知识。"
+    },
+    {
+      "id": "voluntary-labor",
+      "statement": "维护是实际劳动，提案不代表同意，已经独立做完的劳动不回填成后来接受的约定。"
+    },
+    {
+      "id": "water-powered-frames",
+      "statement": "压纸与刷印由水力机架驱动。刷印只产生预装的固定边框，不替人物写字；泉房失去服务时停机，不把自动过程说成人工劳动。"
+    }
+  ],
+  "metadata": {
+    "language": "zh-CN",
+    "mode": "autonomous-community"
+  }
+}

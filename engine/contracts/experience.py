@@ -64,4 +64,3 @@ class CompiledExperienceContract:
     schema_version: str
     runtime: RuntimeNarrativeContract
     editorial: EditorialExperienceContract
-    legacy: bool = False

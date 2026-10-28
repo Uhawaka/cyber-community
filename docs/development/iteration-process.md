@@ -33,7 +33,7 @@ CompiledWorld → Runtime → Event Log → Projection
 
 ### 步骤 A：写单一假设
 
-使用 `docs/experiments/README.md` 的模板，明确：
+使用 `docs/experiments/README.md` 的模板，在 `outputs/experiments/` 创建实验报告，明确：
 
 - 改什么；
 - 预计哪个可观察结果变化；
@@ -66,7 +66,9 @@ CompiledWorld → Runtime → Event Log → Projection
 - Episode 数量、来源范围、长度和内部事件泄漏；
 - 当前人工评审结论。
 
-`outputs/` 可保存本轮原始结果；可长期复现的证据应写入实验文档或测试。
+实验报告、指标和原始结果统一保存到 `outputs/`；测试报告保存到 `outputs/tests/`。
+正式回归所需的冻结输入单独提炼到 `tests/fixtures/`，不依赖本地输出是否存在。
+`docs/` 只记录规范、开发检查点和产出索引，不保存实验或测试产物。
 
 ### 步骤 E：做最小实现
 

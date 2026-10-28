@@ -1,0 +1,48 @@
+{
+  "name": "杜遥",
+  "role": "旧货修理工",
+  "location_id": "shared-court",
+  "skills": [
+    "炉灶维护"
+  ],
+  "goals": [
+    "做一套可以搬走也可以留下的家具"
+  ],
+  "needs": {
+    "resources": 30,
+    "knowledge": 22,
+    "social": 18,
+    "exploration": 25,
+    "fatigue": 7
+  },
+  "responsibilities": [
+    "court-stove"
+  ],
+  "learning_interests": [
+    "校记档案"
+  ],
+  "stocking_interests": [],
+  "home_location_id": "terrace-homes",
+  "routine_locations": [
+    "terrace-homes",
+    "shared-court",
+    "shared-court",
+    "archive-room"
+  ],
+  "known_routes": [
+    "shared-court-to-print-room",
+    "print-room-to-shared-court",
+    "shared-court-to-spring-room",
+    "spring-room-to-shared-court",
+    "shared-court-to-archive-room",
+    "archive-room-to-shared-court",
+    "shared-court-to-terrace-homes",
+    "terrace-homes-to-shared-court",
+    "shared-court-to-ridge-gate",
+    "ridge-gate-to-shared-court",
+    "print-room-to-archive-room",
+    "archive-room-to-print-room",
+    "spring-room-to-ridge-gate",
+    "ridge-gate-to-spring-room"
+  ]
+}

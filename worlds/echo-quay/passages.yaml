@@ -23,6 +23,90 @@
       "origin_id": "tide-workshop",
       "destination_id": "glass-market",
       "travel_time": 1
+    },
+    {
+      "id": "pier-to-bank",
+      "origin_id": "bell-pier",
+      "destination_id": "outer-bank",
+      "travel_time": 1
+    },
+    {
+      "id": "bank-to-pier",
+      "origin_id": "outer-bank",
+      "destination_id": "bell-pier",
+      "travel_time": 1
+    },
+    {
+      "id": "glass-market-to-living-row",
+      "origin_id": "glass-market",
+      "destination_id": "living-row",
+      "travel_time": 1
+    },
+    {
+      "id": "living-row-to-glass-market",
+      "origin_id": "living-row",
+      "destination_id": "glass-market",
+      "travel_time": 1
+    },
+    {
+      "id": "glass-market-to-common-house",
+      "origin_id": "glass-market",
+      "destination_id": "common-house",
+      "travel_time": 1
+    },
+    {
+      "id": "common-house-to-glass-market",
+      "origin_id": "common-house",
+      "destination_id": "glass-market",
+      "travel_time": 1
+    },
+    {
+      "id": "glass-market-to-garden",
+      "origin_id": "glass-market",
+      "destination_id": "garden",
+      "travel_time": 2
+    },
+    {
+      "id": "garden-to-glass-market",
+      "origin_id": "garden",
+      "destination_id": "glass-market",
+      "travel_time": 2
+    },
+    {
+      "id": "glass-market-to-storehouse",
+      "origin_id": "glass-market",
+      "destination_id": "storehouse",
+      "travel_time": 1
+    },
+    {
+      "id": "storehouse-to-glass-market",
+      "origin_id": "storehouse",
+      "destination_id": "glass-market",
+      "travel_time": 1
+    },
+    {
+      "id": "tide-workshop-to-storehouse",
+      "origin_id": "tide-workshop",
+      "destination_id": "storehouse",
+      "travel_time": 1
+    },
+    {
+      "id": "storehouse-to-tide-workshop",
+      "origin_id": "storehouse",
+      "destination_id": "tide-workshop",
+      "travel_time": 1
+    },
+    {
+      "id": "bell-pier-to-storehouse",
+      "origin_id": "bell-pier",
+      "destination_id": "storehouse",
+      "travel_time": 1
+    },
+    {
+      "id": "storehouse-to-bell-pier",
+      "origin_id": "storehouse",
+      "destination_id": "bell-pier",
+      "travel_time": 1
     }
   ]
 }

@@ -14,14 +14,20 @@ python -m pip install -e .
 
 ## 使用
 
+创建并运行社区，使用离线策略，不调用外部模型：
+
 ```bash
-cyber-community run worlds/echo-quay
-cyber-community run worlds/black-pine-ridge
-cyber-community help
-cyber-community help run
+python -m scripts.world create worlds/sources/stone-step.json --output worlds/my-community
+cyber-community community worlds/my-community --log outputs/experiments/my-community.jsonl --seed 7 --ticks 12
+cyber-community community worlds/my-community --log outputs/experiments/my-community.jsonl --resume --ticks 12
+cyber-community community-observe worlds/my-community --log outputs/experiments/my-community.jsonl --json
 ```
 
-`help` 会列出当前可用的命令。仓库自带的世界包在 `worlds/`。
+创建目标须不存在；日志包含角色私有信息，不应直接公开。运行及恢复边界见
+[社区运行指南](docs/authoring/community-runtime.md)，世界创作见
+[统一世界创建](docs/authoring/community-authoring.md)。人物、剧情与真实模型质量尚未验收。
+
+`cyber-community help` 列出可用命令。统一作者源在 `worlds/sources/`。
 
 ## 许可
 

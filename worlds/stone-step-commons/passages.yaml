@@ -1,0 +1,88 @@
+{
+  "passages": [
+    {
+      "id": "shared-court-to-print-room",
+      "origin_id": "shared-court",
+      "destination_id": "print-room",
+      "travel_time": 1
+    },
+    {
+      "id": "print-room-to-shared-court",
+      "origin_id": "print-room",
+      "destination_id": "shared-court",
+      "travel_time": 1
+    },
+    {
+      "id": "shared-court-to-spring-room",
+      "origin_id": "shared-court",
+      "destination_id": "spring-room",
+      "travel_time": 2
+    },
+    {
+      "id": "spring-room-to-shared-court",
+      "origin_id": "spring-room",
+      "destination_id": "shared-court",
+      "travel_time": 2
+    },
+    {
+      "id": "shared-court-to-archive-room",
+      "origin_id": "shared-court",
+      "destination_id": "archive-room",
+      "travel_time": 1
+    },
+    {
+      "id": "archive-room-to-shared-court",
+      "origin_id": "archive-room",
+      "destination_id": "shared-court",
+      "travel_time": 1
+    },
+    {
+      "id": "shared-court-to-terrace-homes",
+      "origin_id": "shared-court",
+      "destination_id": "terrace-homes",
+      "travel_time": 1
+    },
+    {
+      "id": "terrace-homes-to-shared-court",
+      "origin_id": "terrace-homes",
+      "destination_id": "shared-court",
+      "travel_time": 1
+    },
+    {
+      "id": "shared-court-to-ridge-gate",
+      "origin_id": "shared-court",
+      "destination_id": "ridge-gate",
+      "travel_time": 2
+    },
+    {
+      "id": "ridge-gate-to-shared-court",
+      "origin_id": "ridge-gate",
+      "destination_id": "shared-court",
+      "travel_time": 2
+    },
+    {
+      "id": "print-room-to-archive-room",
+      "origin_id": "print-room",
+      "destination_id": "archive-room",
+      "travel_time": 1
+    },
+    {
+      "id": "archive-room-to-print-room",
+      "origin_id": "archive-room",
+      "destination_id": "print-room",
+      "travel_time": 1
+    },
+    {
+      "id": "spring-room-to-ridge-gate",
+      "origin_id": "spring-room",
+      "destination_id": "ridge-gate",
+      "travel_time": 1
+    },
+    {
+      "id": "ridge-gate-to-spring-room",
+      "origin_id": "ridge-gate",
+      "destination_id": "spring-room",
+      "travel_time": 1
+    }
+  ]
+}

@@ -2,29 +2,25 @@
   "schema_version": "world-workflow/v1alpha1",
   "kind": "evolution",
   "steps": [
-    {"op": "environment_update"},
-    {"op": "incident_scheduler"},
-    {"op": "actor_windows"},
-    {"op": "scheme_progress"},
-    {"op": "memory_consolidation"},
-    {"op": "phase_check"}
+    {
+      "op": "community_runtime"
+    }
   ],
   "policy": {
-    "need_decay": {"fatigue": 2, "social": 2, "resources": 1, "knowledge": 1, "exploration": 1},
+    "need_decay": {
+      "fatigue": 1,
+      "resources": 1,
+      "social": 1,
+      "knowledge": 0,
+      "exploration": 0
+    },
     "action_budget": 6,
     "opportunity_budget": 16,
-    "incident_budget": 1,
+    "incident_budget": 0,
     "memory_budget": 1,
     "max_catchup_ticks": 24,
     "hot_character_ids": [],
     "hot_location_ids": [],
-    "phase_predicates": [
-      {
-        "id": "first-watch",
-        "target": {"kind": "elapsed_tick", "minimum": 6},
-        "predicates": [{"type": "tick", "minimum": 6}],
-        "unresolved_items": ["resource distribution", "new relationships"]
-      }
-    ]
+    "phase_predicates": []
   }
 }

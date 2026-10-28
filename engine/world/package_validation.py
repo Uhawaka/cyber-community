@@ -83,7 +83,11 @@ def _validate_structured_rules(
             diagnostics.append(PackageDiagnostic("DUPLICATE_RULE_ID", f"{path}.id", rule_id))
         else:
             seen.add(rule_id)
-        if rule_type != "fate_intervention":
+        if rule_type == "incident" and _is_after_trigger(rule.get("trigger")):
+            _validate_after_trigger(
+                rule.get("trigger"), f"{path}.trigger", resource_ids, diagnostics
+            )
+        elif rule_type != "fate_intervention":
             _validate_trigger(rule.get("trigger"), f"{path}.trigger", diagnostics)
         _reject_prescribed_reactions(rule, path, diagnostics)
         if rule_type == "incident":
@@ -106,6 +110,33 @@ def _validate_rule_location(
                 "INVALID_RULE_LOCATION",
                 f"{path}.location_id",
                 "location_id must be a non-empty location id",
+            )
+        )
+
+
+def _is_after_trigger(value: Any) -> bool:
+    return isinstance(value, dict) and set(value) == {"after"}
+
+
+def _validate_after_trigger(
+    value: Any,
+    path: str,
+    resource_ids: set[str],
+    diagnostics: list[PackageDiagnostic],
+) -> None:
+    after = value.get("after") if isinstance(value, dict) else None
+    if (
+        not isinstance(after, dict)
+        or set(after) != {"action", "entity_id"}
+        or after.get("action") not in {"inspect", "work", "take"}
+        or not isinstance(after.get("entity_id"), str)
+        or after["entity_id"] not in resource_ids
+    ):
+        diagnostics.append(
+            PackageDiagnostic(
+                "INVALID_RULE_TRIGGER",
+                path,
+                "after trigger requires a logged inspect, work, or take of a known resource",
             )
         )
 

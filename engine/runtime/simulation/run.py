@@ -4,11 +4,9 @@ from __future__ import annotations
 
 import hashlib
 import json
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
-from engine.contracts import IntentPolicy, SceneGenerator, WorldAdjudicator
-from engine.runtime.character import MemoryProjection
-from engine.runtime.character.policy import ActorPolicy, DeterministicActorPolicy
+from engine.contracts.community import CommunityPolicy
 from engine.runtime.kernel.events import EventLog, WorldEvent
 from engine.runtime.kernel.state import WorldState
 from engine.world.package_spec import CompiledWorld
@@ -18,13 +16,9 @@ class AutonomousRun:
     compiled: CompiledWorld
     initial_state: WorldState
     log: EventLog
-    memory: MemoryProjection
     parent_history_hash: str | None = None
     fork_sequence: int | None = None
-    actor_policy: ActorPolicy = field(default_factory=DeterministicActorPolicy)
-    scene_generator: SceneGenerator | None = None
-    intent_policy: IntentPolicy | None = None
-    world_adjudicator: WorldAdjudicator | None = None
+    community_policy: CommunityPolicy | None = None
 
     @property
     def state(self) -> WorldState:
@@ -35,13 +29,17 @@ class AutonomousRun:
         return self.log.events
 
     def replay(self) -> WorldState:
-        return EventLog.replay(self.initial_state, self.events).state
+        return EventLog.replay(
+            self.initial_state, self.events, community=self.compiled.community, world=self.compiled.world,
+        ).state
 
     def history_hash(self) -> str:
         return event_history_hash(self.events)
 
 
 def event_history_hash(events: tuple[WorldEvent, ...]) -> str:
+    from engine.runtime.kernel.event_codec import event_record
+
     values = [
         {
             "sequence": event.sequence,
@@ -50,10 +48,13 @@ def event_history_hash(events: tuple[WorldEvent, ...]) -> str:
             "actor": event.actor_id,
             "observers": event.observers,
             "data": dict(event.data),
-            "delta": repr(event.delta),
+            "delta": (
+                event_record(event)["event"]["delta"]
+                if event.data.get("runtime_version") == "community-runtime/v1"
+                else repr(event.delta)
+            ),
         }
         for event in events
     ]
     payload = json.dumps(values, ensure_ascii=False, sort_keys=True)
     return hashlib.sha256(payload.encode()).hexdigest()
-

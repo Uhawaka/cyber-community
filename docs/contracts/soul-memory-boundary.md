@@ -1,38 +1,15 @@
-# Soul 与 Memory 边界契约
+# Soul 与记忆边界
 
-## 权威来源
+世界包 `soul.yaml` 是不可变作者身份档案，当前社区运行不自动演化 Soul。
+角色决策使用本人 Soul、目标、计划、关系、实际感知及私人认知；
+其他角色 Soul 和隐藏作者设定不进入上下文。
 
-- 世界包中的 `soul.yaml` 是不可变作者定义。运行时不得改写世界包或编译产物。
-- `WorldState.CharacterState.soul_overlay` 是版本化运行投影；只有带 typed `SoulDelta` 的 `soul_evolution_approved` 事件能更新它。
-- Event Log 保留完整历史。遗忘、预算和压缩只改变 Memory 投影视图，不删除来源事件。
+`MemoryRecord` 保存有所有者和来源的经历，`KnowledgeClaim` 保存角色相信的
+内容、渠道、置信度和期限。信念不自动成为世界事实，声明编号不是事件来源。
+模型引用本人实际可见且未过期的声明时，才可解析到其真实来源。
 
-## Soul
+认知更新和巩固经过事件提交。预算、遗忘和摘要不删除历史，摘要不能授予原始
+来源之外的知识。计划与模型诊断为本人私人记录，不得从公共观察泄漏。
 
-作者 schema 明确为 `identity`、`self_view`、`values`、`taboos`、
-`protective_style`、`drives`、`voice`、`relationship_stance`。字段可按角色需要
-选用，但 `values`、`voice`、`drives` 是最低身份输入；缺失或类型错误由 compiler
-给出结构化诊断。
-
-ActorPolicy 读取“作者 Soul + 当前 overlay”的合并视图。overlay 按 trait 覆盖作者
-值，但不改变世界包。演化提案必须引用至少三条角色可见的高强度来源事件；普通对话
-不计入证据。冷却读取 `soul_overlay.last_evolution_tick`，不能靠扫描自由文本判断。
-
-批准事件必须包含角色、trait、期望版本、值和来源 sequence 的 `SoulDelta`。应用时
-版本加一并保存 trait 与 evidence。拒绝事件没有 Soul Delta，因而状态不变。相同 seed、
-初始状态和事件可重建完全一致的 overlay。
-
-## Memory
-
-`memory_consolidated` 是有语义的投影事件，不是 marker。其 data 必须包含：
-
-- `source_sequences`：非空且均为该角色可见的既有事件；
-- `target_tier`：`semantic` 或 `core`；
-- `belief_type`：`fact`、`inference` 或 `misbelief`；
-- `confidence`：0 到 1；
-- `summary`：只由来源事件的既有摘要、描述或实际话语确定性压缩。
-
-Working 与 episodic 直接按角色可见历史和固定预算投影；semantic 与运行时 core 只
-消费合法的 consolidation 事件。错误认知仍属于角色私有信念，不能变成客观事实，也
-不能泄露给未观察来源事件的角色。没有来源 sequence 的运行时新事实必须拒绝。
-
-删除 MemoryProjection 后，使用作者 seed 与 Event Log 重建，结果必须逐项一致。
+`community_projection` 从作者输入和事件历史重建记忆、知识、目标及计划。
+恢复必须保留来源、未决活动和进度；缓存丢失不能改变事实或重新请求已记录响应。
