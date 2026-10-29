@@ -5,10 +5,16 @@ from __future__ import annotations
 import json
 from dataclasses import replace
 
-from engine.contracts.community import ActionVerb, DecisionContext, KnownOperation
+from engine.contracts.community import (
+    UTTERANCE_COOLDOWN_TICKS,
+    ActionVerb,
+    DecisionContext,
+    KnownOperation,
+)
 from engine.runtime.character.community_projection import community_projection
 from engine.runtime.character.community_knowledge import owned_claims, visible_claims, visible_capabilities
 from engine.runtime.character.community_operations import known_operations
+from engine.runtime.character.community_secrets import confidences, leaked_by, told_recently, told_secrets
 from engine.runtime.character.community_event_view import visible_event_summary
 from engine.runtime.space.community_perception import perceive
 
@@ -72,6 +78,56 @@ def decision_context(run, actor_id):
         goal for goal in projection.goals.pending_owned(actor_id)
         if goal.owner_id == actor_id and goal.status == "active"
     )
+    recent_utterances = tuple(
+        (event.tick, str(event.data.get("utterance") or ""))
+        for event in run.events
+        if event.event_type.value == "dialogue" and event.actor_id == actor_id
+        and isinstance(event.data.get("utterance"), str) and event.data.get("utterance")
+        and run.state.tick - event.tick < UTTERANCE_COOLDOWN_TICKS
+    )[-3:]
+    stances = tuple(
+        (edge.target_id, edge.stance, edge.interest)
+        for edge in (run.compiled.world.relationships or ())
+        if edge.source_id == actor_id
+    )
+    need_values = dict(run.state.characters[actor_id].needs)
+    here = run.state.characters[actor_id].location_id
+    places = {location.id: location.name for location in run.compiled.world.locations}
+    outbound, inbound = {}, {}
+    for passage in run.compiled.world.passages:
+        if passage.id not in profile.get("known_routes", ()) or dict(passage.properties).get("hidden") is True:
+            continue
+        if passage.origin_id == here:
+            outbound.setdefault(passage.destination_id, passage.id)
+        elif passage.destination_id == here:
+            inbound.setdefault(passage.origin_id, passage.id)
+    reachable = tuple(
+        (outbound.get(destination) or inbound[destination], places.get(destination, ""))
+        for destination in sorted(set(outbound) | set(inbound))
+    )
+    errands = tuple(
+        (str(item.get("object_id") or ""), str(item.get("place_id") or ""),
+         places.get(str(item.get("place_id") or ""), ""), str(item.get("goal") or ""))
+        for item in (profile.get("errands") or ()) if isinstance(item, dict)
+    )
+    from engine.runtime.character.community_asks import requests_to_me as _requests_to_me
+    requests_here = _requests_to_me(run, actor_id)
+    authored_goals = tuple(str(item) for item in (profile.get("goals") or ()) if str(item).strip())
+    danger_here = next(
+        (int(getattr(location, "danger", 0) or 0) for location in run.compiled.world.locations
+         if location.id == here), 0,
+    )
+    pressing_need = (
+        "你很久没有和谁真正说过话，攒着的话在顶你"
+        if need_values.get("social", 100) < 30 and not told_recently(run, actor_id)
+        else "你累了，注意力在往下掉" if need_values.get("fatigue", 0) > 70 else ""
+    )
+    private_knowledge = tuple(
+        (str(item.get("kind")), str(item.get("summary")).strip())
+        for character in run.compiled.world.characters if character.id == actor_id
+        for item in character.memory_seed
+        if str(item.get("kind")) in ("secret", "belief") and str(item.get("summary") or "").strip()
+    )[:6]
     retrieved = projection.index.retrieve(
         actor_id, tick=run.state.tick,
         entity_ids=tuple(e.entity_id for e in perception.entities),
@@ -257,4 +313,16 @@ def decision_context(run, actor_id):
         tuple(replace(plan, source_refs=(f"event:{projection.intent_plan_sequences[plan.plan_id]}",))
               for plan in plan_history),
         tuple(review_inputs[-16:]),
+        relationship_stances=stances,
+        recent_utterances=recent_utterances,
+        private_knowledge=private_knowledge,
+        pressing_need=pressing_need,
+        told_secrets=told_secrets(run, actor_id),
+        confidences=confidences(run, actor_id),
+        leaked=leaked_by(run, actor_id),
+        danger_here=danger_here,
+        reachable=reachable,
+        authored_goals=authored_goals,
+        errands=errands,
+        requests_to_me=requests_here,
     )

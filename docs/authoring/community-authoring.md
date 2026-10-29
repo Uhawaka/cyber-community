@@ -46,6 +46,19 @@ manifest、capabilities 和固定目录布局由构建器生成，作者不能�
 条数与字符预算；不要在这里填写秘密、未发生的事件或要求角色自动掌握的技能。
 公共常识不改变权威世界事实，也不代表角色阅读了某份具体档案。
 
+## 作者已写、运行期是否读取
+
+关系边里的 `stance` 与 `interest` 会进入本人的决策上下文（字段
+`relationship_stances`），并作为观察层的入链条件：两人之间作者写过立场、
+且同一条线索里有两句话时，这段对白会被当作值得展示的材料。它不改变关系，
+也不代表对方同意。
+
+以下字段目前只做编译校验，运行期不读取，写了不会影响角色行为，也不会进入
+剧情：`profile.secrets`、`profile.beliefs`、`locations.scene_seeds`、
+`locations.danger`、`experience_profile.episode_overrides`。作者可以按
+[世界包格式](world-graph.md)预留，但在这些消费点补齐前，不要把剧情期望
+押在它们上面。
+
 ## 校验与发布
 
 构建器先在目标父目录下的私有临时目录写包，再调用同一个 `compile_package`。

@@ -71,53 +71,70 @@ def seed_desires(run):
     reconcile(run)
 
 
-def satisfied(run, goal):
+def completion_event(run, goal):
+    """Return the committed outcome that may close this goal, if one exists now."""
     actor = run.state.characters[goal.owner_id]
     projection = community_projection(run)
     origin = projection.goal_evidence.origins.get(goal.goal_id)
     if origin is None:
-        return False
-    evidence = [e for e in projection.goal_evidence.for_goal(goal, run.events)
-                if e.sequence > origin]
+        return None
+    evidence = [e for e in projection.goal_evidence.for_goal(goal, run.events) if e.sequence > origin]
     if goal.action_verb == "take":
-        return run.state.inventories[goal.owner_id].get(goal.target_id, 0) >= goal.quantity and any(
-            e.event_type is EventType.GATHERED and e.target_entity_id == goal.target_id for e in evidence
-        )
+        if run.state.inventories[goal.owner_id].get(goal.target_id, 0) < goal.quantity:
+            return None
+        return next((
+            e for e in reversed(evidence)
+            if e.event_type is EventType.GATHERED and e.target_entity_id == goal.target_id
+        ), None)
     if goal.action_verb == "learn":
         rule = next((r for r in run.compiled.community.learning if r.resource_id == goal.target_id), None)
-        return rule is not None and rule.skill in community_projection(run).learned_skills.get(goal.owner_id, set()) and any(
-            e.event_type is EventType.ACTIVITY_FINISHED and e.data.get("learned_skill") == rule.skill
-            and e.target_entity_id == goal.target_id for e in evidence
-        )
+        learned = community_projection(run).learned_skills.get(goal.owner_id, set())
+        if rule is None or rule.skill not in learned:
+            return None
+        return next((
+            e for e in reversed(evidence)
+            if e.event_type is EventType.ACTIVITY_FINISHED and e.data.get("learned_skill") == rule.skill
+            and e.target_entity_id == goal.target_id
+        ), None)
     if goal.action_verb == "repair":
-        claim = [
-            c for c in projection.claims.owned(goal.owner_id)
+        entity = run.state.entities.get(goal.target_id)
+        current = None if entity is None else entity.components.get("attributes", {}).get("condition")
+        # A repair or inspection claim records the reading at that event. Wear in the
+        # same tick has already changed the condition completion is allowed to cite.
+        if isinstance(current, bool) or not isinstance(current, int) or current < goal.quantity:
+            return None
+        proven = {
+            c.source_refs[0] for c in projection.claims.owned(goal.owner_id)
             if c.owner_id == goal.owner_id and c.subject == goal.target_id
-            and c.predicate == "condition" and c.channel == "observation"
+            and c.predicate == "condition" and c.channel == "observation" and c.source_refs
             and any(c.source_refs[0] == f"event:{e.sequence}" for e in evidence)
-        ]
-        if claim and max(claim, key=lambda c: c.acquired_tick).content.isdigit():
-            if int(max(claim, key=lambda c: c.acquired_tick).content) >= goal.quantity:
-                return True
-        return any(
-            e.actor_id == goal.owner_id and e.event_type is EventType.ACTIVITY_FINISHED
-            and e.data.get("status") == "completed" and e.target_entity_id == goal.target_id
-            and run.state.entities[goal.target_id].components["attributes"]["condition"] >= goal.quantity
-            for e in evidence
-        )
+            and c.content.isdigit() and int(c.content) >= goal.quantity
+        }
+        for event in reversed(evidence):
+            if event.target_entity_id != goal.target_id:
+                continue
+            if event.event_type is EventType.INSPECTED and f"event:{event.sequence}" in proven:
+                return event
+            if (event.actor_id == goal.owner_id and event.event_type is EventType.ACTIVITY_FINISHED
+                    and event.data.get("status") == "completed"):
+                return event
+        return None
     if goal.action_verb == "move":
         route = next((p for p in run.compiled.world.passages if p.id == goal.target_id), None)
-        return route is not None and actor.location_id == route.destination_id and any(
-            e.event_type is EventType.ACTIVITY_FINISHED and e.target_entity_id == goal.target_id
-            and e.data.get("status") == "completed" for e in evidence
-        )
+        if route is None or actor.location_id != route.destination_id:
+            return None
+        return next((
+            e for e in reversed(evidence)
+            if e.event_type is EventType.ACTIVITY_FINISHED and e.target_entity_id == goal.target_id
+            and e.data.get("status") == "completed"
+        ), None)
     if goal.action_verb == "speak":
-        return any(
-            e.actor_id == goal.owner_id and e.event_type is EventType.DIALOGUE
+        return next((
+            e for e in reversed(evidence)
+            if e.actor_id == goal.owner_id and e.event_type is EventType.DIALOGUE
             and e.data.get("listener_id") == goal.target_id
-            for e in evidence
-        )
-    return False
+        ), None)
+    return None
 
 
 def reconcile(run):
@@ -142,9 +159,9 @@ def reconcile(run):
                 write_plan(run, replace(plan, status=goal.status,
                            source_refs=goal.source_refs if goal.status == "completed" else plan.source_refs))
             continue
-        evidence = projection.goal_evidence.for_goal(goal, run.events)
-        if satisfied(run, goal):
-            refs = (f"event:{evidence[-1].sequence}",) if evidence else goal.source_refs
+        proof = completion_event(run, goal)
+        if proof is not None:
+            refs = (f"event:{proof.sequence}",)
             write_goal(run, replace(goal, status="completed", source_refs=refs))
             write_plan(run, replace(plan, status="completed", source_refs=refs))
         elif goal.deadline_tick is not None and run.state.tick > goal.deadline_tick:

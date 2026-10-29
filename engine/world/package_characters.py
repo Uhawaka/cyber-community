@@ -48,6 +48,7 @@ def _compile_characters(
                 "identity",
                 "skills",
                 "goals",
+                "errands",
                 "needs",
                 "motivation",
                 "responsibilities",

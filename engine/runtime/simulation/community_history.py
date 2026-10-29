@@ -64,5 +64,7 @@ def community_history(run, *, audience="observer", actor_id=None):
             goal.get("action_verb") or data.get("activity", {}).get("verb")
             or activities.get(data.get("activity_id"), {}).get("verb")
             or (event.delta.actions[0].kind if event.delta.actions else ""),
+            speech_act=str(data.get("speech_act") or ""),
+            topic_ref=str(data.get("topic_ref") or ""),
         ))
     return tuple(result)

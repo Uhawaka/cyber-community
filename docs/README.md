@@ -7,6 +7,7 @@
 - [社区世界包](authoring/world-graph.md)：三套正式世界与目录格式。
 - [社区运行与恢复](authoring/community-runtime.md)：模型、持久化与安全。
 - [实验规范](experiments/README.md)：机制验证和评审规则。
+- [材料接线改动](development/2026-10-29-material-wiring.md)：关系立场进入决策与观察的改动与验证。
 
 代码变更必须保持事实、私人知识、时间与持久化边界。自动机制测试不代表人物和
 剧情质量验收。历史架构与实验文件不作为当前社区功能的权威说明。

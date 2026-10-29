@@ -217,6 +217,12 @@ def _print_community(run, *, json_output=False):
         print(json.dumps(observation, ensure_ascii=False, sort_keys=True))
         return
     print(f"{observation['world_title']}\nTick {observation['tick']}")
+    reading = observation.get("reading")
+    if reading:
+        print(f"\n{reading['title']}")
+        for paragraph in reading["paragraphs"]:
+            print(f"\n{paragraph}")
+        return
     if observation["recent_events"]:
         print("\n最近的公开事件：")
         for event in observation["recent_events"][-5:]:

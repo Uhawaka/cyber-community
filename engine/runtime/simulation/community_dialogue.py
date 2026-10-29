@@ -22,6 +22,16 @@ def speak(run, proposal, context):
         or not set(participants) <= listeners | {proposal.actor_id}
     ):
         raise ValueError("organization group requires locally present members")
+    if proposal.topic_ref:
+        visible = {e.entity_id for e in context.perception.entities} | {proposal.actor_id}
+        if proposal.topic_ref not in visible:
+            raise ValueError("speech topic must be locally visible")
+    replies_to = ""
+    if proposal.reply_to and proposal.speech_act in {"refuse", "promise"}:
+        from engine.runtime.character.community_asks import request_by_ref
+        if request_by_ref(run, proposal.reply_to, proposal.actor_id) is None:
+            raise ValueError("reply requires an open request addressed to you")
+        replies_to = proposal.reply_to
     reported = None
     sources = proposal.source_refs
     if proposal.item_id:
@@ -42,7 +52,7 @@ def speak(run, proposal, context):
     audience = {"organization_id": proposal.target_id, "participant_ids": participants} if participants else {
         "listener_id": proposal.target_id,
     }
-    commit(
+    spoken_event = commit(
         run, EventType.DIALOGUE, actor_id=proposal.actor_id,
         observers=present(run, place),
         delta=Delta(
@@ -51,7 +61,29 @@ def speak(run, proposal, context):
             ),),
             needs=tuple(NeedDelta(actor_id, "social", -8) for actor_id in recipients),
         ),
-        data={"utterance": proposal.speech, **audience, "reported_claim": reported, "location_id": place},
+        data={"utterance": proposal.speech, **audience, "reported_claim": reported, "location_id": place,
+              "speech_act": proposal.speech_act, "topic_ref": proposal.topic_ref,
+              "replies_to": replies_to},
         commit_id=f"decision:{proposal.actor_id}:{run.state.tick}",
         target_id=proposal.target_id, sources=sources,
     )
+    if replies_to and proposal.speech_act == "promise":
+        _register_promise(run, proposal, replies_to, spoken_event)
+
+
+def _register_promise(run, proposal, replies_to, spoken_event):
+    """答应了就要还：口头承诺在他们之间落成一条有期限的义务。"""
+    from engine.contracts.community import Commitment
+    from engine.runtime.character.community_asks import request_by_ref
+    from engine.runtime.simulation.community_society import write_commitment
+
+    ask = request_by_ref(run, replies_to, proposal.actor_id)
+    if ask is None:
+        return
+    obligation = Commitment(
+        f"promise:{spoken_event.sequence}", proposal.actor_id, ask[0],
+        proposal.speech[:200], (f"event:{spoken_event.sequence}", replies_to),
+        run.state.tick + 24, status="proposed", target_id=ask[0],
+        action_verb="speak", quantity=1,
+    )
+    write_commitment(run, obligation, proposal.actor_id, system=True)

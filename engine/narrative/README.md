@@ -3,8 +3,15 @@
 `community_threads.py` 从只读社区历史提取有来源的后果线索，并呈现已经提交的
 行动和原话。它不创建事实、不调用角色策略、不推进 Tick，也不反向写入记忆。
 
-公共入口为 `project_threads` 和 `render_thread`。旧 Episode、Presentation、
-文学渲染与发布执行链已退役。
+证据窗的公共入口仍是 `project_threads` 和 `render_thread`。它按来源逐条呈现
+已经提交的行动和原话，不写成读物。
 
-`skill_library/` 和 `voice_library/` 的 manifest 仍供作者体验配置编译校验使用；
-它们不是当前运行器执行的文学管线。
+`compose_reading` 在同一份公开事实上执行四段工序：发展编辑只选定一个转折，
+场景作者按压力写成有来源的段落，行编辑去掉摘要腔，事实核对拒绝来源之外的
+名词、数字和引语。材料撑不起转折时返回空，不补冲突。声音库只约束标题和禁语，
+不增加事实。旧 Episode、Presentation 与发布执行链已退役。
+
+`community_names.py` 只做只读解析（名字、条件、事件里出现的实体），
+`community_factcheck.py` 装行编辑与事实连续性的拒绝规则，两者都不写事实。
+场景生产者现在有三类：设备数字失真、交涉（请求得到回话、动手或拒绝）、承诺兑现；
+三类都不齐时返回空。

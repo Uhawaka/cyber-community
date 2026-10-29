@@ -7,9 +7,10 @@ from collections import defaultdict
 from engine.contracts.community_history import CommunityFact, StoryThread
 
 
-def project_threads(facts, *, max_threads=8, max_evidence=24):
+def project_threads(facts, *, max_threads=8, max_evidence=24, stances=()):
     if max_threads < 0 or max_evidence < 1:
         raise ValueError("invalid story observation budget")
+    stances = frozenset((str(left), str(right)) for left, right in stances)
     ordered = tuple(sorted(facts, key=lambda f: f.sequence))
     groups, membership = defaultdict(list), {}
     environment = []
@@ -37,7 +38,7 @@ def project_threads(facts, *, max_threads=8, max_evidence=24):
             or f.kind == "activity_finished" and f.action_verb in {"repair", "learn"}
             and f.status in {"completed", "failed"}
             for f in evidence
-        )
+        ) or _dialogue_carries_authored_stake(evidence, stances)
         if not significant:
             continue
         targets = [f.target_id for f in evidence if f.target_id]
@@ -71,6 +72,28 @@ def project_threads(facts, *, max_threads=8, max_evidence=24):
         ))
     threads.sort(key=lambda t: (-t.significance, -t.to_tick, t.thread_id))
     return tuple(threads[:max_threads])
+
+
+def _dialogue_carries_authored_stake(evidence, stances):
+    """A back-and-forth between two people the author gave a stake in each other.
+
+    Dialogue alone is not an event: the selector only promotes a spoken
+    exchange when it has at least one answer and the author declared a
+    stance between the speakers. Nothing here invents a transition or a
+    consequence; it only decides whether the material is worth showing.
+    """
+    if not stances:
+        return False
+    dialogues = [f for f in evidence if f.kind == "dialogue"]
+    if len(dialogues) < 2:
+        return False
+    for fact in dialogues:
+        people = tuple(dict.fromkeys(fact.participants))
+        for left in people:
+            for right in people:
+                if left != right and (left, right) in stances:
+                    return True
+    return False
 
 
 def render_thread(thread: StoryThread, *, names=None):

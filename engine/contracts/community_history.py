@@ -21,6 +21,8 @@ class CommunityFact:
     changed_world: bool = False
     utterance: str = ""
     action_verb: str = ""
+    speech_act: str = ""
+    topic_ref: str = ""
 
 
 @dataclass(frozen=True)

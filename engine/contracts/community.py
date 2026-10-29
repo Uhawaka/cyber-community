@@ -12,6 +12,8 @@ from engine.contracts.validation import require_int, require_sources, require_te
 COMMUNITY_RUNTIME_VERSION = "community-runtime/v1"
 COMMUNITY_PACKAGE_VERSION = "world-package/v1alpha3"
 MINUTES_PER_TICK = 60
+UTTERANCE_COOLDOWN_TICKS = 4
+SPEECH_ACTS = frozenset({"", "request", "promise", "refuse", "clarify", "inform"})
 
 
 class ActionVerb(str, Enum):
@@ -71,6 +73,8 @@ class ActionProposal:
     intent_step_index: int = -1
     plan_goal_id: str = ""
     plan_deadline_tick: int | None = None
+    speech_act: str = ""
+    topic_ref: str = ""
 
     def __post_init__(self) -> None:
         for field in ("proposal_id", "actor_id", "target_id", "intent", "expected_state_hash"):
@@ -91,6 +95,14 @@ class ActionProposal:
             raise ValueError("action optional text requires valid Unicode") from exc
         if len(self.speech) > 2000:
             raise ValueError("speech exceeds budget")
+        if self.speech_act not in SPEECH_ACTS:
+            raise ValueError("speech act must be request, promise, refuse, clarify, inform or empty")
+        if not isinstance(self.topic_ref, str):
+            raise ValueError("speech topic reference must be text")
+        if len(self.topic_ref) > 200:
+            raise ValueError("speech topic reference exceeds budget")
+        if (self.speech_act or self.topic_ref) and self.verb is not ActionVerb.SPEAK:
+            raise ValueError("speech act and topic reference require the speak action")
         require_int(self.requested_quantity, "requested_quantity")
         if self.requested_quantity > 100:
             raise ValueError("requested quantity exceeds action capacity")
@@ -322,6 +334,18 @@ class DecisionContext:
     intent_plans: tuple[IntentPlan, ...] = ()
     intent_plan_history: tuple[IntentPlan, ...] = ()
     plan_review_inputs: tuple[tuple[str, str, str, str, str, str], ...] = ()
+    relationship_stances: tuple[tuple[str, str, str], ...] = ()
+    recent_utterances: tuple[tuple[int, str], ...] = ()
+    private_knowledge: tuple[tuple[str, str], ...] = ()
+    pressing_need: str = ""
+    told_secrets: tuple[str, ...] = ()
+    confidences: tuple[tuple[str, str], ...] = ()
+    leaked: tuple[tuple[str, str], ...] = ()
+    danger_here: int = 0
+    reachable: tuple[tuple[str, str], ...] = ()
+    authored_goals: tuple[str, ...] = ()
+    errands: tuple[tuple[str, str, str, str], ...] = ()
+    requests_to_me: tuple[tuple[str, str, str], ...] = ()
 
 
 class CommunityPolicy(Protocol):
