@@ -1,0 +1,127 @@
+{
+  "locations": [
+    {
+      "access_tags": [],
+      "affordances": {
+        "gather": true,
+        "observe": true,
+        "rest": true,
+        "social": true
+      },
+      "allowed_roles": [],
+      "capacity": 8,
+      "danger": 0,
+      "description": "石磨、大灶和长饭桌挤在一处，三房人都在这里碰面。",
+      "id": "shared-court",
+      "metadata": {},
+      "name": "李氏共院",
+      "scene_seeds": [],
+      "tags": [
+        "public"
+      ]
+    },
+    {
+      "access_tags": [],
+      "affordances": {
+        "gather": true,
+        "observe": true,
+        "rest": true,
+        "social": true
+      },
+      "allowed_roles": [],
+      "capacity": 6,
+      "danger": 0,
+      "description": "族谱、空白纸和压纸架分区放着，谁的名字写在哪一页是大事。",
+      "id": "print-room",
+      "metadata": {},
+      "name": "谱房与纸房",
+      "scene_seeds": [],
+      "tags": [
+        "public",
+        "sheltered"
+      ]
+    },
+    {
+      "access_tags": [],
+      "affordances": {
+        "gather": true,
+        "observe": true,
+        "rest": true,
+        "social": true
+      },
+      "allowed_roles": [],
+      "capacity": 4,
+      "danger": 0,
+      "description": "泉水经阀门送往共院和谱房，泉房钥匙一直只在长房手里。",
+      "id": "spring-room",
+      "metadata": {},
+      "name": "祖泉房",
+      "scene_seeds": [],
+      "tags": [
+        "public"
+      ]
+    },
+    {
+      "access_tags": [],
+      "affordances": {
+        "gather": true,
+        "observe": true,
+        "rest": true,
+        "social": true
+      },
+      "allowed_roles": [],
+      "capacity": 6,
+      "danger": 0,
+      "description": "旧契、旧账和手艺读本分柜存放，查档要留名。",
+      "id": "archive-room",
+      "metadata": {},
+      "name": "族档室",
+      "scene_seeds": [],
+      "tags": [
+        "public",
+        "sheltered"
+      ]
+    },
+    {
+      "access_tags": [],
+      "affordances": {
+        "gather": true,
+        "observe": true,
+        "rest": true,
+        "social": true
+      },
+      "allowed_roles": [],
+      "capacity": 8,
+      "danger": 0,
+      "description": "几房各有住屋，门一关就是自家的日子。",
+      "id": "terrace-homes",
+      "metadata": {},
+      "name": "族人住屋",
+      "scene_seeds": [],
+      "tags": [
+        "public",
+        "sheltered"
+      ]
+    },
+    {
+      "access_tags": [],
+      "affordances": {
+        "gather": true,
+        "observe": true,
+        "rest": true,
+        "social": true
+      },
+      "allowed_roles": [],
+      "capacity": 6,
+      "danger": 0,
+      "description": "驿队在此卸粮换物，只认现钱与族院的签单。",
+      "id": "ridge-gate",
+      "metadata": {},
+      "name": "山口",
+      "scene_seeds": [],
+      "tags": [
+        "public"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,127 @@
+{
+  "locations": [
+    {
+      "access_tags": [],
+      "affordances": {
+        "gather": true,
+        "observe": true,
+        "rest": true,
+        "social": true
+      },
+      "allowed_roles": [],
+      "capacity": 8,
+      "danger": 0,
+      "description": "石磨、大灶和饭桌挤在一处，穷学徒在这里吃饭、干活和交换消息。",
+      "id": "shared-court",
+      "metadata": {},
+      "name": "后山共用场",
+      "scene_seeds": [],
+      "tags": [
+        "public"
+      ]
+    },
+    {
+      "access_tags": [],
+      "affordances": {
+        "gather": true,
+        "observe": true,
+        "rest": true,
+        "social": true
+      },
+      "allowed_roles": [],
+      "capacity": 6,
+      "danger": 0,
+      "description": "欠费名单、课程表和空白纸分区放着，纸比饭还贵。",
+      "id": "print-room",
+      "metadata": {},
+      "name": "文书与制纸房",
+      "scene_seeds": [],
+      "tags": [
+        "public",
+        "sheltered"
+      ]
+    },
+    {
+      "access_tags": [],
+      "affordances": {
+        "gather": true,
+        "observe": true,
+        "rest": true,
+        "social": true
+      },
+      "allowed_roles": [],
+      "capacity": 4,
+      "danger": 0,
+      "description": "泉水经阀门送往共用场和文书房，停水意味着停课。",
+      "id": "spring-room",
+      "metadata": {},
+      "name": "泉脉房",
+      "scene_seeds": [],
+      "tags": [
+        "public"
+      ]
+    },
+    {
+      "access_tags": [],
+      "affordances": {
+        "gather": true,
+        "observe": true,
+        "rest": true,
+        "social": true
+      },
+      "allowed_roles": [],
+      "capacity": 6,
+      "danger": 0,
+      "description": "公开读本与旧账分柜存放，读本允许慢慢学。",
+      "id": "archive-room",
+      "metadata": {},
+      "name": "旧档与自习间",
+      "scene_seeds": [],
+      "tags": [
+        "public",
+        "sheltered"
+      ]
+    },
+    {
+      "access_tags": [],
+      "affordances": {
+        "gather": true,
+        "observe": true,
+        "rest": true,
+        "social": true
+      },
+      "allowed_roles": [],
+      "capacity": 8,
+      "danger": 0,
+      "description": "几间小屋各有门锁，住下不等于买下了这个人。",
+      "id": "terrace-homes",
+      "metadata": {},
+      "name": "学徒宿舍",
+      "scene_seeds": [],
+      "tags": [
+        "public",
+        "sheltered"
+      ]
+    },
+    {
+      "access_tags": [],
+      "affordances": {
+        "gather": true,
+        "observe": true,
+        "rest": true,
+        "social": true
+      },
+      "allowed_roles": [],
+      "capacity": 6,
+      "danger": 0,
+      "description": "驿队在此卸下粮食和维修材料，只认现钱与院里的签单。",
+      "id": "ridge-gate",
+      "metadata": {},
+      "name": "山门驿口",
+      "scene_seeds": [],
+      "tags": [
+        "public"
+      ]
+    }
+  ]
+}

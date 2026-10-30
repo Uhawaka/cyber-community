@@ -1,0 +1,264 @@
+{
+  "resources": [
+    {
+      "container_id": "shared-court",
+      "id": "grain",
+      "location_id": "shared-court",
+      "name": "族粮",
+      "owner_id": "shared-court",
+      "properties": {
+        "portable": true,
+        "public_access": true
+      },
+      "quantity": 8,
+      "required_skills": []
+    },
+    {
+      "container_id": "shared-court",
+      "id": "mill-water",
+      "location_id": "shared-court",
+      "name": "祖泉蓄水",
+      "owner_id": "shared-court",
+      "properties": {},
+      "quantity": 6,
+      "required_skills": []
+    },
+    {
+      "container_id": "shared-court",
+      "id": "flour",
+      "location_id": "shared-court",
+      "name": "磨好的粮粉",
+      "owner_id": "shared-court",
+      "properties": {
+        "portable": true,
+        "public_access": true
+      },
+      "quantity": 3,
+      "required_skills": []
+    },
+    {
+      "container_id": "shared-court",
+      "id": "court-meal",
+      "location_id": "shared-court",
+      "name": "族院饭食",
+      "owner_id": "shared-court",
+      "properties": {
+        "consumable": true,
+        "portable": true,
+        "public_access": true,
+        "use_effects": {
+          "fatigue": -4,
+          "resources": -20
+        }
+      },
+      "quantity": 12,
+      "required_skills": []
+    },
+    {
+      "container_id": "shared-court",
+      "id": "grain-mill",
+      "location_id": "shared-court",
+      "name": "共用石磨",
+      "owner_id": "shared-court",
+      "properties": {
+        "condition": 65,
+        "inspection": "轴承发涩，齿轮并未断裂；清理和润滑需要实际停机。"
+      },
+      "quantity": 1,
+      "required_skills": []
+    },
+    {
+      "container_id": "shared-court",
+      "id": "bearing-grease",
+      "location_id": "shared-court",
+      "name": "轴承润滑料",
+      "owner_id": "shared-court",
+      "properties": {
+        "portable": true,
+        "public_access": true
+      },
+      "quantity": 2,
+      "required_skills": []
+    },
+    {
+      "container_id": "shared-court",
+      "id": "court-stove",
+      "location_id": "shared-court",
+      "name": "共用大灶",
+      "owner_id": "shared-court",
+      "properties": {
+        "condition": 75,
+        "inspection": "炉门封边开裂，热气沿缝散出。"
+      },
+      "quantity": 1,
+      "required_skills": []
+    },
+    {
+      "container_id": "shared-court",
+      "id": "seal-clay",
+      "location_id": "shared-court",
+      "name": "封边耐火泥",
+      "owner_id": "shared-court",
+      "properties": {
+        "portable": true,
+        "public_access": true
+      },
+      "quantity": 2,
+      "required_skills": []
+    },
+    {
+      "container_id": "print-room",
+      "id": "rags",
+      "location_id": "print-room",
+      "name": "可制纸旧布",
+      "owner_id": "print-room",
+      "properties": {
+        "portable": true,
+        "public_access": true
+      },
+      "quantity": 8,
+      "required_skills": []
+    },
+    {
+      "container_id": "print-room",
+      "id": "pulp-water",
+      "location_id": "print-room",
+      "name": "纸坊接水缸",
+      "owner_id": "print-room",
+      "properties": {},
+      "quantity": 6,
+      "required_skills": []
+    },
+    {
+      "container_id": "print-room",
+      "id": "paper-sheets",
+      "location_id": "print-room",
+      "name": "空白谱纸",
+      "owner_id": "print-room",
+      "properties": {
+        "portable": true,
+        "public_access": true
+      },
+      "quantity": 2,
+      "required_skills": []
+    },
+    {
+      "container_id": "print-room",
+      "id": "ink",
+      "location_id": "print-room",
+      "name": "公用墨",
+      "owner_id": "print-room",
+      "properties": {
+        "portable": true,
+        "public_access": true
+      },
+      "quantity": 4,
+      "required_skills": []
+    },
+    {
+      "container_id": "print-room",
+      "id": "printed-sheets",
+      "location_id": "print-room",
+      "name": "印好边框的谱页",
+      "owner_id": "print-room",
+      "properties": {
+        "portable": true,
+        "public_access": true
+      },
+      "quantity": 0,
+      "required_skills": []
+    },
+    {
+      "container_id": "print-room",
+      "id": "paper-press",
+      "location_id": "print-room",
+      "name": "压纸机架",
+      "owner_id": "print-room",
+      "properties": {
+        "condition": 55,
+        "inspection": "水力机架的木架受潮歪斜，需要两个木楔和四小时停机维护。"
+      },
+      "quantity": 1,
+      "required_skills": []
+    },
+    {
+      "container_id": "print-room",
+      "id": "wooden-wedges",
+      "location_id": "print-room",
+      "name": "压纸机木楔",
+      "owner_id": "print-room",
+      "properties": {
+        "portable": true,
+        "public_access": true
+      },
+      "quantity": 0,
+      "required_skills": []
+    },
+    {
+      "container_id": "spring-room",
+      "id": "spring-valve",
+      "location_id": "spring-room",
+      "name": "祖泉阀门",
+      "owner_id": "spring-room",
+      "properties": {
+        "condition": 50,
+        "inspection": "垫片硬化，支管仍在出水但需要维护。"
+      },
+      "quantity": 1,
+      "required_skills": []
+    },
+    {
+      "container_id": "spring-room",
+      "id": "valve-gasket",
+      "location_id": "spring-room",
+      "name": "泉房维修垫片",
+      "owner_id": "spring-room",
+      "properties": {
+        "portable": true,
+        "public_access": true
+      },
+      "quantity": 1,
+      "required_skills": []
+    },
+    {
+      "container_id": "archive-room",
+      "id": "mill-handbook",
+      "location_id": "archive-room",
+      "name": "磨机与轴承手册",
+      "owner_id": "archive-room",
+      "properties": {},
+      "quantity": 1,
+      "required_skills": []
+    },
+    {
+      "container_id": "archive-room",
+      "id": "paper-handbook",
+      "location_id": "archive-room",
+      "name": "制纸工艺读本",
+      "owner_id": "archive-room",
+      "properties": {},
+      "quantity": 1,
+      "required_skills": []
+    },
+    {
+      "container_id": "archive-room",
+      "id": "water-handbook",
+      "location_id": "archive-room",
+      "name": "泉水与阀门读本",
+      "owner_id": "archive-room",
+      "properties": {},
+      "quantity": 1,
+      "required_skills": []
+    },
+    {
+      "container_id": "archive-room",
+      "id": "records-handbook",
+      "location_id": "archive-room",
+      "name": "档案校记读本",
+      "owner_id": "archive-room",
+      "properties": {},
+      "quantity": 1,
+      "required_skills": []
+    }
+  ]
+}

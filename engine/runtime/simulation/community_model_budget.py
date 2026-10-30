@@ -1,5 +1,6 @@
 """Durable attempts and responses; uncertain calls are never silently retried."""
 
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import asdict
 
 from engine.contracts.community import ActionProposal, ActionVerb
@@ -58,6 +59,106 @@ def request_model_decision(run, policy, context):
               "request_index": policy.requests + 1, "summary": "bounded model decision requested"},
         sources=(source,), commit_id=f"model-request:{context.actor_id}:{run.state.tick}",
     )
+
+
+def decide_model_wave(run, policy, contexts):
+    """Ask every due character from the same snapshot, then commit in that order.
+
+    People present together do not wait for one another's model call. The request
+    records are written first, so a crash still refuses to retry an uncertain call.
+    """
+    jobs = []
+    for context in contexts:
+        key = run.state.tick, context.actor_id
+        cached = getattr(policy, "pending_responses", {}).get(key)
+        if cached is not None:
+            jobs.append((context, None, cached))
+            continue
+        try:
+            request = request_model_decision(run, policy, context)
+        except RuntimeError as exc:
+            jobs.append((context, None, {"error": str(exc)}))
+            continue
+        policy.requests += 1
+        jobs.append((context, request, None))
+
+    def fetch(job):
+        context, _request, cached = job
+        if cached is not None:
+            return None
+        try:
+            return ("ok", policy.complete(context))
+        except (ValueError, TimeoutError, RuntimeError) as exc:
+            return ("err", exc)
+
+    pending = [job for job in jobs if job[2] is None]
+    if pending:
+        with ThreadPoolExecutor(max_workers=len(pending)) as pool:
+            fetched = list(pool.map(fetch, jobs))
+    else:
+        fetched = [None] * len(jobs)
+    outcomes = []
+    for (context, request, cached), result in zip(jobs, fetched):
+        if cached is not None:
+            response, proposal = cached, None
+            if response.get("error") is not None:
+                outcomes.append((context, None, ValueError(response["error"])))
+                continue
+        else:
+            response, proposal = _response_from_call(policy, context, request, result)
+            _commit_model_response(run, context, request, response, proposal)
+            if response["error"] is not None:
+                outcomes.append((context, None, ValueError(response["error"])))
+                continue
+        if proposal is None:
+            raw = response["proposal"]
+            proposal = ActionProposal(**{**raw, "verb": ActionVerb(raw["verb"]),
+                                         "source_refs": tuple(raw["source_refs"])})
+        outcomes.append((context, proposal, None))
+    return outcomes
+
+
+def _response_from_call(policy, context, request, result):
+    if result[0] == "err":
+        exc = result[1]
+        error = str(exc)[:500].encode("utf-8", errors="backslashreplace").decode("utf-8")[:500]
+        response = {"request_sequence": request.sequence, "proposal": None,
+                    "error": error if error.strip() else type(exc).__name__}
+        return response, None
+    try:
+        proposal = policy.interpret(context, result[1])
+    except (ValueError, TimeoutError, RuntimeError) as exc:
+        error = str(exc)[:500].encode("utf-8", errors="backslashreplace").decode("utf-8")[:500]
+        response = {"request_sequence": request.sequence, "proposal": None,
+                    "error": error if error.strip() else type(exc).__name__}
+        return response, None
+    response = {"request_sequence": request.sequence, "proposal": asdict(proposal), "error": None}
+    return response, proposal
+
+
+def _commit_model_response(run, context, request, response, proposal):
+    sources = (f"event:{request.sequence}",) if response["proposal"] is None else tuple(
+        dict.fromkeys((f"event:{request.sequence}", *proposal.source_refs)))
+    if len(sources) > 16 and proposal is not None:
+        sources = proposal.source_refs
+    try:
+        commit(
+            run, EventType.MODEL_DECISION_RESOLVED, actor_id=context.actor_id, observers=(context.actor_id,),
+            data={"model_response": response}, sources=sources,
+            commit_id=f"model-response:{context.actor_id}:{run.state.tick}",
+        )
+    except EventPersistenceError:
+        raise
+    except EventValidationError as exc:
+        if response["proposal"] is None:
+            raise
+        detail = f"{exc}; proposed source_refs={proposal.source_refs!r}"
+        response = {"request_sequence": request.sequence, "proposal": None, "error": detail[:500]}
+        commit(
+            run, EventType.MODEL_DECISION_RESOLVED, actor_id=context.actor_id, observers=(context.actor_id,),
+            data={"model_response": response}, sources=(f"event:{request.sequence}",),
+            commit_id=f"model-response:{context.actor_id}:{run.state.tick}",
+        )
 
 
 def resolved_model_decision(run, policy, context):

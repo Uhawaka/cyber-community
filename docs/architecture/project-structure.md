@@ -13,8 +13,9 @@ Presentation 发布入口。历史代码、测试和旧世界已归档到忽略�
    `engine.cli.run_community_package` → 编译世界 → 新建托管配置或恢复预检 →
    `create_run` / `load_run` → `run_managed_community_ticks`。
 3. 模型装配：
-   `build_application` → `ModelCommunityPolicy` + `OpenAICompatibleTextModel`；
-   显式模型配置才调用模型，可选 `JsonlRunStorage` 保存日志。
+   `build_application` → `ModelCommunityPolicy` + `OpenAICompatibleTextModel`。
+   只有 `--model-config` 才调用模型；供应商、模型名、地址和密钥来自 `.env`，
+   配置文件只写预算和采样。日志可由 `JsonlRunStorage` 保存。
 4. Tick：
    `run_community_ticks` → 世界时间与需求 → 活动、过程与社会结算 →
    本人 `decision_context` → 提案 → 注册动作裁决 →
@@ -41,8 +42,9 @@ Presentation 发布入口。历史代码、测试和旧世界已归档到忽略�
 
 ## 世界与产物
 
-正式世界仅有 `worlds/echo-quay`、`worlds/stone-step-commons`、
-`worlds/black-pine-ridge`，对应作者源在 `worlds/sources/`。
+正式世界有 `worlds/echo-quay`、`worlds/stone-step-commons`、
+`worlds/black-pine-ridge`、`worlds/qingheng-academy`、`worlds/li-clan-court`、
+`worlds/black-wind-stockade`，对应作者源在 `worlds/sources/`。
 新增世界统一用作者源构建，不增加专名 builder 或兼容分支。
 
 `tests/` 保留当前契约、安全、原子失败、物质、私人知识和恢复验证。

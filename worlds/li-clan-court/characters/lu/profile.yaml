@@ -1,0 +1,48 @@
+{
+  "goals": [
+    "让族院饭桌真正轮一次休，也不分房头"
+  ],
+  "home_location_id": "terrace-homes",
+  "known_routes": [
+    "shared-court-to-print-room",
+    "print-room-to-shared-court",
+    "shared-court-to-spring-room",
+    "spring-room-to-shared-court",
+    "shared-court-to-archive-room",
+    "archive-room-to-shared-court",
+    "shared-court-to-terrace-homes",
+    "terrace-homes-to-shared-court",
+    "shared-court-to-ridge-gate",
+    "ridge-gate-to-shared-court",
+    "print-room-to-archive-room",
+    "archive-room-to-print-room",
+    "spring-room-to-ridge-gate",
+    "ridge-gate-to-spring-room"
+  ],
+  "learning_interests": [
+    "磨机维护"
+  ],
+  "location_id": "shared-court",
+  "name": "李晚娘",
+  "needs": {
+    "exploration": 16,
+    "fatigue": 12,
+    "knowledge": 18,
+    "resources": 28,
+    "social": 30
+  },
+  "responsibilities": [],
+  "role": "族院掌勺",
+  "routine_locations": [
+    "terrace-homes",
+    "shared-court",
+    "shared-court",
+    "archive-room"
+  ],
+  "skills": [
+    "炉灶维护"
+  ],
+  "stocking_interests": [
+    "seal-clay"
+  ]
+}

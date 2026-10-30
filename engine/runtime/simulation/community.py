@@ -102,9 +102,8 @@ def _tick(run, policy, budget, memory_budget, usage):
             data={"phase": "open", "elapsed_minutes": MINUTES_PER_TICK},
             commit_id=f"tick:{run.state.tick + 1}:open",
         )
-    from engine.runtime.character.community_goals import seed_desires, reconcile, record_rejection
+    from engine.runtime.character.community_goals import seed_desires, reconcile
     from engine.runtime.simulation.community_processes import settle_processes
-    from engine.runtime.simulation.community_schedule import awake
     from engine.runtime.simulation.community_society import settle_society
     from engine.runtime.simulation.community_requests import settle_requests
     # Any committed decision proves preparation finished before this interruption.
@@ -142,44 +141,43 @@ def _tick(run, policy, budget, memory_budget, usage):
     # An interrupted open tick retains the decisions already committed to its log.
     spent = sum(_acted_this_tick(run, actor_id) for actor_id in actors)
     used = 0
-    for actor_id in actors:
-        projection = community_projection(run)
-        if _acted_this_tick(run, actor_id):
-            rejection = next((e for e in run.log.current_tick_events()
-                              if e.actor_id == actor_id and e.event_type is EventType.ACTION_REJECTED), None)
-            if rejection:
-                record_rejection(run, actor_id, rejection)
-            continue
-        if projection.pending_for(actor_id) or not awake(run, actor_id):
-            continue
-        if spent + used >= limit:
-            usage.action_exhausted = True
-            break
-        context = decision_context(run, actor_id)
-        proposal = None
-        try:
-            if getattr(policy, "records_model_attempts", False):
-                from engine.runtime.simulation.community_model_budget import resolved_model_decision
-                proposal = resolved_model_decision(run, policy, context)
-            else:
+    if getattr(policy, "records_model_attempts", False):
+        due = []
+        for actor_id in actors:
+            if not _claim_decision_slot(run, actor_id, spent, used, limit, usage):
+                if usage.action_exhausted:
+                    break
+                continue
+            due.append(actor_id)
+            used += 1
+        from dataclasses import replace
+        from engine.runtime.simulation.community_model_budget import decide_model_wave
+        contexts = [decision_context(run, actor_id) for actor_id in due]
+        for context, proposal, error in decide_model_wave(run, policy, contexts):
+            try:
+                if error is not None:
+                    raise error
+                _start(run, replace(proposal, expected_state_hash=run.state.state_hash()), context)
+            except EventPersistenceError:
+                raise
+            except (ValueError, TimeoutError, RuntimeError) as exc:
+                _reject_decision(run, context.actor_id, proposal, exc)
+    else:
+        for actor_id in actors:
+            if not _claim_decision_slot(run, actor_id, spent, used, limit, usage):
+                if usage.action_exhausted:
+                    break
+                continue
+            context = decision_context(run, actor_id)
+            proposal = None
+            try:
                 proposal = policy.propose(context)
-            _start(run, proposal, context)
-        except EventPersistenceError:
-            raise
-        except (ValueError, TimeoutError, RuntimeError) as exc:
-            attempted = None
-            if isinstance(proposal, ActionProposal) and proposal.actor_id == actor_id:
-                attempted = {"verb": proposal.verb.value, "target_id": proposal.target_id,
-                             "source_refs": proposal.source_refs,
-                             "intent_plan_id": proposal.intent_plan_id,
-                             "intent_step_index": proposal.intent_step_index}
-            rejected = commit(
-                run, EventType.ACTION_REJECTED, actor_id=actor_id, observers=(actor_id,),
-                data={"reason": str(exc)[:500], "proposal": attempted},
-                commit_id=f"decision:{actor_id}:{run.state.tick}:rejected",
-            )
-            record_rejection(run, actor_id, rejected)
-        used += 1
+                _start(run, proposal, context)
+            except EventPersistenceError:
+                raise
+            except (ValueError, TimeoutError, RuntimeError) as exc:
+                _reject_decision(run, actor_id, proposal, exc)
+            used += 1
     usage.actions_used += used
     settle_society(run)
     settle_requests(run)
@@ -199,6 +197,39 @@ def _tick(run, policy, budget, memory_budget, usage):
     commit(run, EventType.COMMUNITY_TICK, data={"phase": "closed"},
            commit_id=f"tick:{run.state.tick}:closed")
     usage.executed_workflow_steps += ("community_runtime",)
+
+
+def _claim_decision_slot(run, actor_id, spent, used, limit, usage):
+    from engine.runtime.character.community_goals import record_rejection
+    from engine.runtime.simulation.community_schedule import awake
+    if _acted_this_tick(run, actor_id):
+        rejection = next((e for e in run.log.current_tick_events()
+                          if e.actor_id == actor_id and e.event_type is EventType.ACTION_REJECTED), None)
+        if rejection:
+            record_rejection(run, actor_id, rejection)
+        return False
+    if community_projection(run).pending_for(actor_id) or not awake(run, actor_id):
+        return False
+    if spent + used >= limit:
+        usage.action_exhausted = True
+        return False
+    return True
+
+
+def _reject_decision(run, actor_id, proposal, exc):
+    from engine.runtime.character.community_goals import record_rejection
+    attempted = None
+    if isinstance(proposal, ActionProposal) and proposal.actor_id == actor_id:
+        attempted = {"verb": proposal.verb.value, "target_id": proposal.target_id,
+                     "source_refs": proposal.source_refs,
+                     "intent_plan_id": proposal.intent_plan_id,
+                     "intent_step_index": proposal.intent_step_index}
+    rejected = commit(
+        run, EventType.ACTION_REJECTED, actor_id=actor_id, observers=(actor_id,),
+        data={"reason": str(exc)[:500], "proposal": attempted},
+        commit_id=f"decision:{actor_id}:{run.state.tick}:rejected",
+    )
+    record_rejection(run, actor_id, rejected)
 
 
 def _acted_this_tick(run, actor_id):

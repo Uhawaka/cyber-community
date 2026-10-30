@@ -1,0 +1,48 @@
+{
+  "goals": [
+    "证明旁支子弟也能进工坊、学手艺、记上谱"
+  ],
+  "home_location_id": "terrace-homes",
+  "known_routes": [
+    "shared-court-to-print-room",
+    "print-room-to-shared-court",
+    "shared-court-to-spring-room",
+    "spring-room-to-shared-court",
+    "shared-court-to-archive-room",
+    "archive-room-to-shared-court",
+    "shared-court-to-terrace-homes",
+    "terrace-homes-to-shared-court",
+    "shared-court-to-ridge-gate",
+    "ridge-gate-to-shared-court",
+    "print-room-to-archive-room",
+    "archive-room-to-print-room",
+    "spring-room-to-ridge-gate",
+    "ridge-gate-to-spring-room"
+  ],
+  "learning_interests": [
+    "校记档案"
+  ],
+  "location_id": "shared-court",
+  "name": "李遥",
+  "needs": {
+    "exploration": 25,
+    "fatigue": 7,
+    "knowledge": 22,
+    "resources": 30,
+    "social": 18
+  },
+  "responsibilities": [
+    "court-stove"
+  ],
+  "role": "旁支修理工",
+  "routine_locations": [
+    "terrace-homes",
+    "shared-court",
+    "shared-court",
+    "archive-room"
+  ],
+  "skills": [
+    "炉灶维护"
+  ],
+  "stocking_interests": []
+}

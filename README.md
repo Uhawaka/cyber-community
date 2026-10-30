@@ -23,6 +23,9 @@ cyber-community community worlds/my-community --log outputs/experiments/my-commu
 cyber-community community-observe worlds/my-community --log outputs/experiments/my-community.jsonl --json
 ```
 
+调用模型时加上 `--model-config config/model.json`。供应商、模型名、地址和密钥只写在
+`.env`（见 `.env.example`），不要写进配置文件。
+
 创建目标须不存在；日志包含角色私有信息，不应直接公开。运行及恢复边界见
 [社区运行指南](docs/authoring/community-runtime.md)，世界创作见
 [统一世界创建](docs/authoring/community-authoring.md)。人物、剧情与真实模型质量尚未验收。

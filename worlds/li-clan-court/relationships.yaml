@@ -1,0 +1,40 @@
+{
+  "edges": [
+    {
+      "interest": "希望轮值表先从饭桌开始试",
+      "source_id": "tao",
+      "stance": "信任她，但要学着不把饭桌当成默认",
+      "target_id": "lu"
+    },
+    {
+      "interest": "希望他敢把钥匙分出去写进规矩",
+      "source_id": "lu",
+      "stance": "愿意共事，也坚持旁支要进轮值",
+      "target_id": "tao"
+    },
+    {
+      "interest": "想让她看完一整年的记名再评价李家",
+      "source_id": "mei",
+      "stance": "欣赏她写得轻，回避问她查的旧契",
+      "target_id": "he"
+    },
+    {
+      "interest": "想知道被删的那页谱到底记了谁",
+      "source_id": "he",
+      "stance": "愿意学他的手艺，不接受被代定去留",
+      "target_id": "mei"
+    },
+    {
+      "interest": "希望祖母的名字能补进谱房",
+      "source_id": "an",
+      "stance": "愿意谈守泉轮值，但需要能说不",
+      "target_id": "tao"
+    },
+    {
+      "interest": "愿意帮饭桌修家具，也希望工钱讲清",
+      "source_id": "du",
+      "stance": "记得她从不分房头留饭",
+      "target_id": "lu"
+    }
+  ]
+}

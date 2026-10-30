@@ -1,0 +1,40 @@
+{
+  "edges": [
+    {
+      "interest": "希望饭桌能成为寨里人愿意守规矩的理由",
+      "source_id": "tao",
+      "stance": "信任他，但要学着不把他的饭当成理所当然",
+      "target_id": "lu"
+    },
+    {
+      "interest": "希望陆横把工钱和恩情分开算",
+      "source_id": "lu",
+      "stance": "愿意跟着干，但攒够钱就会认真考虑下山",
+      "target_id": "tao"
+    },
+    {
+      "interest": "想让她亲眼看完一季的账再评价寨子",
+      "source_id": "mei",
+      "stance": "欣赏她问得细，回避问她到底来认什么人",
+      "target_id": "he"
+    },
+    {
+      "interest": "想知道当年的药队旧账还剩什么痕迹",
+      "source_id": "he",
+      "stance": "愿意帮他核对旧账，不接受替寨子粉饰",
+      "target_id": "mei"
+    },
+    {
+      "interest": "希望交接写进寨规而不是靠人情",
+      "source_id": "an",
+      "stance": "愿意谈守闸交接，但需要能拒绝熬夜",
+      "target_id": "tao"
+    },
+    {
+      "interest": "希望合伙做货车的事先讲清分成",
+      "source_id": "du",
+      "stance": "记得他从不催工，愿意先修他的灶",
+      "target_id": "lu"
+    }
+  ]
+}

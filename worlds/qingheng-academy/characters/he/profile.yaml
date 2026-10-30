@@ -1,0 +1,48 @@
+{
+  "goals": [
+    "弄清青衡院的穷学徒到底是怎么被欠账困住的"
+  ],
+  "home_location_id": "terrace-homes",
+  "known_routes": [
+    "shared-court-to-print-room",
+    "print-room-to-shared-court",
+    "shared-court-to-spring-room",
+    "spring-room-to-shared-court",
+    "shared-court-to-archive-room",
+    "archive-room-to-shared-court",
+    "shared-court-to-terrace-homes",
+    "terrace-homes-to-shared-court",
+    "shared-court-to-ridge-gate",
+    "ridge-gate-to-shared-court",
+    "print-room-to-archive-room",
+    "archive-room-to-print-room",
+    "spring-room-to-ridge-gate",
+    "ridge-gate-to-spring-room"
+  ],
+  "learning_interests": [
+    "制纸维护"
+  ],
+  "location_id": "print-room",
+  "name": "贺青禾",
+  "needs": {
+    "exploration": 32,
+    "fatigue": 5,
+    "knowledge": 32,
+    "resources": 24,
+    "social": 24
+  },
+  "responsibilities": [],
+  "role": "外来旁听生",
+  "routine_locations": [
+    "terrace-homes",
+    "print-room",
+    "shared-court",
+    "archive-room"
+  ],
+  "skills": [
+    "校记档案"
+  ],
+  "stocking_interests": [
+    "wooden-wedges"
+  ]
+}

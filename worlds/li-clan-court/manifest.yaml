@@ -1,0 +1,29 @@
+{
+  "assets": {
+    "characters": "characters",
+    "community": "community.yaml",
+    "locations": "locations.yaml",
+    "passages": "passages.yaml",
+    "relationships": "relationships.yaml",
+    "resources": "resources.yaml",
+    "world": "world.yaml"
+  },
+  "capabilities": [
+    "world.core.v1",
+    "world.characters.v1",
+    "world.memory-seed.v1",
+    "world.resources.v1",
+    "world.topology.v1",
+    "world.relationships.v1",
+    "world.community.v1"
+  ],
+  "package_id": "novel-probe-clan",
+  "revision": 1,
+  "schema_version": "world-package/v1alpha3",
+  "workflows": {
+    "evolution": "workflows/evolution.yaml",
+    "genesis": "workflows/genesis.yaml",
+    "intervention": "workflows/intervention.yaml",
+    "presentation": "workflows/presentation.yaml"
+  }
+}

@@ -7,9 +7,9 @@
 ```bash
 python -m scripts.world create worlds/sources/stone-step.json \
   --output outputs/experiments/my-community
-python -m engine community outputs/experiments/my-community \
+cyber-community community outputs/experiments/my-community \
   --log outputs/experiments/my-community.jsonl --seed 17 --ticks 12 --json
-python -m engine community outputs/experiments/my-community \
+cyber-community community outputs/experiments/my-community \
   --log outputs/experiments/my-community.jsonl --resume --ticks 12 --json
 ```
 
@@ -23,26 +23,18 @@ Python 调用可使用 `engine.runtime.simulation.community.run_community_catchu
 
 ## DeepSeek
 
-模型配置为 JSON，凭据通过 `DEEPSEEK_API_KEY` 或本地环境文件提供，不写入配置、
-日志或仓库。例如：
+供应商、模型名、地址和密钥只放在项目根目录的 `.env`，见 `.env.example`。
+`config/model.json` 只写采样和请求预算，不写连接信息。
 
-```json
-{
-  "llm": {
-    "provider": "deepseek",
-    "model": "deepseek-chat",
-    "base_url": "https://api.deepseek.com",
-    "temperature": 0,
-    "max_tokens": 1024
-  },
-  "community_max_requests": 120,
-  "community_timeout_seconds": 120
-}
+```bash
+cyber-community community outputs/experiments/my-community \
+  --log outputs/experiments/my-community.jsonl --seed 17 --ticks 12 \
+  --model-config config/model.json
 ```
 
-使用 `--model-config <配置文件>` 显式启用模型；该操作会产生外部请求。新建时可用
-`--action-budget` 和 `--memory-budget` 设置每 Tick 上限；续跑继承原有预算，
-不得修改模型身份、超时、请求预算、策略版本或引擎源码。源码变化后创建新运行。
+这会调用外部模型。新建时可用 `--action-budget` 和 `--memory-budget` 设置每 Tick
+上限；续跑继承原有预算，不得修改模型身份、超时、请求预算、策略版本或引擎源码。
+源码变化后创建新运行。
 
 当前模型决策以个人感知、Soul、记忆、知识、目标和计划为输入。提示附带本人允许的
 来源列表；本人当前可见的声明编号会解析到它的真实来源，不能引用他人的私人知识、
@@ -62,9 +54,9 @@ Python 调用可使用 `engine.runtime.simulation.community.run_community_catchu
 ## 观察和评审
 
 ```bash
-python -m engine community-observe outputs/experiments/my-community \
+cyber-community community-observe outputs/experiments/my-community \
   --log outputs/experiments/my-community.jsonl --json
-python -m engine community-diagnose outputs/experiments/my-community \
+cyber-community community-diagnose outputs/experiments/my-community \
   --log outputs/experiments/my-community.jsonl --include-private
 python -m scripts.community_model_probe outputs/experiments/my-community \
   --logs outputs/experiments/my-community.jsonl --ticks 12 \

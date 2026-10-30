@@ -1,0 +1,127 @@
+{
+  "locations": [
+    {
+      "access_tags": [],
+      "affordances": {
+        "gather": true,
+        "observe": true,
+        "rest": true,
+        "social": true
+      },
+      "allowed_roles": [],
+      "capacity": 8,
+      "danger": 0,
+      "description": "粮磨和大灶各占一角，寨众在这里吃饭、晒粮和吵架。",
+      "id": "shared-court",
+      "metadata": {},
+      "name": "寨中晒场",
+      "scene_seeds": [],
+      "tags": [
+        "public"
+      ]
+    },
+    {
+      "access_tags": [],
+      "affordances": {
+        "gather": true,
+        "observe": true,
+        "rest": true,
+        "social": true
+      },
+      "allowed_roles": [],
+      "capacity": 6,
+      "danger": 0,
+      "description": "旧布、纸墨和账册分区放着，寨规至今只写了半页。",
+      "id": "print-room",
+      "metadata": {},
+      "name": "账房与告示屋",
+      "scene_seeds": [],
+      "tags": [
+        "public",
+        "sheltered"
+      ]
+    },
+    {
+      "access_tags": [],
+      "affordances": {
+        "gather": true,
+        "observe": true,
+        "rest": true,
+        "social": true
+      },
+      "allowed_roles": [],
+      "capacity": 4,
+      "danger": 0,
+      "description": "泉水经木闸分向晒场和账房，闸口坏了全寨都要停摆。",
+      "id": "spring-room",
+      "metadata": {},
+      "name": "山泉闸口",
+      "scene_seeds": [],
+      "tags": [
+        "public"
+      ]
+    },
+    {
+      "access_tags": [],
+      "affordances": {
+        "gather": true,
+        "observe": true,
+        "rest": true,
+        "social": true
+      },
+      "allowed_roles": [],
+      "capacity": 6,
+      "danger": 0,
+      "description": "旧账、路引和手艺读本分柜存放，来历不清的纸不会被当成事实。",
+      "id": "archive-room",
+      "metadata": {},
+      "name": "旧信阁",
+      "scene_seeds": [],
+      "tags": [
+        "public",
+        "sheltered"
+      ]
+    },
+    {
+      "access_tags": [],
+      "affordances": {
+        "gather": true,
+        "observe": true,
+        "rest": true,
+        "social": true
+      },
+      "allowed_roles": [],
+      "capacity": 8,
+      "danger": 0,
+      "description": "几间木屋各有门锁，住下不等于把命卖给寨子。",
+      "id": "terrace-homes",
+      "metadata": {},
+      "name": "寨众住屋",
+      "scene_seeds": [],
+      "tags": [
+        "public",
+        "sheltered"
+      ]
+    },
+    {
+      "access_tags": [],
+      "affordances": {
+        "gather": true,
+        "observe": true,
+        "rest": true,
+        "social": true
+      },
+      "allowed_roles": [],
+      "capacity": 6,
+      "danger": 0,
+      "description": "驿队在此卸粮换货，只认账本和实物，不认寨子的名声。",
+      "id": "ridge-gate",
+      "metadata": {},
+      "name": "山口驿道",
+      "scene_seeds": [],
+      "tags": [
+        "public"
+      ]
+    }
+  ]
+}

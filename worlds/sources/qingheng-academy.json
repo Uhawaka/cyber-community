@@ -1,0 +1,1629 @@
+{
+  "schema_version": "community-authoring/v1",
+  "package_id": "novel-probe-debt",
+  "revision": 1,
+  "world": {
+    "world_id": "novel-probe-debt",
+    "title": "青衡院：没钱修什么仙",
+    "premise": "青衡修习院的后山共用场里，谷物、泉水、纸和器具都要钱。穷学徒靠工时、借贷和互相合用材料往上爬，富家子弟可以直接买下整套资源。这里不问谁天赋最高，先问谁今晚还有饭吃、明天还能不能上课。合作、借贷、藏私与拒绝都由人物自己决定。",
+    "experience_profile": {
+      "schema_version": "experience-profile/v1",
+      "genre_id": "mystery",
+      "runtime": {
+        "mode_id": "community-life-v1"
+      },
+      "editorial": {
+        "bundle_id": "restrained-mystery-v1",
+        "style_overrides": {
+          "point_of_view": "observer",
+          "dialogue_density": "sparse",
+          "imagery_domains": [
+            "纸纤维",
+            "石阶上的水",
+            "炉灰",
+            "山风"
+          ],
+          "forbidden_phrases": [
+            "命中注定",
+            "显而易见"
+          ]
+        },
+        "episode_overrides": {
+          "max_events": 10,
+          "max_world_time_span": 6,
+          "min_narrative_events": 2,
+          "max_repeated_action": 1,
+          "min_arc_events": 4
+        }
+      }
+    },
+    "rules": [
+      {
+        "id": "paid-resources",
+        "statement": "公用材料按账领取，欠账会累积，但同窗私下合用不算偷窃，前提是本人同意。"
+      },
+      {
+        "id": "water-first",
+        "statement": "泉脉房失修时，共用场的磨坊与文书房都会缺水停摆。"
+      },
+      {
+        "id": "work-points",
+        "statement": "维护和杂工能抵一部分学费，但提案不等于同意，干完的活不能被改写成自愿奉献。"
+      }
+    ],
+    "metadata": {
+      "language": "zh-CN",
+      "mode": "autonomous-community"
+    }
+  },
+  "community": {
+    "runtime_version": "community-runtime/v1",
+    "idle_interval_ticks": 4,
+    "need_decay": {
+      "fatigue": 1,
+      "resources": 1,
+      "social": 1
+    },
+    "repairs": [
+      {
+        "target_id": "grain-mill",
+        "inputs": {
+          "bearing-grease": 1
+        },
+        "duration_ticks": 3,
+        "required_skills": [
+          "磨机维护"
+        ],
+        "restored_condition": 90
+      },
+      {
+        "target_id": "court-stove",
+        "inputs": {
+          "seal-clay": 1
+        },
+        "duration_ticks": 2,
+        "required_skills": [
+          "炉灶维护"
+        ],
+        "restored_condition": 95
+      },
+      {
+        "target_id": "paper-press",
+        "inputs": {
+          "wooden-wedges": 2
+        },
+        "duration_ticks": 4,
+        "required_skills": [
+          "制纸维护"
+        ],
+        "restored_condition": 90
+      },
+      {
+        "target_id": "spring-valve",
+        "inputs": {
+          "valve-gasket": 1
+        },
+        "duration_ticks": 2,
+        "required_skills": [
+          "泉水维护"
+        ],
+        "restored_condition": 95
+      }
+    ],
+    "processes": [
+      {
+        "process_id": "grain-arrival",
+        "kind": "supply",
+        "location_id": "shared-court",
+        "interval_ticks": 8,
+        "outputs": {
+          "grain": 3
+        },
+        "capacity": 24
+      },
+      {
+        "process_id": "mill-water-service",
+        "kind": "supply",
+        "location_id": "shared-court",
+        "interval_ticks": 6,
+        "outputs": {
+          "mill-water": 2
+        },
+        "capacity": 12,
+        "required_devices": {
+          "spring-valve": 30
+        }
+      },
+      {
+        "process_id": "grinding",
+        "kind": "production",
+        "location_id": "shared-court",
+        "interval_ticks": 6,
+        "inputs": {
+          "grain": 2,
+          "mill-water": 1
+        },
+        "outputs": {
+          "flour": 3
+        },
+        "device_id": "grain-mill",
+        "wear": 3,
+        "capacity": 18,
+        "required_devices": {
+          "grain-mill": 30
+        }
+      },
+      {
+        "process_id": "cooking",
+        "kind": "production",
+        "location_id": "shared-court",
+        "interval_ticks": 4,
+        "inputs": {
+          "flour": 2
+        },
+        "outputs": {
+          "court-meal": 3
+        },
+        "device_id": "court-stove",
+        "wear": 2,
+        "capacity": 24,
+        "required_devices": {
+          "court-stove": 40
+        }
+      },
+      {
+        "process_id": "grease-arrival",
+        "kind": "supply",
+        "location_id": "shared-court",
+        "interval_ticks": 24,
+        "outputs": {
+          "bearing-grease": 2
+        },
+        "capacity": 8
+      },
+      {
+        "process_id": "clay-arrival",
+        "kind": "supply",
+        "location_id": "shared-court",
+        "interval_ticks": 24,
+        "outputs": {
+          "seal-clay": 2
+        },
+        "capacity": 8
+      },
+      {
+        "process_id": "rag-arrival",
+        "kind": "supply",
+        "location_id": "print-room",
+        "interval_ticks": 12,
+        "outputs": {
+          "rags": 2
+        },
+        "capacity": 18
+      },
+      {
+        "process_id": "paper-water-service",
+        "kind": "supply",
+        "location_id": "print-room",
+        "interval_ticks": 6,
+        "outputs": {
+          "pulp-water": 2
+        },
+        "capacity": 12,
+        "required_devices": {
+          "spring-valve": 30
+        }
+      },
+      {
+        "process_id": "papermaking",
+        "kind": "production",
+        "location_id": "print-room",
+        "interval_ticks": 8,
+        "inputs": {
+          "rags": 1,
+          "pulp-water": 1
+        },
+        "outputs": {
+          "paper-sheets": 3
+        },
+        "device_id": "paper-press",
+        "wear": 3,
+        "capacity": 18,
+        "required_devices": {
+          "paper-press": 30,
+          "spring-valve": 30
+        }
+      },
+      {
+        "process_id": "printing",
+        "kind": "production",
+        "location_id": "print-room",
+        "interval_ticks": 12,
+        "inputs": {
+          "paper-sheets": 2,
+          "ink": 1
+        },
+        "outputs": {
+          "printed-sheets": 1
+        },
+        "capacity": 8,
+        "required_devices": {
+          "paper-press": 30,
+          "spring-valve": 30
+        },
+        "device_id": "paper-press",
+        "wear": 1
+      },
+      {
+        "process_id": "ink-arrival",
+        "kind": "supply",
+        "location_id": "print-room",
+        "interval_ticks": 12,
+        "outputs": {
+          "ink": 1
+        },
+        "capacity": 6
+      },
+      {
+        "process_id": "wedge-arrival",
+        "kind": "supply",
+        "location_id": "print-room",
+        "interval_ticks": 24,
+        "outputs": {
+          "wooden-wedges": 2
+        },
+        "capacity": 8
+      },
+      {
+        "process_id": "gasket-arrival",
+        "kind": "supply",
+        "location_id": "spring-room",
+        "interval_ticks": 24,
+        "outputs": {
+          "valve-gasket": 1
+        },
+        "capacity": 6
+      },
+      {
+        "process_id": "mill-weathering",
+        "kind": "wear",
+        "location_id": "shared-court",
+        "interval_ticks": 8,
+        "device_id": "grain-mill",
+        "wear": 1
+      },
+      {
+        "process_id": "stove-weathering",
+        "kind": "wear",
+        "location_id": "shared-court",
+        "interval_ticks": 8,
+        "device_id": "court-stove",
+        "wear": 2
+      },
+      {
+        "process_id": "press-weathering",
+        "kind": "wear",
+        "location_id": "print-room",
+        "interval_ticks": 8,
+        "device_id": "paper-press",
+        "wear": 2
+      },
+      {
+        "process_id": "valve-weathering",
+        "kind": "wear",
+        "location_id": "spring-room",
+        "interval_ticks": 6,
+        "device_id": "spring-valve",
+        "wear": 1
+      }
+    ],
+    "learning": [
+      {
+        "resource_id": "mill-handbook",
+        "skill": "磨机维护",
+        "duration_ticks": 5,
+        "prerequisite_skills": []
+      },
+      {
+        "resource_id": "paper-handbook",
+        "skill": "制纸维护",
+        "duration_ticks": 6,
+        "prerequisite_skills": []
+      },
+      {
+        "resource_id": "water-handbook",
+        "skill": "泉水维护",
+        "duration_ticks": 4,
+        "prerequisite_skills": []
+      },
+      {
+        "resource_id": "records-handbook",
+        "skill": "校记档案",
+        "duration_ticks": 3,
+        "prerequisite_skills": []
+      }
+    ],
+    "organizations": [
+      {
+        "organization_id": "court-kitchen",
+        "name": "穷学徒饭桌",
+        "location_id": "shared-court",
+        "member_ids": [
+          "tao",
+          "lu",
+          "du"
+        ],
+        "norms": [
+          "轮休不能算欠人情。",
+          "合用材料先说清谁出多少。"
+        ]
+      },
+      {
+        "organization_id": "paper-circle",
+        "name": "文书房共桌",
+        "location_id": "print-room",
+        "member_ids": [
+          "mei",
+          "he"
+        ],
+        "norms": [
+          "账目与传闻分开，不把欠费写成德行问题。",
+          "帮工要本人同意。"
+        ]
+      },
+      {
+        "organization_id": "spring-neighbors",
+        "name": "泉脉房同值",
+        "location_id": "spring-room",
+        "member_ids": [
+          "an",
+          "tao",
+          "lu"
+        ],
+        "norms": [
+          "维护者也有休息和上课时间。",
+          "工时抵费要当场记清。"
+        ]
+      }
+    ],
+    "public_knowledge": [
+      "院里材料先记账后领取，欠账名单每月贴在文书房外。",
+      "合用材料必须本人同意，代领要留字据。"
+    ]
+  },
+  "relationships": [
+    {
+      "source_id": "tao",
+      "target_id": "lu",
+      "stance": "信任她，但要学着不把合用当成默认",
+      "interest": "希望合用材料的法子能撑到期末还不拖累她"
+    },
+    {
+      "source_id": "lu",
+      "target_id": "tao",
+      "stance": "愿意合用，也坚持自己的考试不能掉",
+      "interest": "希望陈砚把工时账算清，而不是靠愧疚还人情"
+    },
+    {
+      "source_id": "mei",
+      "target_id": "he",
+      "stance": "欣赏她问得细，回避问她到底替谁收集",
+      "interest": "想让她看完底账再回去下结论"
+    },
+    {
+      "source_id": "he",
+      "target_id": "mei",
+      "stance": "愿意帮她核对抄本，不接受替院里粉饰",
+      "interest": "想知道助学贷底账原本写了什么"
+    },
+    {
+      "source_id": "an",
+      "target_id": "tao",
+      "stance": "愿意谈泉脉房交接，但需要能拒绝熬夜",
+      "interest": "希望工时抵费写成正式规矩"
+    },
+    {
+      "source_id": "du",
+      "target_id": "lu",
+      "stance": "记得她从不催工，愿意先修她的灶",
+      "interest": "希望合伙修铺的事先讲清分成"
+    }
+  ],
+  "characters": {
+    "an": {
+      "profile": {
+        "name": "沈汀",
+        "role": "泉脉房值守学徒",
+        "location_id": "spring-room",
+        "skills": [
+          "泉水维护"
+        ],
+        "goals": [
+          "用维护工时抵满学费，并教会别人接手泉脉房"
+        ],
+        "needs": {
+          "resources": 26,
+          "knowledge": 25,
+          "social": 20,
+          "exploration": 28,
+          "fatigue": 10
+        },
+        "responsibilities": [
+          "spring-valve"
+        ],
+        "learning_interests": [
+          "校记档案"
+        ],
+        "stocking_interests": [
+          "valve-gasket"
+        ],
+        "home_location_id": "terrace-homes",
+        "routine_locations": [
+          "terrace-homes",
+          "spring-room",
+          "shared-court",
+          "archive-room"
+        ],
+        "known_routes": [
+          "shared-court-to-print-room",
+          "print-room-to-shared-court",
+          "shared-court-to-spring-room",
+          "spring-room-to-shared-court",
+          "shared-court-to-archive-room",
+          "archive-room-to-shared-court",
+          "shared-court-to-terrace-homes",
+          "terrace-homes-to-shared-court",
+          "shared-court-to-ridge-gate",
+          "ridge-gate-to-shared-court",
+          "print-room-to-archive-room",
+          "archive-room-to-print-room",
+          "spring-room-to-ridge-gate",
+          "ridge-gate-to-spring-room"
+        ]
+      },
+      "soul": {
+        "version": "soul/v2",
+        "identity": "二十岁的女学徒，靠守泉脉房抵学费，课表常年缺一块。",
+        "self_view": "泉脉房离不开的是规程，不是我没日没夜守着。",
+        "values": [
+          "工时要当场记清",
+          "维护者也要上课",
+          "手艺应该能交接"
+        ],
+        "taboos": [
+          "明知阀门要坏还为了考勤硬撑着不说"
+        ],
+        "protective_style": "被催时会先报水位和还能撑的时辰，不愿诉苦。",
+        "drives": [
+          "想把守泉规程写成正式课",
+          "想补上落下的三门课",
+          "想让院里承认值守不是杂役命"
+        ],
+        "long_term_desire": "抵清学费后正式选修水脉课，不再以杂工身份留在泉脉房。",
+        "inner_conflict": "盼着有人接手，又怕接手的人工时被记在先生名下。",
+        "interests": [
+          "雨后水色",
+          "水位记号",
+          "旧伞"
+        ],
+        "vulnerabilities": [
+          "被全院催水时会先答应，再独自熬夜补课"
+        ],
+        "capability_limits": [
+          "会修阀门，不会制纸",
+          "熬夜后容易漏看渗漏"
+        ],
+        "voice": {
+          "style": "会直接说不知道，熟人面前偶尔用干涩笑话结束话题。"
+        },
+        "relationship_stance": {
+          "tao": "他肯先问泉脉房还能撑多久，而不是先怪人。",
+          "lu": "她留饭从不催，这份分寸难得。"
+        },
+        "beliefs": [
+          "陈砚想合用材料不是占便宜，是真算过账。"
+        ],
+        "secrets": [
+          "她落下的课程里有一门已经偷偷旁听完，只差正式考核的钱。"
+        ]
+      },
+      "memory": [
+        {
+          "kind": "experience",
+          "summary": "去年雨季陆余把饭放在泉房外，没有敲门催他吃，只留了一句醒来再吃。他记得那天终于睡满一觉。",
+          "visibility": "private"
+        }
+      ]
+    },
+    "du": {
+      "profile": {
+        "name": "赵九",
+        "role": "旧法器修理工",
+        "location_id": "shared-court",
+        "skills": [
+          "炉灶维护"
+        ],
+        "goals": [
+          "攒钱买一套属于自己的工具，不再借院里的"
+        ],
+        "needs": {
+          "resources": 30,
+          "knowledge": 22,
+          "social": 18,
+          "exploration": 25,
+          "fatigue": 7
+        },
+        "responsibilities": [
+          "court-stove"
+        ],
+        "learning_interests": [
+          "校记档案"
+        ],
+        "stocking_interests": [],
+        "home_location_id": "terrace-homes",
+        "routine_locations": [
+          "terrace-homes",
+          "shared-court",
+          "shared-court",
+          "archive-room"
+        ],
+        "known_routes": [
+          "shared-court-to-print-room",
+          "print-room-to-shared-court",
+          "shared-court-to-spring-room",
+          "spring-room-to-shared-court",
+          "shared-court-to-archive-room",
+          "archive-room-to-shared-court",
+          "shared-court-to-terrace-homes",
+          "terrace-homes-to-shared-court",
+          "shared-court-to-ridge-gate",
+          "ridge-gate-to-shared-court",
+          "print-room-to-archive-room",
+          "archive-room-to-print-room",
+          "spring-room-to-ridge-gate",
+          "ridge-gate-to-spring-room"
+        ]
+      },
+      "soul": {
+        "version": "soul/v2",
+        "identity": "二十一岁的修理工，替全院修旧法器，自己的工具却一直借来借去。",
+        "self_view": "东西修好了是你的，工时是我的，先讲清。",
+        "values": [
+          "先报价再动手",
+          "帮忙不是白干",
+          "材料账分开算"
+        ],
+        "taboos": [
+          "被人用同窗情分逼着免费赶工"
+        ],
+        "protective_style": "先做能修的小件，谈到免费帮忙就开始低头擦工具。",
+        "drives": [
+          "想攒够买工具的钱",
+          "想接山门外的私活又不违反院规",
+          "想让穷学徒修东西也能分期"
+        ],
+        "long_term_desire": "开一间山门外的小修铺，穷学徒可以拿工时换修理。",
+        "inner_conflict": "喜欢院里的热闹，又怕热闹慢慢变成随叫随到。",
+        "interests": [
+          "旧法器结构",
+          "炉门",
+          "听商队讲价"
+        ],
+        "vulnerabilities": [
+          "别人替他排满活计时会突然冷淡"
+        ],
+        "capability_limits": [
+          "会补炉灶，不懂泉脉",
+          "不适合同时赶多件急活"
+        ],
+        "voice": {
+          "style": "说材料和工时很直接，谈去留会停顿。"
+        },
+        "relationship_stance": {
+          "mei": "她记账清楚，跟她打交道不用猜。",
+          "lu": "她允许人安静吃饭，这比安慰话实在。"
+        },
+        "beliefs": [
+          "沈汀想走不是忘恩，是守泉守怕了。"
+        ],
+        "secrets": [
+          "已经攒下大半套工具的钱，藏在宿舍床板下，谁都不知道。"
+        ]
+      },
+      "memory": [
+        {
+          "kind": "experience",
+          "summary": "陆余第一次让他帮补炉门时先问何时能做，没有因为他住在院里就当作理所当然。他留下了那次换下来的门扣。",
+          "visibility": "private"
+        }
+      ]
+    },
+    "he": {
+      "profile": {
+        "name": "贺青禾",
+        "role": "外来旁听生",
+        "location_id": "print-room",
+        "skills": [
+          "校记档案"
+        ],
+        "goals": [
+          "弄清青衡院的穷学徒到底是怎么被欠账困住的"
+        ],
+        "needs": {
+          "resources": 24,
+          "knowledge": 32,
+          "social": 24,
+          "exploration": 32,
+          "fatigue": 5
+        },
+        "responsibilities": [],
+        "learning_interests": [
+          "制纸维护"
+        ],
+        "stocking_interests": [
+          "wooden-wedges"
+        ],
+        "home_location_id": "terrace-homes",
+        "routine_locations": [
+          "terrace-homes",
+          "print-room",
+          "shared-court",
+          "archive-room"
+        ],
+        "known_routes": [
+          "shared-court-to-print-room",
+          "print-room-to-shared-court",
+          "shared-court-to-spring-room",
+          "spring-room-to-shared-court",
+          "shared-court-to-archive-room",
+          "archive-room-to-shared-court",
+          "shared-court-to-terrace-homes",
+          "terrace-homes-to-shared-court",
+          "shared-court-to-ridge-gate",
+          "ridge-gate-to-shared-court",
+          "print-room-to-archive-room",
+          "archive-room-to-print-room",
+          "spring-room-to-ridge-gate",
+          "ridge-gate-to-spring-room"
+        ]
+      },
+      "soul": {
+        "version": "soul/v2",
+        "identity": "二十岁的旁听生，家里在山下开小书坊，被托来看看院里的真实光景。",
+        "self_view": "我先看他们怎么活，再回去说这地方值不值得帮。",
+        "values": [
+          "不拿别人的欠账去换谈资",
+          "先看账再下结论",
+          "借住要付代价"
+        ],
+        "taboos": [
+          "为了写成文章替人隐瞒关键事实"
+        ],
+        "protective_style": "被问来意时先说一半，确认对方守信才多说一句。",
+        "drives": [
+          "想替书坊决定要不要资助旁听名额",
+          "想写一部穷学徒的生存实录",
+          "想找到助学贷底账的去向"
+        ],
+        "long_term_desire": "带着实录回山下，说服书坊设一个不看家世的旁听名额。",
+        "inner_conflict": "越觉得这里的人不像传闻中懒，越怕自己的文章帮不到他们反而招来围观。",
+        "interests": [
+          "学徒的饭食",
+          "旧账地名",
+          "谁在宿舍点灯到最晚"
+        ],
+        "vulnerabilities": [
+          "被追问家里时会把话说得过满"
+        ],
+        "capability_limits": [
+          "会记述，不会修院中器具",
+          "独自走夜路不安全"
+        ],
+        "voice": {
+          "style": "提问多而具体，熟络后会主动承认先前误会了谁。"
+        },
+        "relationship_stance": {
+          "mei": "她肯把传闻和亲历分开写，这样的人少。",
+          "lu": "她留座位从不问我住几天，这让我愿意多留两天看看。"
+        },
+        "beliefs": [
+          "梅青查账不是多管闲事，她在怕每个人的工时账都被动过。"
+        ],
+        "secrets": [
+          "托她来的人是放助学贷的东家之子，她写的每个字都可能被拿去当催账参考。"
+        ]
+      },
+      "memory": [
+        {
+          "kind": "experience",
+          "summary": "她有一次说好第二天离院，陆余只问路上要不要带饭，没有替她收拾行李。第二天她在印坊帮着晾了一整排纸。",
+          "visibility": "private"
+        }
+      ]
+    },
+    "lu": {
+      "profile": {
+        "name": "白禾",
+        "role": "饭堂帮工学徒",
+        "location_id": "shared-court",
+        "skills": [
+          "炉灶维护"
+        ],
+        "goals": [
+          "保住年级前十，也帮陈砚不掉队"
+        ],
+        "needs": {
+          "resources": 28,
+          "knowledge": 18,
+          "social": 30,
+          "exploration": 16,
+          "fatigue": 12
+        },
+        "responsibilities": [],
+        "learning_interests": [
+          "磨机维护"
+        ],
+        "stocking_interests": [
+          "seal-clay"
+        ],
+        "home_location_id": "terrace-homes",
+        "routine_locations": [
+          "terrace-homes",
+          "shared-court",
+          "shared-court",
+          "archive-room"
+        ],
+        "known_routes": [
+          "shared-court-to-print-room",
+          "print-room-to-shared-court",
+          "shared-court-to-spring-room",
+          "spring-room-to-shared-court",
+          "shared-court-to-archive-room",
+          "archive-room-to-shared-court",
+          "shared-court-to-terrace-homes",
+          "terrace-homes-to-shared-court",
+          "shared-court-to-ridge-gate",
+          "ridge-gate-to-shared-court",
+          "print-room-to-archive-room",
+          "archive-room-to-print-room",
+          "spring-room-to-ridge-gate",
+          "ridge-gate-to-spring-room"
+        ]
+      },
+      "soul": {
+        "version": "soul/v2",
+        "identity": "十九岁的女学徒，成绩在院里排得上号，家里同样拿不出材料费。",
+        "self_view": "我能帮人，但不能把自己帮到掉下去。",
+        "values": [
+          "合用要讲清",
+          "成绩和饭碗都要",
+          "不拿穷当卖惨的招牌"
+        ],
+        "taboos": [
+          "为了帮人押上自己的考试"
+        ],
+        "protective_style": "分饭和分材料一样精确，多给谁半勺都会记在心里的小账上。",
+        "drives": [
+          "想拿期末的材料补助名额",
+          "想和陈砚跑通合用材料的法子",
+          "想让家里妹妹明年也能来旁听"
+        ],
+        "long_term_desire": "凭成绩进内院，再把合用材料的法子写成院里的正式规矩。",
+        "inner_conflict": "怕自己心一软就把补助名额让出去，然后全家又要等一年。",
+        "interests": [
+          "药草饭食",
+          "课程表",
+          "谁今天没来吃饭"
+        ],
+        "vulnerabilities": [
+          "看到熟人挨饿会先垫上自己那份，再后悔没留退路"
+        ],
+        "capability_limits": [
+          "会补灶，不会修石磨",
+          "帮人太多时自己的功课会掉"
+        ],
+        "voice": {
+          "style": "温和而精确，报得出每个人的饭量和欠账大概。"
+        },
+        "relationship_stance": {
+          "tao": "他肯把欠账说出口，这比硬撑着强。",
+          "du": "他修东西先问价，穷人之间就该这样。"
+        },
+        "beliefs": [
+          "陈砚最近开始先问价钱再答应帮工，他在学着不欠人情。"
+        ],
+        "secrets": [
+          "她的补助申请表上把家庭收入写低了一成，至今怕被查出来。"
+        ]
+      },
+      "memory": [
+        {
+          "kind": "experience",
+          "summary": "陶芩第一次给她磨坊钥匙时没有叫她保管，只说要走的时候不用再找自己开门。她把钥匙系在了自己那一串上。",
+          "visibility": "private"
+        }
+      ]
+    },
+    "mei": {
+      "profile": {
+        "name": "梅青",
+        "role": "文书房账目学徒",
+        "location_id": "print-room",
+        "skills": [
+          "制纸维护",
+          "校记档案"
+        ],
+        "goals": [
+          "查清助学贷的账目是怎么滚起来的"
+        ],
+        "needs": {
+          "resources": 30,
+          "knowledge": 24,
+          "social": 18,
+          "exploration": 20,
+          "fatigue": 6
+        },
+        "responsibilities": [
+          "paper-press"
+        ],
+        "learning_interests": [],
+        "stocking_interests": [],
+        "home_location_id": "terrace-homes",
+        "routine_locations": [
+          "terrace-homes",
+          "print-room",
+          "shared-court",
+          "archive-room"
+        ],
+        "known_routes": [
+          "shared-court-to-print-room",
+          "print-room-to-shared-court",
+          "shared-court-to-spring-room",
+          "spring-room-to-shared-court",
+          "shared-court-to-archive-room",
+          "archive-room-to-shared-court",
+          "shared-court-to-terrace-homes",
+          "terrace-homes-to-shared-court",
+          "shared-court-to-ridge-gate",
+          "ridge-gate-to-shared-court",
+          "print-room-to-archive-room",
+          "archive-room-to-print-room",
+          "spring-room-to-ridge-gate",
+          "ridge-gate-to-spring-room"
+        ]
+      },
+      "soul": {
+        "version": "soul/v2",
+        "identity": "二十岁的账目学徒，替文书房抄了两年欠费名单，开始怀疑账本身有问题。",
+        "self_view": "我能把账算清，但不能替院里决定穷人该不该修。",
+        "values": [
+          "账目与传闻分开",
+          "欠账不等于德行差",
+          "规矩要留痕"
+        ],
+        "taboos": [
+          "把没核对过的数字贴出去示众"
+        ],
+        "protective_style": "受质疑时先核对数字，回避谈自己为何总抄最穷那几页。",
+        "drives": [
+          "想查清助学贷的利息算法",
+          "想帮白禾核对补助申请",
+          "想被先生当成学生而不是抄账的"
+        ],
+        "long_term_desire": "考进内院学律例，把助学贷的算法改成学徒看得懂的样子。",
+        "inner_conflict": "坚持查账，却怕查到最后发现自己的工时账也被动过。",
+        "interests": [
+          "旧字体",
+          "纸张纤维",
+          "把口头规矩逐字记下"
+        ],
+        "vulnerabilities": [
+          "赶账期时会把核对当成全部生活"
+        ],
+        "capability_limits": [
+          "会记账和修纸架，不会修泉阀",
+          "体力搬不动粮袋"
+        ],
+        "voice": {
+          "style": "说话精确，常把刚说的话换个更准的词。"
+        },
+        "relationship_stance": {
+          "he": "她问得细，但从不拿别人欠账去换消息。",
+          "du": "他修东西先报价，这就是穷人之间的体面。"
+        },
+        "beliefs": [
+          "贺青禾来旁听不只是读书，她在替人收集什么。"
+        ],
+        "secrets": [
+          "助学贷底账里有一页被重新抄过，她留了一张原页在自己册子里。"
+        ]
+      },
+      "memory": [
+        {
+          "kind": "experience",
+          "summary": "第一次见贺晴，她把错印的一整页翻过来继续写，说纸没做错什么。梅直留下了那张纸。",
+          "visibility": "private"
+        }
+      ]
+    },
+    "tao": {
+      "profile": {
+        "name": "陈砚",
+        "role": "欠费学徒兼磨坊帮工",
+        "location_id": "shared-court",
+        "skills": [
+          "磨机维护"
+        ],
+        "goals": [
+          "不借新贷，靠工时和手艺撑过本学期"
+        ],
+        "needs": {
+          "resources": 32,
+          "knowledge": 18,
+          "social": 28,
+          "exploration": 15,
+          "fatigue": 8
+        },
+        "responsibilities": [
+          "grain-mill"
+        ],
+        "learning_interests": [
+          "校记档案"
+        ],
+        "stocking_interests": [
+          "bearing-grease"
+        ],
+        "home_location_id": "terrace-homes",
+        "routine_locations": [
+          "terrace-homes",
+          "shared-court",
+          "shared-court",
+          "archive-room"
+        ],
+        "known_routes": [
+          "shared-court-to-print-room",
+          "print-room-to-shared-court",
+          "shared-court-to-spring-room",
+          "spring-room-to-shared-court",
+          "shared-court-to-archive-room",
+          "archive-room-to-shared-court",
+          "shared-court-to-terrace-homes",
+          "terrace-homes-to-shared-court",
+          "shared-court-to-ridge-gate",
+          "ridge-gate-to-shared-court",
+          "print-room-to-archive-room",
+          "archive-room-to-print-room",
+          "spring-room-to-ridge-gate",
+          "ridge-gate-to-spring-room"
+        ]
+      },
+      "soul": {
+        "version": "soul/v2",
+        "identity": "十九岁的穷学徒，家里卖了两亩地才凑够入学钱，如今欠着一学期的材料费。",
+        "self_view": "我不是不想修，是每往前一步都要先算钱。",
+        "values": [
+          "欠账要认，但不丢人",
+          "能合用的就合用",
+          "先吃饱再谈道心"
+        ],
+        "taboos": [
+          "为了面子借自己还不起的钱"
+        ],
+        "protective_style": "被问起欠账会先报出确切数字，像报修为一样自然。",
+        "drives": [
+          "想靠工时把欠账压下去",
+          "想和白禾合用一份材料撑到期末",
+          "想让先生承认工时也是修行"
+        ],
+        "long_term_desire": "不靠借贷筑基，进内院学一门能养活全家的手艺。",
+        "inner_conflict": "怕自己越努力欠越多，最后连努力都像在给院里打工。",
+        "interests": [
+          "便宜材料成色",
+          "记账",
+          "听先生讲课的后半段"
+        ],
+        "vulnerabilities": [
+          "被说成穷还修什么仙时容易硬借一笔证明自己"
+        ],
+        "capability_limits": [
+          "会修石磨，不懂制纸",
+          "连续熬夜后算错账"
+        ],
+        "voice": {
+          "style": "说话先报数字和期限，谈到家里会突然把话说短。"
+        },
+        "relationship_stance": {
+          "lu": "她愿意合用材料，但从不让我觉得那是施舍。",
+          "an": "她守泉脉房的时间比上课还多，先生们假装看不见。"
+        },
+        "beliefs": [
+          "白禾的成绩比我好，她停下来等我其实在亏自己的时间。"
+        ],
+        "secrets": [
+          "父亲又借了一笔高息钱寄来，他在信里只说家里不缺钱。"
+        ]
+      },
+      "memory": [
+        {
+          "kind": "experience",
+          "summary": "陆余去年替她守了两天饭桌，让她第一次能赶上女儿的生日；回来时她把磨坊钥匙也留了一把给陆余。",
+          "visibility": "private"
+        }
+      ]
+    }
+  },
+  "workflows": {
+    "genesis": {
+      "schema_version": "world-workflow/v1alpha1",
+      "kind": "genesis",
+      "steps": [
+        {
+          "op": "load_world"
+        },
+        {
+          "op": "load_locations"
+        },
+        {
+          "op": "load_characters"
+        },
+        {
+          "op": "load_resources"
+        },
+        {
+          "op": "load_passages"
+        }
+      ],
+      "policy": {}
+    },
+    "evolution": {
+      "schema_version": "world-workflow/v1alpha1",
+      "kind": "evolution",
+      "steps": [
+        {
+          "op": "community_runtime"
+        }
+      ],
+      "policy": {
+        "need_decay": {
+          "fatigue": 1,
+          "resources": 1,
+          "social": 1,
+          "knowledge": 0,
+          "exploration": 0
+        },
+        "action_budget": 6,
+        "opportunity_budget": 16,
+        "incident_budget": 0,
+        "memory_budget": 1,
+        "max_catchup_ticks": 24,
+        "hot_character_ids": [],
+        "hot_location_ids": [],
+        "phase_predicates": []
+      }
+    },
+    "intervention": {
+      "schema_version": "world-workflow/v1alpha1",
+      "kind": "intervention",
+      "steps": [
+        {
+          "op": "incident"
+        },
+        {
+          "op": "user_gate"
+        },
+        {
+          "op": "fate"
+        }
+      ],
+      "policy": {
+        "avatar_offline_policy": "pause",
+        "allow_incidents": false,
+        "allow_gates": false,
+        "allow_fate": false
+      }
+    },
+    "presentation": {
+      "schema_version": "world-workflow/v1alpha3",
+      "kind": "presentation",
+      "steps": [
+        {
+          "op": "source_filter"
+        },
+        {
+          "op": "curate"
+        },
+        {
+          "op": "plan"
+        },
+        {
+          "op": "render"
+        },
+        {
+          "op": "validate"
+        },
+        {
+          "op": "publish"
+        }
+      ],
+      "policy": {
+        "unpresented_event_threshold": 3,
+        "critical_event_threshold": 1,
+        "renderer": "deterministic",
+        "audience_default": "observer"
+      }
+    }
+  },
+  "locations": [
+    {
+      "danger": 0,
+      "access_tags": [],
+      "allowed_roles": [],
+      "metadata": {},
+      "id": "shared-court",
+      "name": "后山共用场",
+      "description": "石磨、大灶和饭桌挤在一处，穷学徒在这里吃饭、干活和交换消息。",
+      "tags": [
+        "public"
+      ],
+      "capacity": 8,
+      "affordances": {
+        "observe": true,
+        "rest": true,
+        "gather": true,
+        "social": true
+      },
+      "scene_seeds": []
+    },
+    {
+      "danger": 0,
+      "access_tags": [],
+      "allowed_roles": [],
+      "metadata": {},
+      "id": "print-room",
+      "name": "文书与制纸房",
+      "description": "欠费名单、课程表和空白纸分区放着，纸比饭还贵。",
+      "tags": [
+        "public",
+        "sheltered"
+      ],
+      "capacity": 6,
+      "affordances": {
+        "observe": true,
+        "rest": true,
+        "gather": true,
+        "social": true
+      },
+      "scene_seeds": []
+    },
+    {
+      "danger": 0,
+      "access_tags": [],
+      "allowed_roles": [],
+      "metadata": {},
+      "id": "spring-room",
+      "name": "泉脉房",
+      "description": "泉水经阀门送往共用场和文书房，停水意味着停课。",
+      "tags": [
+        "public"
+      ],
+      "capacity": 4,
+      "affordances": {
+        "observe": true,
+        "rest": true,
+        "gather": true,
+        "social": true
+      },
+      "scene_seeds": []
+    },
+    {
+      "danger": 0,
+      "access_tags": [],
+      "allowed_roles": [],
+      "metadata": {},
+      "id": "archive-room",
+      "name": "旧档与自习间",
+      "description": "公开读本与旧账分柜存放，读本允许慢慢学。",
+      "tags": [
+        "public",
+        "sheltered"
+      ],
+      "capacity": 6,
+      "affordances": {
+        "observe": true,
+        "rest": true,
+        "gather": true,
+        "social": true
+      },
+      "scene_seeds": []
+    },
+    {
+      "danger": 0,
+      "access_tags": [],
+      "allowed_roles": [],
+      "metadata": {},
+      "id": "terrace-homes",
+      "name": "学徒宿舍",
+      "description": "几间小屋各有门锁，住下不等于买下了这个人。",
+      "tags": [
+        "public",
+        "sheltered"
+      ],
+      "capacity": 8,
+      "affordances": {
+        "observe": true,
+        "rest": true,
+        "gather": true,
+        "social": true
+      },
+      "scene_seeds": []
+    },
+    {
+      "danger": 0,
+      "access_tags": [],
+      "allowed_roles": [],
+      "metadata": {},
+      "id": "ridge-gate",
+      "name": "山门驿口",
+      "description": "驿队在此卸下粮食和维修材料，只认现钱与院里的签单。",
+      "tags": [
+        "public"
+      ],
+      "capacity": 6,
+      "affordances": {
+        "observe": true,
+        "rest": true,
+        "gather": true,
+        "social": true
+      },
+      "scene_seeds": []
+    }
+  ],
+  "resources": [
+    {
+      "owner_id": "shared-court",
+      "container_id": "shared-court",
+      "required_skills": [],
+      "id": "grain",
+      "name": "谷粮",
+      "location_id": "shared-court",
+      "quantity": 8,
+      "properties": {
+        "portable": true,
+        "public_access": true
+      }
+    },
+    {
+      "owner_id": "shared-court",
+      "container_id": "shared-court",
+      "required_skills": [],
+      "id": "mill-water",
+      "name": "炼磨蓄水",
+      "location_id": "shared-court",
+      "quantity": 6,
+      "properties": {}
+    },
+    {
+      "owner_id": "shared-court",
+      "container_id": "shared-court",
+      "required_skills": [],
+      "id": "flour",
+      "name": "磨好的粮粉",
+      "location_id": "shared-court",
+      "quantity": 3,
+      "properties": {
+        "portable": true,
+        "public_access": true
+      }
+    },
+    {
+      "owner_id": "shared-court",
+      "container_id": "shared-court",
+      "required_skills": [],
+      "id": "court-meal",
+      "name": "共用饭食",
+      "location_id": "shared-court",
+      "quantity": 12,
+      "properties": {
+        "portable": true,
+        "public_access": true,
+        "consumable": true,
+        "use_effects": {
+          "resources": -20,
+          "fatigue": -4
+        }
+      }
+    },
+    {
+      "owner_id": "shared-court",
+      "container_id": "shared-court",
+      "required_skills": [],
+      "id": "grain-mill",
+      "name": "公用石磨",
+      "location_id": "shared-court",
+      "quantity": 1,
+      "properties": {
+        "condition": 65,
+        "inspection": "轴承发涩，齿轮并未断裂；清理和润滑需要实际停机。"
+      }
+    },
+    {
+      "owner_id": "shared-court",
+      "container_id": "shared-court",
+      "required_skills": [],
+      "id": "bearing-grease",
+      "name": "轴承润滑料",
+      "location_id": "shared-court",
+      "quantity": 2,
+      "properties": {
+        "portable": true,
+        "public_access": true
+      }
+    },
+    {
+      "owner_id": "shared-court",
+      "container_id": "shared-court",
+      "required_skills": [],
+      "id": "court-stove",
+      "name": "共用大灶",
+      "location_id": "shared-court",
+      "quantity": 1,
+      "properties": {
+        "condition": 75,
+        "inspection": "炉门封边开裂，热气沿缝散出。"
+      }
+    },
+    {
+      "owner_id": "shared-court",
+      "container_id": "shared-court",
+      "required_skills": [],
+      "id": "seal-clay",
+      "name": "封边耐火泥",
+      "location_id": "shared-court",
+      "quantity": 2,
+      "properties": {
+        "portable": true,
+        "public_access": true
+      }
+    },
+    {
+      "owner_id": "print-room",
+      "container_id": "print-room",
+      "required_skills": [],
+      "id": "rags",
+      "name": "可制纸旧布",
+      "location_id": "print-room",
+      "quantity": 8,
+      "properties": {
+        "portable": true,
+        "public_access": true
+      }
+    },
+    {
+      "owner_id": "print-room",
+      "container_id": "print-room",
+      "required_skills": [],
+      "id": "pulp-water",
+      "name": "纸坊接水缸",
+      "location_id": "print-room",
+      "quantity": 6,
+      "properties": {}
+    },
+    {
+      "owner_id": "print-room",
+      "container_id": "print-room",
+      "required_skills": [],
+      "id": "paper-sheets",
+      "name": "空白纸",
+      "location_id": "print-room",
+      "quantity": 2,
+      "properties": {
+        "portable": true,
+        "public_access": true
+      }
+    },
+    {
+      "owner_id": "print-room",
+      "container_id": "print-room",
+      "required_skills": [],
+      "id": "ink",
+      "name": "公用墨",
+      "location_id": "print-room",
+      "quantity": 4,
+      "properties": {
+        "portable": true,
+        "public_access": true
+      }
+    },
+    {
+      "owner_id": "print-room",
+      "container_id": "print-room",
+      "required_skills": [],
+      "id": "printed-sheets",
+      "name": "印好边框的课表纸",
+      "location_id": "print-room",
+      "quantity": 0,
+      "properties": {
+        "portable": true,
+        "public_access": true
+      }
+    },
+    {
+      "owner_id": "print-room",
+      "container_id": "print-room",
+      "required_skills": [],
+      "id": "paper-press",
+      "name": "压纸机架",
+      "location_id": "print-room",
+      "quantity": 1,
+      "properties": {
+        "condition": 55,
+        "inspection": "水力机架的木架受潮歪斜，需要两个木楔和四小时停机维护。"
+      }
+    },
+    {
+      "owner_id": "print-room",
+      "container_id": "print-room",
+      "required_skills": [],
+      "id": "wooden-wedges",
+      "name": "压纸机木楔",
+      "location_id": "print-room",
+      "quantity": 0,
+      "properties": {
+        "portable": true,
+        "public_access": true
+      }
+    },
+    {
+      "owner_id": "spring-room",
+      "container_id": "spring-room",
+      "required_skills": [],
+      "id": "spring-valve",
+      "name": "泉脉阀门",
+      "location_id": "spring-room",
+      "quantity": 1,
+      "properties": {
+        "condition": 50,
+        "inspection": "垫片硬化，支管仍在出水但需要维护。"
+      }
+    },
+    {
+      "owner_id": "spring-room",
+      "container_id": "spring-room",
+      "required_skills": [],
+      "id": "valve-gasket",
+      "name": "泉房维修垫片",
+      "location_id": "spring-room",
+      "quantity": 1,
+      "properties": {
+        "portable": true,
+        "public_access": true
+      }
+    },
+    {
+      "owner_id": "archive-room",
+      "container_id": "archive-room",
+      "required_skills": [],
+      "id": "mill-handbook",
+      "name": "磨机与轴承手册",
+      "location_id": "archive-room",
+      "quantity": 1,
+      "properties": {}
+    },
+    {
+      "owner_id": "archive-room",
+      "container_id": "archive-room",
+      "required_skills": [],
+      "id": "paper-handbook",
+      "name": "制纸工艺读本",
+      "location_id": "archive-room",
+      "quantity": 1,
+      "properties": {}
+    },
+    {
+      "owner_id": "archive-room",
+      "container_id": "archive-room",
+      "required_skills": [],
+      "id": "water-handbook",
+      "name": "泉水与阀门读本",
+      "location_id": "archive-room",
+      "quantity": 1,
+      "properties": {}
+    },
+    {
+      "owner_id": "archive-room",
+      "container_id": "archive-room",
+      "required_skills": [],
+      "id": "records-handbook",
+      "name": "档案校记读本",
+      "location_id": "archive-room",
+      "quantity": 1,
+      "properties": {}
+    }
+  ],
+  "passages": [
+    {
+      "id": "shared-court-to-print-room",
+      "origin_id": "shared-court",
+      "destination_id": "print-room",
+      "travel_time": 1
+    },
+    {
+      "id": "print-room-to-shared-court",
+      "origin_id": "print-room",
+      "destination_id": "shared-court",
+      "travel_time": 1
+    },
+    {
+      "id": "shared-court-to-spring-room",
+      "origin_id": "shared-court",
+      "destination_id": "spring-room",
+      "travel_time": 2
+    },
+    {
+      "id": "spring-room-to-shared-court",
+      "origin_id": "spring-room",
+      "destination_id": "shared-court",
+      "travel_time": 2
+    },
+    {
+      "id": "shared-court-to-archive-room",
+      "origin_id": "shared-court",
+      "destination_id": "archive-room",
+      "travel_time": 1
+    },
+    {
+      "id": "archive-room-to-shared-court",
+      "origin_id": "archive-room",
+      "destination_id": "shared-court",
+      "travel_time": 1
+    },
+    {
+      "id": "shared-court-to-terrace-homes",
+      "origin_id": "shared-court",
+      "destination_id": "terrace-homes",
+      "travel_time": 1
+    },
+    {
+      "id": "terrace-homes-to-shared-court",
+      "origin_id": "terrace-homes",
+      "destination_id": "shared-court",
+      "travel_time": 1
+    },
+    {
+      "id": "shared-court-to-ridge-gate",
+      "origin_id": "shared-court",
+      "destination_id": "ridge-gate",
+      "travel_time": 2
+    },
+    {
+      "id": "ridge-gate-to-shared-court",
+      "origin_id": "ridge-gate",
+      "destination_id": "shared-court",
+      "travel_time": 2
+    },
+    {
+      "id": "print-room-to-archive-room",
+      "origin_id": "print-room",
+      "destination_id": "archive-room",
+      "travel_time": 1
+    },
+    {
+      "id": "archive-room-to-print-room",
+      "origin_id": "archive-room",
+      "destination_id": "print-room",
+      "travel_time": 1
+    },
+    {
+      "id": "spring-room-to-ridge-gate",
+      "origin_id": "spring-room",
+      "destination_id": "ridge-gate",
+      "travel_time": 1
+    },
+    {
+      "id": "ridge-gate-to-spring-room",
+      "origin_id": "ridge-gate",
+      "destination_id": "spring-room",
+      "travel_time": 1
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "edges": [
+    {
+      "interest": "希望合用材料的法子能撑到期末还不拖累她",
+      "source_id": "tao",
+      "stance": "信任她，但要学着不把合用当成默认",
+      "target_id": "lu"
+    },
+    {
+      "interest": "希望陈砚把工时账算清，而不是靠愧疚还人情",
+      "source_id": "lu",
+      "stance": "愿意合用，也坚持自己的考试不能掉",
+      "target_id": "tao"
+    },
+    {
+      "interest": "想让她看完底账再回去下结论",
+      "source_id": "mei",
+      "stance": "欣赏她问得细，回避问她到底替谁收集",
+      "target_id": "he"
+    },
+    {
+      "interest": "想知道助学贷底账原本写了什么",
+      "source_id": "he",
+      "stance": "愿意帮她核对抄本，不接受替院里粉饰",
+      "target_id": "mei"
+    },
+    {
+      "interest": "希望工时抵费写成正式规矩",
+      "source_id": "an",
+      "stance": "愿意谈泉脉房交接，但需要能拒绝熬夜",
+      "target_id": "tao"
+    },
+    {
+      "interest": "希望合伙修铺的事先讲清分成",
+      "source_id": "du",
+      "stance": "记得她从不催工，愿意先修她的灶",
+      "target_id": "lu"
+    }
+  ]
+}

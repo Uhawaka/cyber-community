@@ -1,0 +1,30 @@
+{
+  "kind": "presentation",
+  "policy": {
+    "audience_default": "observer",
+    "critical_event_threshold": 1,
+    "renderer": "deterministic",
+    "unpresented_event_threshold": 3
+  },
+  "schema_version": "world-workflow/v1alpha3",
+  "steps": [
+    {
+      "op": "source_filter"
+    },
+    {
+      "op": "curate"
+    },
+    {
+      "op": "plan"
+    },
+    {
+      "op": "render"
+    },
+    {
+      "op": "validate"
+    },
+    {
+      "op": "publish"
+    }
+  ]
+}

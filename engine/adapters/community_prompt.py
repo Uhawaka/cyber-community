@@ -8,14 +8,14 @@ repair/move），`offer/accept/reject/handoff` 一次没用过、`refuse` 一次
 
 from __future__ import annotations
 
-from dataclasses import asdict
 import json
 
 from engine.contracts.intent import INTENT_STEP_VERBS
 
 
-def decision_prompt(context, allowed_refs) -> str:
-    payload = json.dumps({**asdict(context), "allowed_source_refs": allowed_refs}, ensure_ascii=False)
+def decision_prompt(window) -> str:
+    payload = json.dumps(window, ensure_ascii=False)
+    verbs = _window_verbs(window)
     lines = [
         "你只决定自己这一 Tick 做什么，不替其他角色决定，也不宣称预期效果已经发生。\n",
         "只返回 JSON；下面先说这一轮该看什么，再说动作怎么写，最后是少用的机制。\n",
@@ -36,15 +36,12 @@ def decision_prompt(context, allowed_refs) -> str:
         "（speech_act=promise, reply_to=那个来源），也可以拒绝（speech_act=refuse, reply_to=那个来源）。"
         "带上 reply_to 才算正式答复，会落成有期限的义务。\n",
         "拒绝是正当的：做不到、不愿意、对方条件不成立，就直说 refuse，不必用答应来收场——答应下来的事要还。\n",
-        "\n【要谈条件、要交接时才用】\n",
-        "offer —— target_id=对方，item_id=你拿出的东西，requested_item_id/requested_quantity=你要什么；对方 accept 才算数。\n",
-        "accept / reject —— target_id=收到的 offer_id、commitment_id、handoff_id 或 request_id。\n",
-        "request —— 向眼前有维修能力的人要材料：item_id=材料，reply_to=设备，quantity=数量；请求不代表对方同意。\n",
-        "transfer / handoff —— transfer 转交本人手里的物品；handoff 把照管的设备交给眼前接任者，对方独立 accept 才转移，期限 24 Tick。\n",
-        "commit —— reply_to=repair、item_id=设备、quantity=承诺达到的 condition，期限 24 Tick；提案不扣材料、不是同意，实际修完才履约。\n",
-        "lend / repay —— lend 对眼前借款人，item_id/quantity 是本金，requested_quantity 是偿还量；repay 的 target_id 是本人的 loan_id。\n",
-        '例如：{"verb":"offer","target_id":"mei","item_id":"lamp-oil","requested_item_id":"wire",'
-        '"requested_quantity":2,"intent":"拿灯油换两段线","source_refs":["event:12"]}\n',
+    ]
+    bargain = _bargain_rules(verbs)
+    if bargain:
+        lines.append("\n【要谈条件、要交接时才用】\n")
+        lines.extend(bargain)
+    lines.extend((
         "\n【进阶机制：用得少，规则照旧】\n",
         "计划 —— intent_kind=plan 一次编至多八步，steps=[{verb,target_id}]，可选 depends_on、"
         "guards（at_location / inventory_at_least）、budget、goal_id、deadline_tick；接着走用 continue_plan,plan_id。"
@@ -59,8 +56,40 @@ def decision_prompt(context, allowed_refs) -> str:
         "其他可用的还有：learn、pursue、abandon、wait、rest、check 类只读动作；参数按名字直译，都要真实来源。\n",
         "\n【来源与格式】\n",
         "source_refs 必须从 allowed_source_refs 中选择真实来源；声明编号不是来源，不得编造世界知识。\n",
+        "输入是索引。loaded 里才是这一轮展开的正文；索引只有名字和编号，不表示正文已经读过。\n",
         "字段：verb,target_id,intent,source_refs，可选 quantity,item_id,speech,reply_to,requested_item_id,requested_quantity。\n",
         "输入：\n",
         payload,
-    ]
+    ))
     return "".join(lines)
+
+
+def _window_verbs(window) -> set[str]:
+    verbs = {item[0] for item in window.get("operations_index", ()) if item}
+    verbs.update(item.get("verb", "") for item in window.get("loaded", {}).get("operations", ()))
+    for plan in window.get("intent_plans", ()):
+        verbs.update(step.get("verb", "") for step in plan.get("steps", ()))
+    return verbs
+
+
+def _bargain_rules(verbs: set[str]) -> list[str]:
+    rules = []
+    if verbs & {"offer", "accept", "reject"}:
+        rules.append(
+            "offer —— target_id=对方，item_id=你拿出的东西，requested_item_id/requested_quantity=你要什么；对方 accept 才算数。\n"
+        )
+        rules.append("accept / reject —— target_id=收到的 offer_id、commitment_id、handoff_id 或 request_id。\n")
+    if "request" in verbs:
+        rules.append("request —— 向眼前有维修能力的人要材料：item_id=材料，reply_to=设备，quantity=数量；请求不代表对方同意。\n")
+    if verbs & {"transfer", "handoff"}:
+        rules.append("transfer / handoff —— transfer 转交本人手里的物品；handoff 把照管的设备交给眼前接任者，对方独立 accept 才转移，期限 24 Tick。\n")
+    if "commit" in verbs:
+        rules.append("commit —— reply_to=repair、item_id=设备、quantity=承诺达到的 condition，期限 24 Tick；提案不扣材料、不是同意，实际修完才履约。\n")
+    if verbs & {"lend", "repay"}:
+        rules.append("lend / repay —— lend 对眼前借款人，item_id/quantity 是本金，requested_quantity 是偿还量；repay 的 target_id 是本人的 loan_id。\n")
+    if rules:
+        rules.append(
+            '例如：{"verb":"offer","target_id":"mei","item_id":"lamp-oil","requested_item_id":"wire",'
+            '"requested_quantity":2,"intent":"拿灯油换两段线","source_refs":["event:12"]}\n'
+        )
+    return rules

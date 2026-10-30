@@ -1,0 +1,54 @@
+{
+  "experience_profile": {
+    "editorial": {
+      "bundle_id": "restrained-mystery-v1",
+      "episode_overrides": {
+        "max_events": 10,
+        "max_repeated_action": 1,
+        "max_world_time_span": 6,
+        "min_arc_events": 4,
+        "min_narrative_events": 2
+      },
+      "style_overrides": {
+        "dialogue_density": "sparse",
+        "forbidden_phrases": [
+          "命中注定",
+          "显而易见"
+        ],
+        "imagery_domains": [
+          "纸纤维",
+          "石阶上的水",
+          "炉灰",
+          "山风"
+        ],
+        "point_of_view": "observer"
+      }
+    },
+    "genre_id": "mystery",
+    "runtime": {
+      "mode_id": "community-life-v1"
+    },
+    "schema_version": "experience-profile/v1"
+  },
+  "metadata": {
+    "language": "zh-CN",
+    "mode": "autonomous-community"
+  },
+  "premise": "山旁的李氏族院靠共用粮仓、祖泉和一间谱房维持。长房、次房与旁支同吃一口锅，却为轮值、名分和谁有资格学手艺暗暗较劲。老一辈留下的规矩正在失效，年轻人想把维护、记名和分粮写成新族规。家族能不能往前走，不取决于某一个天才，而取决于一代人愿不愿意替下一代留路。",
+  "rules": [
+    {
+      "id": "clan-ledger",
+      "statement": "公粮与公物出入记在谱房，人情归人情，账面归账面。"
+    },
+    {
+      "id": "water-first",
+      "statement": "祖泉房失修时，粮仓与谱房都会缺水停摆。"
+    },
+    {
+      "id": "names-recorded",
+      "statement": "为族里死去和远行的人都要记名，记名不等于评功过。"
+    }
+  ],
+  "title": "李氏族院：粮仓与族谱",
+  "world_id": "novel-probe-clan"
+}

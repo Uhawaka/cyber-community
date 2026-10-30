@@ -4,7 +4,7 @@ Reads an authoring source, asks the configured model for one candidate extension
 character, writes a *candidate* source under outputs/candidates/ and validates it by
 building a package. The shipped world is never touched.
 
-    python -m scripts.grow_world worlds/sources/stone-step.json --model-config /tmp/cc-model.json
+    python -m scripts.grow_world worlds/sources/stone-step.json
 """
 
 from __future__ import annotations
@@ -14,7 +14,7 @@ import json
 import sys
 from pathlib import Path
 
-from engine.adapters.openai_compatible import OpenAICompatibleTextModel
+from engine.adapters.openai_compatible import OpenAICompatibleTextModel, settings_without_connection
 from engine.world import build_community_package
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -193,7 +193,8 @@ def _errand(model, world, character):
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("source")
-    parser.add_argument("--model-config", required=True)
+    parser.add_argument("--model-config", type=Path, default=None,
+                        help="可选预算文件；供应商、模型、地址和密钥仍来自 .env")
     parser.add_argument("--only", default="", help="comma separated character ids")
     parser.add_argument("--with-danger", action="store_true", help="也给每个地点评一个危险度")
     parser.add_argument("--with-errands", action="store_true", help="给每人写一件必须去别处办的事")
@@ -201,8 +202,10 @@ def main() -> int:
 
     source_path = Path(args.source)
     world = json.loads(source_path.read_text(encoding="utf-8"))
-    config = json.loads(Path(args.model_config).read_text(encoding="utf-8"))
-    config.setdefault("llm", {})["temperature"] = 0.8
+    config = {}
+    if args.model_config is not None:
+        config = settings_without_connection(json.loads(args.model_config.read_text(encoding="utf-8")))
+    config.setdefault("temperature", 0.8)
     model = OpenAICompatibleTextModel(config)
 
     wanted = {item.strip() for item in args.only.split(",") if item.strip()}

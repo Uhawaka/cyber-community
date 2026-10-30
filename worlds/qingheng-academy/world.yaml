@@ -1,0 +1,54 @@
+{
+  "experience_profile": {
+    "editorial": {
+      "bundle_id": "restrained-mystery-v1",
+      "episode_overrides": {
+        "max_events": 10,
+        "max_repeated_action": 1,
+        "max_world_time_span": 6,
+        "min_arc_events": 4,
+        "min_narrative_events": 2
+      },
+      "style_overrides": {
+        "dialogue_density": "sparse",
+        "forbidden_phrases": [
+          "命中注定",
+          "显而易见"
+        ],
+        "imagery_domains": [
+          "纸纤维",
+          "石阶上的水",
+          "炉灰",
+          "山风"
+        ],
+        "point_of_view": "observer"
+      }
+    },
+    "genre_id": "mystery",
+    "runtime": {
+      "mode_id": "community-life-v1"
+    },
+    "schema_version": "experience-profile/v1"
+  },
+  "metadata": {
+    "language": "zh-CN",
+    "mode": "autonomous-community"
+  },
+  "premise": "青衡修习院的后山共用场里，谷物、泉水、纸和器具都要钱。穷学徒靠工时、借贷和互相合用材料往上爬，富家子弟可以直接买下整套资源。这里不问谁天赋最高，先问谁今晚还有饭吃、明天还能不能上课。合作、借贷、藏私与拒绝都由人物自己决定。",
+  "rules": [
+    {
+      "id": "paid-resources",
+      "statement": "公用材料按账领取，欠账会累积，但同窗私下合用不算偷窃，前提是本人同意。"
+    },
+    {
+      "id": "water-first",
+      "statement": "泉脉房失修时，共用场的磨坊与文书房都会缺水停摆。"
+    },
+    {
+      "id": "work-points",
+      "statement": "维护和杂工能抵一部分学费，但提案不等于同意，干完的活不能被改写成自愿奉献。"
+    }
+  ],
+  "title": "青衡院：没钱修什么仙",
+  "world_id": "novel-probe-debt"
+}

@@ -1,0 +1,48 @@
+{
+  "goals": [
+    "让寨里每天有热饭，也攒够下山赎妹妹的钱"
+  ],
+  "home_location_id": "terrace-homes",
+  "known_routes": [
+    "shared-court-to-print-room",
+    "print-room-to-shared-court",
+    "shared-court-to-spring-room",
+    "spring-room-to-shared-court",
+    "shared-court-to-archive-room",
+    "archive-room-to-shared-court",
+    "shared-court-to-terrace-homes",
+    "terrace-homes-to-shared-court",
+    "shared-court-to-ridge-gate",
+    "ridge-gate-to-shared-court",
+    "print-room-to-archive-room",
+    "archive-room-to-print-room",
+    "spring-room-to-ridge-gate",
+    "ridge-gate-to-spring-room"
+  ],
+  "learning_interests": [
+    "磨机维护"
+  ],
+  "location_id": "shared-court",
+  "name": "阿满",
+  "needs": {
+    "exploration": 16,
+    "fatigue": 12,
+    "knowledge": 18,
+    "resources": 28,
+    "social": 30
+  },
+  "responsibilities": [],
+  "role": "山寨火头",
+  "routine_locations": [
+    "terrace-homes",
+    "shared-court",
+    "shared-court",
+    "archive-room"
+  ],
+  "skills": [
+    "炉灶维护"
+  ],
+  "stocking_interests": [
+    "seal-clay"
+  ]
+}

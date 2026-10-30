@@ -1,0 +1,47 @@
+{
+  "goals": [
+    "把寨规写成谁都看得懂的一页纸"
+  ],
+  "home_location_id": "terrace-homes",
+  "known_routes": [
+    "shared-court-to-print-room",
+    "print-room-to-shared-court",
+    "shared-court-to-spring-room",
+    "spring-room-to-shared-court",
+    "shared-court-to-archive-room",
+    "archive-room-to-shared-court",
+    "shared-court-to-terrace-homes",
+    "terrace-homes-to-shared-court",
+    "shared-court-to-ridge-gate",
+    "ridge-gate-to-shared-court",
+    "print-room-to-archive-room",
+    "archive-room-to-print-room",
+    "spring-room-to-ridge-gate",
+    "ridge-gate-to-spring-room"
+  ],
+  "learning_interests": [],
+  "location_id": "print-room",
+  "name": "纪账",
+  "needs": {
+    "exploration": 20,
+    "fatigue": 6,
+    "knowledge": 24,
+    "resources": 30,
+    "social": 18
+  },
+  "responsibilities": [
+    "paper-press"
+  ],
+  "role": "账房先生",
+  "routine_locations": [
+    "terrace-homes",
+    "print-room",
+    "shared-court",
+    "archive-room"
+  ],
+  "skills": [
+    "制纸维护",
+    "校记档案"
+  ],
+  "stocking_interests": []
+}

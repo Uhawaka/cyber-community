@@ -1,0 +1,50 @@
+{
+  "goals": [
+    "不借新贷，靠工时和手艺撑过本学期"
+  ],
+  "home_location_id": "terrace-homes",
+  "known_routes": [
+    "shared-court-to-print-room",
+    "print-room-to-shared-court",
+    "shared-court-to-spring-room",
+    "spring-room-to-shared-court",
+    "shared-court-to-archive-room",
+    "archive-room-to-shared-court",
+    "shared-court-to-terrace-homes",
+    "terrace-homes-to-shared-court",
+    "shared-court-to-ridge-gate",
+    "ridge-gate-to-shared-court",
+    "print-room-to-archive-room",
+    "archive-room-to-print-room",
+    "spring-room-to-ridge-gate",
+    "ridge-gate-to-spring-room"
+  ],
+  "learning_interests": [
+    "校记档案"
+  ],
+  "location_id": "shared-court",
+  "name": "陈砚",
+  "needs": {
+    "exploration": 15,
+    "fatigue": 8,
+    "knowledge": 18,
+    "resources": 32,
+    "social": 28
+  },
+  "responsibilities": [
+    "grain-mill"
+  ],
+  "role": "欠费学徒兼磨坊帮工",
+  "routine_locations": [
+    "terrace-homes",
+    "shared-court",
+    "shared-court",
+    "archive-room"
+  ],
+  "skills": [
+    "磨机维护"
+  ],
+  "stocking_interests": [
+    "bearing-grease"
+  ]
+}

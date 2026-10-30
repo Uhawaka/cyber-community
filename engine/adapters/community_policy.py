@@ -9,7 +9,7 @@ from hashlib import sha256
 
 from engine.contracts.community import ActionProposal, ActionVerb, IntentStep
 from engine.contracts.intent import INTENT_STEP_VERBS, ready_intent_steps
-from engine.runtime.character.community_context import decision_source_refs, resolve_visible_claim_refs
+from engine.runtime.character.community_context import resolve_visible_claim_refs
 
 MAX_MODEL_PROMPT_BYTES = 131072
 
@@ -51,13 +51,20 @@ class ModelCommunityPolicy:
         if self.requests >= self.max_requests:
             raise RuntimeError("community model request budget exhausted")
         self.requests += 1
+        return self.interpret(context, self.complete(context))
+
+    def complete(self, context):
+        """One model call. Safe to run beside other characters from the same snapshot."""
         from engine.adapters.community_prompt import decision_prompt
-        prompt = decision_prompt(context, sorted(decision_source_refs(context)))
+        from engine.runtime.character.community_window import assemble_window
+        prompt = decision_prompt(assemble_window(context))
         if len(prompt.encode("utf-8")) > MAX_MODEL_PROMPT_BYTES:
             raise ValueError("model input exceeds decision budget")
         from engine.adapters.openai_compatible import OpenAICompatibleTextModel
         complete = self.model.complete_once if type(self.model) is OpenAICompatibleTextModel else self.model.complete
-        answer = complete(prompt, timeout_seconds=self.timeout_seconds)
+        return complete(prompt, timeout_seconds=self.timeout_seconds)
+
+    def interpret(self, context, answer):
         if not isinstance(answer, str) or len(answer) > 8000:
             raise ValueError("model response exceeds decision budget")
         try:

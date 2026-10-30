@@ -7,6 +7,7 @@ from heapq import heapify, heappop
 
 from engine.contracts.cognition import MemoryRecord
 from engine.runtime.character.community_event_view import visible_event_summary
+from engine.runtime.character.community_vectors import embed, similarity
 
 
 @dataclass(frozen=True)
@@ -23,12 +24,14 @@ class MemoryIndex:
         self.by_entity = {}
         self.by_person = {}
         self.by_topic = {}
+        self._vectors = {}
 
     def add(self, record: MemoryRecord):
         old = self.records.get(record.memory_id)
         if old is not None:
             self._update(old, remove=True)
         self.records[record.memory_id] = record
+        self._vectors[record.memory_id] = embed(record.summary)
         self._update(record)
 
     def _update(self, record, remove=False):
@@ -52,12 +55,18 @@ class MemoryIndex:
         owned = self.by_owner.get(owner_id, set())
         entities, people, subjects = set(entity_ids), set(participant_ids), set(topics)
         words = tuple(word for word in query.split() if len(word) > 1)
+        query_vec = embed(query) if query else None
         # All owned memories remain eligible; recency-only truncation loses old relevant evidence.
         ranked = []
         for memory_id in owned:
             record = self.records[memory_id]
             reasons = []
             score = record.importance
+            if query_vec is not None:
+                wording = int(similarity(query_vec, self._vectors[memory_id]) * 40)
+                if wording:
+                    score += wording
+                    reasons.append("related wording")
             if entities.intersection(record.entity_ids):
                 score += 160
                 reasons.append("related entity")

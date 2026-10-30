@@ -10,6 +10,9 @@
 - [回声码头](../../worlds/sources/echo-quay.json)
 - [石阶院](../../worlds/sources/stone-step.json)
 - [黑松岭](../../worlds/sources/black-pine-ridge.json)
+- [青衡院](../../worlds/sources/qingheng-academy.json)
+- [李氏族院](../../worlds/sources/li-clan-court.json)
+- [黑风寨](../../worlds/sources/black-wind-stockade.json)
 
 复制一份作者数据，修改世界、人物、地图和规则后，指定一个不存在的新目录：
 
@@ -76,7 +79,8 @@ manifest、capabilities 和固定目录布局由构建器生成，作者不能�
 ## 产出位置
 
 作者 JSON 是正式输入，位于 `worlds/sources/`；可运行世界包位于 `worlds/`。
-正式包分别为 `echo-quay`、`stone-step-commons` 和 `black-pine-ridge`。
+正式包分别为 `echo-quay`、`stone-step-commons`、`black-pine-ridge`、
+`qingheng-academy`、`li-clan-court` 和 `black-wind-stockade`。
 实验 JSON、日志和报告写入 `outputs/experiments/`，测试报告写入 `outputs/tests/`。
 `docs/` 只保存规范与开发记录，冻结回归输入仍位于 `tests/fixtures/`。
 

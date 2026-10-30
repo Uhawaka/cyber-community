@@ -1,0 +1,6 @@
+{
+  "temperature": 0,
+  "max_tokens": 1024,
+  "community_max_requests": 120,
+  "community_timeout_seconds": 120
+}

@@ -1,0 +1,335 @@
+{
+  "idle_interval_ticks": 4,
+  "learning": [
+    {
+      "duration_ticks": 5,
+      "prerequisite_skills": [],
+      "resource_id": "mill-handbook",
+      "skill": "磨机维护"
+    },
+    {
+      "duration_ticks": 6,
+      "prerequisite_skills": [],
+      "resource_id": "paper-handbook",
+      "skill": "制纸维护"
+    },
+    {
+      "duration_ticks": 4,
+      "prerequisite_skills": [],
+      "resource_id": "water-handbook",
+      "skill": "泉水维护"
+    },
+    {
+      "duration_ticks": 3,
+      "prerequisite_skills": [],
+      "resource_id": "records-handbook",
+      "skill": "校记档案"
+    }
+  ],
+  "need_decay": {
+    "fatigue": 1,
+    "resources": 1,
+    "social": 1
+  },
+  "organizations": [
+    {
+      "location_id": "shared-court",
+      "member_ids": [
+        "tao",
+        "lu",
+        "du"
+      ],
+      "name": "穷学徒饭桌",
+      "norms": [
+        "轮休不能算欠人情。",
+        "合用材料先说清谁出多少。"
+      ],
+      "organization_id": "court-kitchen"
+    },
+    {
+      "location_id": "print-room",
+      "member_ids": [
+        "mei",
+        "he"
+      ],
+      "name": "文书房共桌",
+      "norms": [
+        "账目与传闻分开，不把欠费写成德行问题。",
+        "帮工要本人同意。"
+      ],
+      "organization_id": "paper-circle"
+    },
+    {
+      "location_id": "spring-room",
+      "member_ids": [
+        "an",
+        "tao",
+        "lu"
+      ],
+      "name": "泉脉房同值",
+      "norms": [
+        "维护者也有休息和上课时间。",
+        "工时抵费要当场记清。"
+      ],
+      "organization_id": "spring-neighbors"
+    }
+  ],
+  "processes": [
+    {
+      "capacity": 24,
+      "interval_ticks": 8,
+      "kind": "supply",
+      "location_id": "shared-court",
+      "outputs": {
+        "grain": 3
+      },
+      "process_id": "grain-arrival"
+    },
+    {
+      "capacity": 12,
+      "interval_ticks": 6,
+      "kind": "supply",
+      "location_id": "shared-court",
+      "outputs": {
+        "mill-water": 2
+      },
+      "process_id": "mill-water-service",
+      "required_devices": {
+        "spring-valve": 30
+      }
+    },
+    {
+      "capacity": 18,
+      "device_id": "grain-mill",
+      "inputs": {
+        "grain": 2,
+        "mill-water": 1
+      },
+      "interval_ticks": 6,
+      "kind": "production",
+      "location_id": "shared-court",
+      "outputs": {
+        "flour": 3
+      },
+      "process_id": "grinding",
+      "required_devices": {
+        "grain-mill": 30
+      },
+      "wear": 3
+    },
+    {
+      "capacity": 24,
+      "device_id": "court-stove",
+      "inputs": {
+        "flour": 2
+      },
+      "interval_ticks": 4,
+      "kind": "production",
+      "location_id": "shared-court",
+      "outputs": {
+        "court-meal": 3
+      },
+      "process_id": "cooking",
+      "required_devices": {
+        "court-stove": 40
+      },
+      "wear": 2
+    },
+    {
+      "capacity": 8,
+      "interval_ticks": 24,
+      "kind": "supply",
+      "location_id": "shared-court",
+      "outputs": {
+        "bearing-grease": 2
+      },
+      "process_id": "grease-arrival"
+    },
+    {
+      "capacity": 8,
+      "interval_ticks": 24,
+      "kind": "supply",
+      "location_id": "shared-court",
+      "outputs": {
+        "seal-clay": 2
+      },
+      "process_id": "clay-arrival"
+    },
+    {
+      "capacity": 18,
+      "interval_ticks": 12,
+      "kind": "supply",
+      "location_id": "print-room",
+      "outputs": {
+        "rags": 2
+      },
+      "process_id": "rag-arrival"
+    },
+    {
+      "capacity": 12,
+      "interval_ticks": 6,
+      "kind": "supply",
+      "location_id": "print-room",
+      "outputs": {
+        "pulp-water": 2
+      },
+      "process_id": "paper-water-service",
+      "required_devices": {
+        "spring-valve": 30
+      }
+    },
+    {
+      "capacity": 18,
+      "device_id": "paper-press",
+      "inputs": {
+        "pulp-water": 1,
+        "rags": 1
+      },
+      "interval_ticks": 8,
+      "kind": "production",
+      "location_id": "print-room",
+      "outputs": {
+        "paper-sheets": 3
+      },
+      "process_id": "papermaking",
+      "required_devices": {
+        "paper-press": 30,
+        "spring-valve": 30
+      },
+      "wear": 3
+    },
+    {
+      "capacity": 8,
+      "device_id": "paper-press",
+      "inputs": {
+        "ink": 1,
+        "paper-sheets": 2
+      },
+      "interval_ticks": 12,
+      "kind": "production",
+      "location_id": "print-room",
+      "outputs": {
+        "printed-sheets": 1
+      },
+      "process_id": "printing",
+      "required_devices": {
+        "paper-press": 30,
+        "spring-valve": 30
+      },
+      "wear": 1
+    },
+    {
+      "capacity": 6,
+      "interval_ticks": 12,
+      "kind": "supply",
+      "location_id": "print-room",
+      "outputs": {
+        "ink": 1
+      },
+      "process_id": "ink-arrival"
+    },
+    {
+      "capacity": 8,
+      "interval_ticks": 24,
+      "kind": "supply",
+      "location_id": "print-room",
+      "outputs": {
+        "wooden-wedges": 2
+      },
+      "process_id": "wedge-arrival"
+    },
+    {
+      "capacity": 6,
+      "interval_ticks": 24,
+      "kind": "supply",
+      "location_id": "spring-room",
+      "outputs": {
+        "valve-gasket": 1
+      },
+      "process_id": "gasket-arrival"
+    },
+    {
+      "device_id": "grain-mill",
+      "interval_ticks": 8,
+      "kind": "wear",
+      "location_id": "shared-court",
+      "process_id": "mill-weathering",
+      "wear": 1
+    },
+    {
+      "device_id": "court-stove",
+      "interval_ticks": 8,
+      "kind": "wear",
+      "location_id": "shared-court",
+      "process_id": "stove-weathering",
+      "wear": 2
+    },
+    {
+      "device_id": "paper-press",
+      "interval_ticks": 8,
+      "kind": "wear",
+      "location_id": "print-room",
+      "process_id": "press-weathering",
+      "wear": 2
+    },
+    {
+      "device_id": "spring-valve",
+      "interval_ticks": 6,
+      "kind": "wear",
+      "location_id": "spring-room",
+      "process_id": "valve-weathering",
+      "wear": 1
+    }
+  ],
+  "public_knowledge": [
+    "院里材料先记账后领取，欠账名单每月贴在文书房外。",
+    "合用材料必须本人同意，代领要留字据。"
+  ],
+  "repairs": [
+    {
+      "duration_ticks": 3,
+      "inputs": {
+        "bearing-grease": 1
+      },
+      "required_skills": [
+        "磨机维护"
+      ],
+      "restored_condition": 90,
+      "target_id": "grain-mill"
+    },
+    {
+      "duration_ticks": 2,
+      "inputs": {
+        "seal-clay": 1
+      },
+      "required_skills": [
+        "炉灶维护"
+      ],
+      "restored_condition": 95,
+      "target_id": "court-stove"
+    },
+    {
+      "duration_ticks": 4,
+      "inputs": {
+        "wooden-wedges": 2
+      },
+      "required_skills": [
+        "制纸维护"
+      ],
+      "restored_condition": 90,
+      "target_id": "paper-press"
+    },
+    {
+      "duration_ticks": 2,
+      "inputs": {
+        "valve-gasket": 1
+      },
+      "required_skills": [
+        "泉水维护"
+      ],
+      "restored_condition": 95,
+      "target_id": "spring-valve"
+    }
+  ],
+  "runtime_version": "community-runtime/v1"
+}

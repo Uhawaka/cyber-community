@@ -1,0 +1,26 @@
+{
+  "kind": "evolution",
+  "policy": {
+    "action_budget": 6,
+    "hot_character_ids": [],
+    "hot_location_ids": [],
+    "incident_budget": 0,
+    "max_catchup_ticks": 24,
+    "memory_budget": 1,
+    "need_decay": {
+      "exploration": 0,
+      "fatigue": 1,
+      "knowledge": 0,
+      "resources": 1,
+      "social": 1
+    },
+    "opportunity_budget": 16,
+    "phase_predicates": []
+  },
+  "schema_version": "world-workflow/v1alpha1",
+  "steps": [
+    {
+      "op": "community_runtime"
+    }
+  ]
+}

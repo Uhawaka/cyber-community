@@ -41,6 +41,18 @@ def _parse_dotenv(path: Path) -> dict[str, str]:
     return result
 
 
+_ENV_CONNECTION_KEYS = frozenset({"provider", "model", "base_url", "api_key", "llm"})
+
+
+def settings_without_connection(payload: dict) -> dict:
+    """Keep budgets and sampling. Provider, model, address, and key stay in .env."""
+    if not isinstance(payload, dict):
+        raise ValueError("model configuration requires a JSON object")
+    if _ENV_CONNECTION_KEYS.intersection(payload):
+        raise ValueError("model connection belongs in .env, not the model configuration")
+    return payload
+
+
 def _load_secret(name: str) -> str:
     return (
         _parse_dotenv(PROJECT_ROOT / ".env").get(name, "")

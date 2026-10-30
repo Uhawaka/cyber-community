@@ -1,0 +1,54 @@
+{
+  "experience_profile": {
+    "editorial": {
+      "bundle_id": "restrained-mystery-v1",
+      "episode_overrides": {
+        "max_events": 10,
+        "max_repeated_action": 1,
+        "max_world_time_span": 6,
+        "min_arc_events": 4,
+        "min_narrative_events": 2
+      },
+      "style_overrides": {
+        "dialogue_density": "sparse",
+        "forbidden_phrases": [
+          "命中注定",
+          "显而易见"
+        ],
+        "imagery_domains": [
+          "纸纤维",
+          "石阶上的水",
+          "炉灰",
+          "山风"
+        ],
+        "point_of_view": "observer"
+      }
+    },
+    "genre_id": "mystery",
+    "runtime": {
+      "mode_id": "community-life-v1"
+    },
+    "schema_version": "experience-profile/v1"
+  },
+  "metadata": {
+    "language": "zh-CN",
+    "mode": "autonomous-community"
+  },
+  "premise": "山口边的旧寨靠粮仓、水闸和一间账房维持。寨众嘴上讲义气，实际每天都要为粮、水、纸账和坏掉的器具做决定。新任管粮人想把靠抢的日子变成能长久经营的买卖，但旧习惯、穷困和山下势力的目光都在逼每个人表态。谁合作、谁藏私、谁离开，不由作者预定。",
+  "rules": [
+    {
+      "id": "shared-ledger",
+      "statement": "共享粮水出入要记账，私人物品只有本人同意才能动用。"
+    },
+    {
+      "id": "water-first",
+      "statement": "山泉闸口失修时，粮仓与账房都会缺水停摆。"
+    },
+    {
+      "id": "寨规未定",
+      "statement": "寨里没有成文规矩，旧例靠谁嗓门大谁说了算，账房想把规矩写下来。"
+    }
+  ],
+  "title": "黑风寨：粮道与寨规",
+  "world_id": "novel-probe-bandit"
+}

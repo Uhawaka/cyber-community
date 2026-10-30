@@ -1,0 +1,50 @@
+{
+  "goals": [
+    "教会至少一个人独立守闸，然后下山看看"
+  ],
+  "home_location_id": "terrace-homes",
+  "known_routes": [
+    "shared-court-to-print-room",
+    "print-room-to-shared-court",
+    "shared-court-to-spring-room",
+    "spring-room-to-shared-court",
+    "shared-court-to-archive-room",
+    "archive-room-to-shared-court",
+    "shared-court-to-terrace-homes",
+    "terrace-homes-to-shared-court",
+    "shared-court-to-ridge-gate",
+    "ridge-gate-to-shared-court",
+    "print-room-to-archive-room",
+    "archive-room-to-print-room",
+    "spring-room-to-ridge-gate",
+    "ridge-gate-to-spring-room"
+  ],
+  "learning_interests": [
+    "校记档案"
+  ],
+  "location_id": "spring-room",
+  "name": "白汀",
+  "needs": {
+    "exploration": 28,
+    "fatigue": 10,
+    "knowledge": 25,
+    "resources": 26,
+    "social": 20
+  },
+  "responsibilities": [
+    "spring-valve"
+  ],
+  "role": "守闸人",
+  "routine_locations": [
+    "terrace-homes",
+    "spring-room",
+    "shared-court",
+    "archive-room"
+  ],
+  "skills": [
+    "泉水维护"
+  ],
+  "stocking_interests": [
+    "valve-gasket"
+  ]
+}

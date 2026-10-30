@@ -45,6 +45,7 @@ def _parser() -> tuple[argparse.ArgumentParser, dict[str, argparse.ArgumentParse
         epilog=(
             "示例:\n"
             "  cyber-community community worlds/echo-quay --log outputs/experiments/community.jsonl\n"
+            "  cyber-community community worlds/echo-quay --log outputs/experiments/community.jsonl --model-config config/model.json\n"
             "  cyber-community community-observe worlds/echo-quay --log outputs/experiments/community.jsonl\n"
             "  cyber-community help"
         ),
@@ -61,7 +62,7 @@ def _parser() -> tuple[argparse.ArgumentParser, dict[str, argparse.ArgumentParse
     community.add_argument("--policy", choices=("life", "rest-wait"), default=None, help="新建默认 life，续跑继承日志")
     community.add_argument("--action-budget", type=_bounded_ticks, default=None, help="固定每 Tick 行动预算，续跑不可更改")
     community.add_argument("--memory-budget", type=_bounded_ticks, default=None, help="固定每 Tick 记忆预算，续跑不可更改")
-    community.add_argument("--model-config", type=Path, help="显式启用模型managed配置的JSON文件；会调用所配模型")
+    community.add_argument("--model-config", type=Path, help="显式启用 .env 中的模型；文件只写预算和采样，不写供应商、地址或密钥")
     observe = subparsers.add_parser("community-observe", help="只读校验历史并打印公共观察，不续跑")
     observe.add_argument("package", type=Path, help="与历史匹配的社区世界包目录")
     observe.add_argument("--log", type=Path, required=True, help="只读事件日志，含私有认知")
@@ -159,8 +160,8 @@ def run_community_package(args):
                                   parse_constant=_invalid_constant, parse_float=_finite_settings_float)
         except RecursionError as exc:
             raise ValueError("model configuration nesting exceeds budget") from exc
-        if not isinstance(settings, dict):
-            raise ValueError("model configuration requires a JSON object")
+        from engine.adapters.openai_compatible import settings_without_connection
+        settings = settings_without_connection(settings)
         settings["community_managed"] = True
         if args.action_budget is not None:
             settings["community_action_budget"] = args.action_budget
